@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("C-Sharp-Promise")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Simple C# Promises Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Real Serious Games")]
 [assembly: AssemblyProduct("C-Sharp-Promise")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
