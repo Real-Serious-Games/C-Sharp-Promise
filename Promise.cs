@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using RSG.Utils;
 
-namespace Utils
+namespace RSG.Utils
 {
     /// <summary>
     /// Implements a C# promise.
