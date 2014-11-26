@@ -239,7 +239,7 @@ namespace Utils
             }
             else if (CurState == PromiseState.Resolved)
             {
-                // Promise has already been rejected, immediately call handler.
+                // Promise has already been resolved, immediately call handler.
                 onCompleted();
             }
 
@@ -305,9 +305,12 @@ namespace Utils
         /// </summary>
         public static IPromise<IEnumerable<PromisedT>> All(IEnumerable<IPromise<PromisedT>> promises)
         {
-            Argument.NotNull(() => promises);
-
             var promisesArray = promises.ToArray();
+            if (promisesArray.Length == 0)
+            {
+                return Promise<IEnumerable<PromisedT>>.Resolved(LinqExts.Empty<PromisedT>());
+            }
+
             var remainingCount = promisesArray.Length;
             var results = new PromisedT[remainingCount];
             var resultPromise = new Promise<IEnumerable<PromisedT>>();
