@@ -157,3 +157,4 @@ $RECYCLE.BIN/
 packages/**/*.nupkg
 packages/**/*.nuspec
 *.nupkg
+packages/
