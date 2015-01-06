@@ -8,10 +8,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 //
-// This example downloads search results from google then transforms the result to extract links.
+// This example downloads search results from google, extracts the links and follows only a single first link, downloads its then prints the result.
 // It includes both error handling and a completion handler.
 //
-namespace Example
+namespace Example4
 {
     class Program
     {
@@ -30,21 +30,20 @@ namespace Example
                     return LinkFinder
                         .Find(html)
                         .Select(link => link.Href)
-                        .ToArray();
-                })            
-                .Catch(exception =>     // Catch any errors that happen during download or transform.
+                        .Skip(5)
+                        .First();              // Grab the 6th link.
+                })
+                .Then(firstLink => Download(firstLink)) // Follow the first link and download it.
+                .Catch(exception =>                     // Catch any errors that happen during download or transform.
                 {
                     Console.WriteLine("Async operation errorred.");
                     Console.WriteLine(exception);
                     running = false;
                 })
-                .Done(links =>          // Display the links that were extracted.
+                .Done(html =>          // Display html from the link that was followed.
                 {
                     Console.WriteLine("Async operation completed.");
-                    foreach (var link in links)
-                    {
-                        Console.WriteLine(link);
-                    }
+                    Console.WriteLine(html.Substring(0, 250) + "...");
                     running = false;
                 });
 

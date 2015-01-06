@@ -9,7 +9,7 @@ using System.Threading;
 //
 // Example of a promise that is rejected because of an error during the async operation.
 //
-namespace Example1
+namespace Example
 {
     class Program
     {
@@ -42,6 +42,8 @@ namespace Example1
         /// </summary>
         static IPromise<string> Download(string url)
         {
+            Console.WriteLine("Downloading " + url + " ...");
+
             var promise = new Promise<string>();
             using (var client = new WebClient())
             {
@@ -50,11 +52,15 @@ namespace Example1
                     {
                         if (ev.Error != null)
                         {
+                            Console.WriteLine("An error occurred... rejecting the promise.");
+
                             // Error during download, reject the promise.
                             promise.Reject(ev.Error);
                         }
                         else
                         {
+                            Console.WriteLine("... Download completed.");
+
                             // Downloaded completed successfully, resolve the promise.
                             promise.Resolve(ev.Result);
                         }
