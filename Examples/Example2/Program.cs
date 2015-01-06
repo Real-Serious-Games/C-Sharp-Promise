@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 
 //
-// Example of downloading text from a URL using a promise.
+// Example of a promise that is rejected because of an error during the async operation.
 //
 namespace Example1
 {
@@ -18,10 +18,10 @@ namespace Example1
             var running = true;
 
             Download("http://www.bugglebogglebazzooo.com")   // Schedule async operation, this time the URL is bad!
-                .Catch(result => 
+                .Catch(exception => 
                 {
-                    Console.WriteLine("Async operation errored.");
-                    Console.WriteLine(result);
+                    Console.WriteLine("Async operation errorred.");
+                    Console.WriteLine(exception);
                     running = false;
                 });
 
