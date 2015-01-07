@@ -140,7 +140,7 @@ For convenience or testing you will at some point need to create a promise that 
 
 ## Interfaces ##
 
-The class *Promise<T>* implements the follow interfaces: 
+The class *Promise<T>* implements the following interfaces: 
 
 - `IPromise<T>` Interface to await promise resolution.
 - `IPendingPromise<T>` Interface that can resolve or reject the promise.  
