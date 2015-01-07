@@ -301,6 +301,15 @@ namespace RSG.Utils
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
         /// Returns a promise of a collection of the resolved results.
         /// </summary>
+        public static IPromise<IEnumerable<PromisedT>> All(params IPromise<PromisedT>[] promises)
+        {
+            return All((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other All function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
         public static IPromise<IEnumerable<PromisedT>> All(IEnumerable<IPromise<PromisedT>> promises)
         {
             var promisesArray = promises.ToArray();
