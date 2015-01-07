@@ -8,8 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 //
-// This example downloads search results from google, extracts the links and follows only a single first link, downloads its then prints the result.
-// It includes both error handling and a completion handler.
+// This example downloads search results from google, extracts the links, follows all (absolute) links and combines all async operations in a single operation using the All function.
 //
 namespace Example4
 {
