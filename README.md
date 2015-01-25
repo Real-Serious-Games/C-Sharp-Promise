@@ -147,7 +147,8 @@ The class *Promise<T>* implements the following interfaces:
 
 ## Combining Multiple Async Operations ##
 
-The *All* function combines multiple async operations. It converts a collection of promises each yielding a value of type *T* into a promise that yields a collection of values of type *T*.  
+The *All* function combines multiple async operations. It converts a collection of promises or a variable length parameter list of promises into a single promise that yields a collection. 
+ Say that each promise yields a value of type *T*, the resulting promise then yields a collection with values of type *T*.  
 
 Here is an example that extracts links from multiple pages and merges the results:
 
@@ -169,6 +170,19 @@ Here is an example that extracts links from multiple pages and merges the result
 				Console.WriteLine(link);
 			}
 		});
+
+The *ThenAll* function does the same thing, but is a more convenient way of chaining:
+
+	promise
+		.Then(result => SomeAsyncOperation(result)) // Chain a single async operation
+		.ThenAll(result =>
+			SomeAsyncOperation1(result),			// Chain multiple sync operations.
+			SomeAsyncOperation2(result),
+			SomeAsyncOperation3(result)
+		)
+		.Done(collection => ...);					// Final promise resolves 
+													// with a collection of values 
+													// when all operations have completed.  
 
 
 ## Chaining Synchronous Actions that have no Result

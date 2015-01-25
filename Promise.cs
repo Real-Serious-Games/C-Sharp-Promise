@@ -317,6 +317,24 @@ namespace RSG.Utils
                 return this;
             });
         }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        public IPromise<IEnumerable<PromisedT>> ThenAll(params IPromise<PromisedT>[] promises)
+        {
+            return ThenAll((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other All function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        public IPromise<IEnumerable<PromisedT>> ThenAll(IEnumerable<IPromise<PromisedT>> promises)
+        {
+            return Promise<PromisedT>.All(promises);
+        }
         
         /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
