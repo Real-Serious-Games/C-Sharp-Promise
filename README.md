@@ -170,6 +170,18 @@ Here is an example that extracts links from multiple pages and merges the result
 			}
 		});
 
+
+## Chaining Synchronous Actions that have no Result
+
+The *Do* function can be used to chain synchronous operations that yield no result.
+
+	var promise = ...
+	promise
+		.Then(result => SomeAsyncOperation(result)) // Chain an async operation.
+		.Do(result => Console.WriteLine(result))    // Chain a sync operation that yields no result.
+		.Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
+
+
 ## Examples ##
 
 
