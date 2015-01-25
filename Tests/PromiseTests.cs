@@ -654,5 +654,44 @@ namespace RSG.Utils.Tests
 
             Assert.Equal(1, errors);
         }
+
+        [Fact]
+        public void can_invoke_do_callback()
+        {
+            var promise = new Promise<int>();
+            var invoked = 0;
+            promise.Do(i => ++invoked);
+
+            promise.Resolve(5);
+
+            Assert.Equal(1, invoked);
+        }
+
+        [Fact]
+        public void can_invoke_multiple_do_callbacks_in_order()
+        {
+            var promise = new Promise<int>();
+            var order = 0;
+            promise
+                .Do(i => Assert.Equal(1, ++order))
+                .Do(i => Assert.Equal(2, ++order))
+                .Do(i => Assert.Equal(3, ++order));
+
+            promise.Resolve(5);
+
+            Assert.Equal(3, order);
+        }
+
+        [Fact]
+        public void do_callback_is_not_invoked_when_promise_is_rejected()
+        {
+            var promise = new Promise<int>();
+            var invoked = 0;
+            promise.Do(i => ++invoked);
+
+            promise.Reject(new ApplicationException());
+
+            Assert.Equal(0, invoked);
+        }
     }
 }

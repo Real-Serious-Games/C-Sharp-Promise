@@ -37,6 +37,13 @@ namespace RSG.Utils
         /// May also change the type of the value.
         /// </summary>
         IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
+
+        /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        IPromise<PromisedT> Do(Action<PromisedT> action);
     }
 
     /// <summary>
@@ -297,6 +304,20 @@ namespace RSG.Utils
             return resultPromise;
         }
 
+        /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        public IPromise<PromisedT> Do(Action<PromisedT> action)
+        {
+            return Then(value =>
+            {
+                action(value);
+                return this;
+            });
+        }
+        
         /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
         /// Returns a promise of a collection of the resolved results.
