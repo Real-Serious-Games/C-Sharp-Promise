@@ -118,7 +118,7 @@ Here we are chaining another download onto the end of the first download. The fi
 Sometimes you will want to simply transform or modify the resulting value without chaining another async operation.
 
 	Download("http://www.google.com")
-		.Then(html =>
+		.Transform(html =>
 			return ExtractAllLinks(html)) // Extract all links and return an array of strings.  
 		)
 		.Done(links =>					  // The input here is an array of strings.
