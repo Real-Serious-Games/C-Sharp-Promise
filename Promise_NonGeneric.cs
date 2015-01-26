@@ -209,6 +209,38 @@ namespace RSG.Utils
         }
 
         /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        public IPromise Do(Action action)
+        {
+            return Then(() =>
+            {
+                action();
+                return this;
+            });
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        public IPromise ThenAll(params IPromise[] promises)
+        {
+            return ThenAll((IEnumerable<IPromise>)promises); // Cast is required to force use of the other All function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        public IPromise ThenAll(IEnumerable<IPromise> promises)
+        {
+            return Promise.All(promises);
+        }
+
+        /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
         /// Returns a promise of a collection of the resolved results.
         /// </summary>
@@ -256,6 +288,70 @@ namespace RSG.Utils
             return resultPromise;
         }
 
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public IPromise ThenRace(params IPromise[] promises)
+        {
+            return ThenRace((IEnumerable<IPromise>)promises); // Cast is required to force use of the other function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public IPromise ThenRace(IEnumerable<IPromise> promises)
+        {
+            return Promise.Race(promises);
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise Race(params IPromise[] promises)
+        {
+            return Race((IEnumerable<IPromise>)promises); // Cast is required to force use of the other Race function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise Race(IEnumerable<IPromise> promises)
+        {
+            var promisesArray = promises.ToArray();
+            if (promisesArray.Length == 0)
+            {
+                throw new ApplicationException("At least 1 input promise must be provided for Race");
+            }
+
+            var resultPromise = new Promise();
+
+            promisesArray.Each((promise, index) =>
+            {
+                promise
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                    })
+                    .Done(() =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.Resolve();
+                        }
+                    });
+            });
+
+            return resultPromise;
+        }
+        
         /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>
