@@ -693,5 +693,75 @@ namespace RSG.Utils.Tests
 
             Assert.Equal(0, invoked);
         }
+
+        [Fact]
+        public void race_is_resolved_when_first_promise_is_resolved_first()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<int>();
+
+            var resolved = 0;
+
+            Promise<int>
+                .Race(promise1, promise2)
+                .Done(i => resolved = i);
+
+            promise1.Resolve(5);
+
+            Assert.Equal(5, resolved);
+        }
+
+        [Fact]
+        public void race_is_resolved_when_second_promise_is_resolved_first()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<int>();
+
+            var resolved = 0;
+
+            Promise<int>
+                .Race(promise1, promise2)
+                .Done(i => resolved = i);
+
+            promise2.Resolve(12);
+
+            Assert.Equal(12, resolved);
+        }
+
+        [Fact]
+        public void race_is_rejected_when_first_promise_is_rejected_first()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<int>();
+
+            Exception ex = null;
+
+            Promise<int>
+                .Race(promise1, promise2)
+                .Catch(e => ex = e);
+
+            var expected = new Exception();
+            promise1.Reject(expected);
+
+            Assert.Equal(expected, ex);
+        }
+
+        [Fact]
+        public void race_is_rejected_when_second_promise_is_rejected_first()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<int>();
+
+            Exception ex = null;
+
+            Promise<int>
+                .Race(promise1, promise2)
+                .Catch(e => ex = e);
+
+            var expected = new Exception();
+            promise2.Reject(expected);
+
+            Assert.Equal(expected, ex);
+        }
     }
 }

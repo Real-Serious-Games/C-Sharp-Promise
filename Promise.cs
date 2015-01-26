@@ -388,6 +388,70 @@ namespace RSG.Utils
         }
 
         /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public IPromise<PromisedT> ThenRace(params IPromise<PromisedT>[] promises)
+        {
+            return ThenRace((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public IPromise<PromisedT> ThenRace(IEnumerable<IPromise<PromisedT>> promises)
+        {
+            return Promise<PromisedT>.Race(promises);
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise<PromisedT> Race(params IPromise<PromisedT>[] promises)
+        {
+            return Race((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other Race function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise<PromisedT> Race(IEnumerable<IPromise<PromisedT>> promises)
+        {
+            var promisesArray = promises.ToArray();
+            if (promisesArray.Length == 0)
+            {
+                throw new ApplicationException("At least 1 input promise must be provided for Race");
+            }
+
+            var resultPromise = new Promise<PromisedT>();
+
+            promisesArray.Each((promise, index) =>
+            {
+                promise
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                    })
+                    .Done(result =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.Resolve(result);
+                        }
+                    });
+            });
+
+            return resultPromise;
+        }
+
+        /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>
         public static IPromise<PromisedT> Resolved(PromisedT promisedValue)

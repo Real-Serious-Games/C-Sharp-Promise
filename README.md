@@ -185,6 +185,20 @@ The *ThenAll* function does the same thing, but is a more convenient way of chai
 													// when all operations have completed.  
 
 
+## Racing Asynchronous Operations
+
+The *Race* and *RaceAll* functions are similar to the *All* and *ThenAll* functions, but it is the first async operation that completes that wins the race and it's value resolves the promise.
+
+	promise
+		.Then(result => SomeAsyncOperation(result))	// Chain an async operation.
+		.ThenRace(result =>
+			SomeAsyncOperation1(result),			// Race multiple async operations.
+			SomeAsyncOperation2(result),
+			SomeAsyncOperation3(result)
+		)
+		.Done(result => ...);						// The result has come from whichever of
+													// the async operations completed first. 
+
 ## Chaining Synchronous Actions that have no Result
 
 The *Do* function can be used to chain synchronous operations that yield no result.
