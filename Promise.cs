@@ -44,6 +44,30 @@ namespace RSG.Utils
         /// The callback is invoked when the promise is resolved, after the callback the chain continues.
         /// </summary>
         IPromise<PromisedT> Do(Action<PromisedT> action);
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        IPromise<IEnumerable<PromisedT>> ThenAll(params IPromise<PromisedT>[] promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        IPromise<IEnumerable<PromisedT>> ThenAll(IEnumerable<IPromise<PromisedT>> promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        IPromise<PromisedT> ThenRace(params IPromise<PromisedT>[] promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        IPromise<PromisedT> ThenRace(IEnumerable<IPromise<PromisedT>> promises);
     }
 
     /// <summary>

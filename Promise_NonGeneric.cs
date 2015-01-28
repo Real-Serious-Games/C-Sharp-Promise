@@ -26,6 +26,37 @@ namespace RSG.Utils
         /// May also change the type of value that is being fulfilled.
         /// </summary>
         IPromise Then(Func<IPromise> chain);
+
+        /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        IPromise Do(Action action);
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        IPromise ThenAll(params IPromise[] promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        IPromise ThenAll(IEnumerable<IPromise> promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        IPromise ThenRace(params IPromise[] promises);
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        IPromise ThenRace(IEnumerable<IPromise> promises);
     }
 
     /// <summary>
