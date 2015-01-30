@@ -9,6 +9,7 @@ install:
   - export EnableNuGetPackageRestore=true  
  
 script:
+  - ls ./bin/
   - ls ./bin/Debug
   - xbuild ./C-Sharp-Promise.sln
   - ls ./bin/Debug
