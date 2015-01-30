@@ -57,6 +57,18 @@ namespace RSG.Utils
         /// Returns the value from the first promise that has resolved.
         /// </summary>
         IPromise ThenRace(IEnumerable<IPromise> promises);
+
+        /// <summary>
+        /// Chain a number of operations using promises.
+        /// Takes a number of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        IPromise ThenSequence(params Func<IPromise>[] fns);
+
+        /// <summary>
+        /// Chain a sequence of operations using promises.
+        /// Takes a collection of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        IPromise ThenSequence(IEnumerable<Func<IPromise>> fns);
     }
 
     /// <summary>
@@ -382,7 +394,50 @@ namespace RSG.Utils
 
             return resultPromise;
         }
-        
+
+        /// <summary>
+        /// Chain a number of operations using promises.
+        /// Takes a number of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        public IPromise ThenSequence(params Func<IPromise>[] fns)
+        {
+            return ThenSequence((IEnumerable<Func<IPromise>>)fns);
+        }
+
+        /// <summary>
+        /// Chain a sequence of operations using promises.
+        /// Takes a collection of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        public IPromise ThenSequence(IEnumerable<Func<IPromise>> fns)
+        {
+            return Then(() => Sequence(fns));
+        }
+
+        /// <summary>
+        /// Chain a number of operations using promises.
+        /// Takes a number of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        public static IPromise Sequence(params Func<IPromise>[] fns)
+        {
+            return Sequence((IEnumerable<Func<IPromise>>)fns);
+        }
+
+        /// <summary>
+        /// Chain a sequence of operations using promises.
+        /// Takes a collection of functions each of which starts an async operation and yields a promise.
+        /// </summary>
+        public static IPromise Sequence(IEnumerable<Func<IPromise>> fns)
+        {
+            return fns
+                .Aggregate(
+                    Promise.Resolved(),
+                    (prevPromise, fn) =>
+                    {
+                        return prevPromise.Then(() => fn());
+                    }
+                );
+        }
+
         /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>

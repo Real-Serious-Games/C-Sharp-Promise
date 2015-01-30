@@ -675,5 +675,147 @@ namespace RSG.Utils.Tests
 
             Assert.Equal(expected, ex);
         }
+
+        [Fact]
+        public void sequence_with_no_operations_is_directly_resolved()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(new Func<IPromise>[0])
+                .Done(() => ++completed);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void sequenced_is_not_resolved_when_operation_is_not_resolved()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(() => new Promise())
+                .Done(() => ++completed);
+
+            Assert.Equal(0, completed);
+        }
+
+        [Fact]
+        public void sequence_is_resolved_when_operation_is_resolved()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(() => Promise.Resolved())
+                .Done(() => ++completed);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void sequence_is_unresolved_when_some_operations_are_unresolved()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(
+                    () => Promise.Resolved(),
+                    () => new Promise()
+                )
+                .Done(() => ++completed);
+
+            Assert.Equal(0, completed);
+        }
+
+        [Fact]
+        public void sequence_is_resolved_when_all_operations_are_resolved()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(
+                    () => Promise.Resolved(),
+                    () => Promise.Resolved()
+                )
+                .Done(() => ++completed);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void sequenced_operations_are_run_in_order_is_directly_resolved()
+        {
+            var order = 0;
+
+            Promise
+                .Sequence(
+                    () =>
+                    {
+                        Assert.Equal(1, ++order);
+                        return Promise.Resolved();
+                    },
+                    () =>
+                    {
+                        Assert.Equal(2, ++order);
+                        return Promise.Resolved();
+                    },
+                    () =>
+                    {
+                        Assert.Equal(3, ++order);
+                        return Promise.Resolved();
+                    }
+                );
+
+            Assert.Equal(3, order);
+        }
+
+        [Fact]
+        public void exception_thrown_in_sequence_rejects_the_promise()
+        {
+            var errored = 0;
+            var completed = 0;
+            var ex = new Exception();
+
+            Promise
+                .Sequence(() => 
+                {
+                    throw ex;
+                })
+                .Catch(e => {
+                    Assert.Equal(ex, e);
+                    ++errored;
+                })
+                .Done(() => ++completed);
+
+            Assert.Equal(1, errored);
+            Assert.Equal(0, completed);
+        }
+
+        [Fact]
+        public void exception_thrown_in_sequence_stops_following_operations_from_being_invoked()
+        {
+            var completed = 0;
+
+            Promise
+                .Sequence(
+                    () => 
+                    {
+                        ++completed;
+                        return Promise.Resolved();
+                    },
+                    () =>
+                    {
+                        throw new Exception();
+                    },
+                    () =>
+                    {
+                        ++completed;
+                        return Promise.Resolved();
+                    }
+                );
+
+            Assert.Equal(1, completed);
+        }
+
     }
 }
