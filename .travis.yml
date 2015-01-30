@@ -1,17 +1,10 @@
-language: c
+language: csharp
+solution: C-Sharp-Promise.sln
  
 install:
-  - sudo apt-get update -qq > /dev/null
-  - sudo apt-get install -qq mono-devel mono-gmcs > /dev/null
-  - mozroots --import --sync
-  - mv -f ./.nuget/NuGet.mono.targets ./.nuget/NuGet.targets
-  - chmod +x ./xunit/xunit.console.clr4.x86.exe
-  - export EnableNuGetPackageRestore=true  
+  - nuget restore C-Sharp-Promise.sln
+  - nuget install xunit.runners -Version 1.9.2 -OutputDirectory testrunner
  
 script:
-  - ls ./
-  - xbuild ./C-Sharp-Promise.sln
-  - ls ./
-  - ls ./bin
-  - ls ./bin/Debug
-  - mono ./xunit/xunit.console.clr4.x86.exe ./bin/Debug/RSG.Promise.Tests.dll
+  - xbuild /p:Configuration=Debug C-Sharp-Promise.sln
+  - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.exe ./bin/Debug/RSG.Promise.dll
