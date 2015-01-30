@@ -211,6 +211,70 @@ The *ThenDo* function can be used to chain synchronous operations that yield no 
 		.Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
 
 
+## Promises that have no Results
+
+What about a promise that has no result? These are a curious, they represent an asynchronous operation that promises only to complete... it doesn't promise to yield any value as a result.
+
+For this there is an non-generic implementation of Promise. `Promise` It is very similar to `Promise<T>` and implements similar, but non-generic, interfaces: `IPromise` and `IPendingPromise`. Functions from `Promise<T>` that affect the value, such as `Transform`, have no relevance tot he non-generic promise and have been removed.
+
+This allows us to chain async operations that must happen one after the other but do not form a pipeline of results.
+
+This results in a very useful technique for chaining animations as we often need to do in *game development*, eg.
+
+	RunAnimation("Foo")							// RunAnimation returns a promise that 
+		.Then(() => RunAnimation("Bar"))		// is resolved when the animation is complete.
+		.Then(() => PlaySound("AnimComplete"));
+
+In this way we can use the non-generic promise to create sequences of visual effects.
+
+## Running a Sequence of Operations
+
+The `Sequence` function is a helper that build a single promise that chains together multiple operatios that must be invoked one after the other.
+
+It takes multiple promise-yielding functions as input, then chains the sequence of functions and returns a single promise tha completes once the sequence has completed. 
+
+	var sequence = Promise.Sequence(
+		() => RunAnimation("Foo"),
+		() => RunAnimation("Bar"),
+		() => PlaySound("AnimComplete")
+	);
+
+It can also be passed a collection:
+
+	var operations = ...
+	var sequence = Promise.Sequence(operations);
+
+This version might be used, for example, to play animations based on data:
+
+ 	var animationNames = new string[] { "Foo", "Bar", "Another", "SomethingElse" };
+    var animations = animationNames.Select(animName => (Func<IPromise>)(() => RunAnimation(animName)));
+	var sequence = Promise.Sequence(animations);
+	sequence
+		.Done(() =>
+		{
+			// All animations have completed in sequence.
+		});
+
+Unfortunately here we have reached the limits here of what is possible with C# type inference, hence the ugly cast `Func<IPromise>`.
+
+The cast can easily be removed by converting the inner anonymous function to an actual function that returns a function, which I'll call `PrepAnimation`: 
+
+	private Func<IPromise> PrepAnimation(string animName) 
+	{
+		return () => RunAnimation(animName);
+	}
+
+    var animations = animationNames.Select(animName => PrepAnimation(animName));
+	var sequence = Promise.Sequence(animations);
+	sequence
+		.Done(() =>
+		{
+			// All animations have completed in sequence.
+		});
+
+Ok... so we've veered majorly into [functional programming](http://en.wikipedia.org/wiki/Functional_programming) territory here, but therein are some very powerful and expressive programming techniques.
+
+
 ## Examples ##
 
 
