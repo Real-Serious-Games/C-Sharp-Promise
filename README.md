@@ -215,9 +215,9 @@ The *ThenDo* function can be used to chain synchronous operations that yield no 
 
 What about a promise that has no result? This represents an asynchronous operation that promises only to complete, it doesn't promise to yield any value as a result. This might seem like a curiousity but it is actually very useful for sequencing visual effects.
 
-To achieve this there is an non-generic implementation of Promise. `Promise` is very similar to `Promise<T>` and implements the same, except non-generic, interfaces: `IPromise` and `IPendingPromise`. 
+For this there is a non-generic version of Promise. `Promise` is very similar to `Promise<T>` and implements the same, except non-generic, interfaces: `IPromise` and `IPendingPromise`. 
 
-`Promise<T>` functions that affect the value, such as `Transform`, have no relevance for the non-generic promise and have been removed.
+`Promise<T>` functions that affect the resulting value, such as `Transform`, have no relevance for the non-generic promise and have been removed.
 
 As an example consider the chaining of animation and sound effects as we often need to do in *game development*:
 
@@ -225,7 +225,6 @@ As an example consider the chaining of animation and sound effects as we often n
 		.Then(() => RunAnimation("Bar"))		// is resolved when the animation is complete.
 		.Then(() => PlaySound("AnimComplete"));
 
-In this way we can use the non-generic promise to create sequences of visual effects.
 
 ## Running a Sequence of Operations
 
@@ -244,9 +243,9 @@ The inputs can also be passed as a collection:
 	var operations = ...
 	var sequence = Promise.Sequence(operations);
 
-This version might be used, for example, to play animations based on data:
+This might be used, for example, to play a variable length collection of animations based on data:
 
- 	var animationNames = new string[] { "Foo", "Bar", "Another", "SomethingElse" };
+ 	var animationNames = ... variable length array of animation names loaded from data...
     var animations = animationNames.Select(animName => (Func<IPromise>)(() => RunAnimation(animName)));
 	var sequence = Promise.Sequence(animations);
 	sequence
@@ -255,9 +254,9 @@ This version might be used, for example, to play animations based on data:
 			// All animations have completed in sequence.
 		});
 
-Unfortunately we find that we have reached the limits of what is possible with C# type inference, hence the use of the ugly cast `Func<IPromise>`.
+Unfortunately we find that we have reached the limits of what is possible with C# type inference, hence the use of the ugly cast `(Func<IPromise>)`.
 
-The cast can easily be removed by converting the inner anonymous function to an actual function that returns a function, which I'll call `PrepAnimation`: 
+The cast can easily be removed by converting the inner anonymous function to an actual function which I'll call `PrepAnimation`: 
 
 	private Func<IPromise> PrepAnimation(string animName) 
 	{
@@ -275,6 +274,8 @@ The cast can easily be removed by converting the inner anonymous function to an 
 Holy cow... we've just careened into [functional programming](http://en.wikipedia.org/wiki/Functional_programming) territory, herein lies very powerful and expressive programming techniques.
 
 ## Combining Parallel and Sequential Operations
+
+We can easily combine sequential and parallel operations to build very expressive logic. 
 
 	Promise.Sequence(				// Play operations 1 and 2 sequently.
    		() => Promise.All(				// Operation 1: Play animation and sound at same time.
