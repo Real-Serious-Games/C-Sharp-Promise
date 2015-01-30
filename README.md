@@ -213,13 +213,13 @@ The *ThenDo* function can be used to chain synchronous operations that yield no 
 
 ## Promises that have no Results
 
-What about a promise that has no result? These are a curious, they represent an asynchronous operation that promises only to complete... it doesn't promise to yield any value as a result.
+What about a promise that has no result? This represents an asynchronous operation that promises only to complete, it doesn't promise to yield any value as a result. This might seem like a curiousity but it is actually very useful for sequencing visual effects.
 
-For this there is an non-generic implementation of Promise. `Promise` It is very similar to `Promise<T>` and implements similar, but non-generic, interfaces: `IPromise` and `IPendingPromise`. Functions from `Promise<T>` that affect the value, such as `Transform`, have no relevance tot he non-generic promise and have been removed.
+To achieve this there is an non-generic implementation of Promise. `Promise` is very similar to `Promise<T>` and implements the same, except non-generic, interfaces: `IPromise` and `IPendingPromise`. 
 
-This allows us to chain async operations that must happen one after the other but do not form a pipeline of results.
+`Promise<T>` functions that affect the value, such as `Transform`, have no relevance for the non-generic promise and have been removed.
 
-This results in a very useful technique for chaining animations as we often need to do in *game development*, eg.
+As an example consider the chaining of animation and sound effects as we often need to do in *game development*:
 
 	RunAnimation("Foo")							// RunAnimation returns a promise that 
 		.Then(() => RunAnimation("Bar"))		// is resolved when the animation is complete.
@@ -229,9 +229,9 @@ In this way we can use the non-generic promise to create sequences of visual eff
 
 ## Running a Sequence of Operations
 
-The `Sequence` function is a helper that build a single promise that chains together multiple operatios that must be invoked one after the other.
+The `Sequence` and `ThenSequence` functions build a single promise that wraps multiple sequential operations that will be invoked one after the other.
 
-It takes multiple promise-yielding functions as input, then chains the sequence of functions and returns a single promise tha completes once the sequence has completed. 
+Multiple promise-yielding functions are provided as input, these are chained one after the other and wrapped in a single promise that is resolved once the sequence has completed. 
 
 	var sequence = Promise.Sequence(
 		() => RunAnimation("Foo"),
@@ -239,7 +239,7 @@ It takes multiple promise-yielding functions as input, then chains the sequence 
 		() => PlaySound("AnimComplete")
 	);
 
-It can also be passed a collection:
+The inputs can also be passed as a collection:
 
 	var operations = ...
 	var sequence = Promise.Sequence(operations);
@@ -255,7 +255,7 @@ This version might be used, for example, to play animations based on data:
 			// All animations have completed in sequence.
 		});
 
-Unfortunately here we have reached the limits here of what is possible with C# type inference, hence the ugly cast `Func<IPromise>`.
+Unfortunately we find that we have reached the limits of what is possible with C# type inference, hence the use of the ugly cast `Func<IPromise>`.
 
 The cast can easily be removed by converting the inner anonymous function to an actual function that returns a function, which I'll call `PrepAnimation`: 
 
@@ -272,8 +272,22 @@ The cast can easily be removed by converting the inner anonymous function to an 
 			// All animations have completed in sequence.
 		});
 
-Ok... so we've veered majorly into [functional programming](http://en.wikipedia.org/wiki/Functional_programming) territory here, but therein are some very powerful and expressive programming techniques.
+Holy cow... we've just careened into [functional programming](http://en.wikipedia.org/wiki/Functional_programming) territory, herein lies very powerful and expressive programming techniques.
 
+## Combining Parallel and Sequential Operations
+
+	Promise.Sequence(				// Play operations 1 and 2 sequently.
+   		() => Promise.All(				// Operation 1: Play animation and sound at same time.
+			RunAnimation("Foo"),
+			PlaySound("Bar")
+ 		),
+   		() => Promise.All(
+			RunAnimation("One"),		// Operation 2: Play animation and sound at same time.
+			PlaySound("Two")      
+   		)
+	);
+
+I'm starting to feel like we are defining behavior trees.
 
 ## Examples ##
 
@@ -281,7 +295,8 @@ Ok... so we've veered majorly into [functional programming](http://en.wikipedia.
 - Example1
 	- Example of downloading text from a URL using a promise.
 - Example2
-	- Example of a promise that is rejected because of an error during the async operation.
+	- Example of a promise that is rejected because of an error during 
+	- the async operation.
 - Example3
 	- This example downloads search results from google then transforms the result to extract links.
 	- Includes both error handling and a completion handler.
