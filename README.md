@@ -97,7 +97,7 @@ For all but the most trivial applications you will also want to register an erro
 			Console.WriteLine(html)
 		);
 
-The chain of processing for a promise as soon as an error/exception occurs. In this case when an error occurs the *Catch* handler would be called, but not the *Done* handler. If there is no error, then only *Done* is called.
+The chain of processing for a promise ends as soon as an error/exception occurs. In this case when an error occurs the *Catch* handler would be called, but not the *Done* handler. If there is no error, then only *Done* is called.
 
 ## Chaining Async Operations ##
 
@@ -166,7 +166,7 @@ Here is an example that extracts links from multiple pages and merges the result
 				page => ExtractAllLinks(page) // Extract links from all pages then flatten to single collection of links.
 			)
 		)
-		.Done(links =>				// Receives the flattened collectioon of links from all pages at once.
+		.Done(links =>				// Receives the flattened collection of links from all pages at once.
 		{
 			foreach (var link in links)
 			{
@@ -179,7 +179,7 @@ The *ThenAll* function does the same thing, but is a more convenient way of chai
 	promise
 		.Then(result => SomeAsyncOperation(result)) // Chain a single async operation
 		.ThenAll(result =>
-			SomeAsyncOperation1(result),			// Chain multiple sync operations.
+			SomeAsyncOperation1(result),			// Chain multiple async operations.
 			SomeAsyncOperation2(result),
 			SomeAsyncOperation3(result)
 		)
@@ -190,7 +190,7 @@ The *ThenAll* function does the same thing, but is a more convenient way of chai
 
 ## Racing Asynchronous Operations
 
-The *Race* and *RaceAll* functions are similar to the *All* and *ThenAll* functions, but it is the first async operation that completes that wins the race and it's value resolves the promise.
+The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* functions, but it is the first async operation that completes that wins the race and it's value resolves the promise.
 
 	promise
 		.Then(result => SomeAsyncOperation(result))	// Chain an async operation.
