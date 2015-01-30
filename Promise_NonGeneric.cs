@@ -32,7 +32,7 @@ namespace RSG.Utils
         /// The callback receives the promised value and returns no value.
         /// The callback is invoked when the promise is resolved, after the callback the chain continues.
         /// </summary>
-        IPromise Do(Action action);
+        IPromise ThenDo(Action action);
 
         /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
@@ -244,7 +244,7 @@ namespace RSG.Utils
         /// The callback receives the promised value and returns no value.
         /// The callback is invoked when the promise is resolved, after the callback the chain continues.
         /// </summary>
-        public IPromise Do(Action action)
+        public IPromise ThenDo(Action action)
         {
             return Then(() =>
             {

@@ -8,7 +8,8 @@ To learn about promises:
 
 - [Promises on Wikpedia](http://en.wikipedia.org/wiki/Futures_and_promises)
 - [Spec](https://www.promisejs.org/)
-- [Mozilla Docs](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [Mozilla 
+- cs](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 
 Getting the DLL
@@ -201,12 +202,12 @@ The *Race* and *RaceAll* functions are similar to the *All* and *ThenAll* functi
 
 ## Chaining Synchronous Actions that have no Result
 
-The *Do* function can be used to chain synchronous operations that yield no result.
+The *ThenDo* function can be used to chain synchronous operations that yield no result.
 
 	var promise = ...
 	promise
 		.Then(result => SomeAsyncOperation(result)) // Chain an async operation.
-		.Do(result => Console.WriteLine(result))    // Chain a sync operation that yields no result.
+		.ThenDo(result => Console.WriteLine(result))    // Chain a sync operation that yields no result.
 		.Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
 
 
