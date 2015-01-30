@@ -8,8 +8,8 @@
     <ProjectGuid>{4B4EE1A6-25A3-43D0-BAE9-5E45E31F2816}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Promise.Tests</RootNamespace>
-    <AssemblyName>Promise.Tests</AssemblyName>
+    <RootNamespace>RSG.Promise.Tests</RootNamespace>
+    <AssemblyName>RSG.Promise.Tests</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -38,9 +38,6 @@
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.2.1409.1722\lib\net35\Moq.dll</HintPath>
     </Reference>
-    <Reference Include="RSG.Factory">
-      <HintPath>..\packages\RSG.Factory.1.0.0.4\lib\net35\RSG.Factory.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -55,9 +52,6 @@
     <Compile Include="PromiseTests.cs" />
     <Compile Include="Promise_NonGeneric_Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\C-Sharp-Promise.csproj">

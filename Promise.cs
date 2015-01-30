@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Utils
+namespace RSG.Promise
 {
     /// <summary>
     /// Implements a C# promise.

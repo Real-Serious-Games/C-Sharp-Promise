@@ -1,11 +1,12 @@
 ﻿using Moq;
+using RSG.Promise;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace RSG.Utils.Tests
+namespace RSG.Promise.Tests
 {
     public class Promise_NonGeneric_Tests
     {
