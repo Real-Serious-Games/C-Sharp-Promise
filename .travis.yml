@@ -11,5 +11,7 @@ install:
 script:
   - ls ./
   - xbuild ./C-Sharp-Promise.sln
+  - ls ./
+  - ls ./bin
   - ls ./bin/Debug
   - mono ./xunit/xunit.console.clr4.x86.exe ./bin/Debug/RSG.Promise.Tests.dll
