@@ -12,8 +12,7 @@ To learn about promises:
 - cs](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 
-Getting the DLL
----------------
+## Getting the DLL
 
 The DLL can be installed via nuget. Use the Package Manager UI or console in Visual Studio or use nuget from the command line.
 
@@ -21,8 +20,7 @@ See here for instructions on installing a package via nuget: http://docs.nuget.o
 
 The package to search for is *RSG.Promise*.
 
-Getting the Code
-----------------
+## Getting the Code
 
 You can get the code by cloning the github repository. You can do this in a UI like SourceTree or you can do it from the command line as follows:
 
@@ -31,6 +29,10 @@ You can get the code by cloning the github repository. You can do this in a UI l
 Alternately, to contribute please fork the project in github.
 
 ## Creating a Promise for an Async Operation ##
+
+Reference the DLL and import the namespace:
+
+	using RSG.Promise; 
 
 Create a promise before you start the async operation:
 	
