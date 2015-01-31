@@ -7,4 +7,4 @@ install:
  
 script:
   - xbuild /p:Configuration=Debug C-Sharp-Promise.sln
-  - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.exe ./bin/Debug/RSG.Promise.dll
+  - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.exe ./bin/Debug/RSG.Promise.Tests.dll
