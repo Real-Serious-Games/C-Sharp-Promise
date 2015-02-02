@@ -137,6 +137,26 @@ namespace RSG.Promise
             this.CurState = PromiseState.Pending;
         }
 
+        public Promise(Action<Action<PromisedT>, Action<Exception>> resolver)
+        {
+            this.CurState = PromiseState.Pending;
+
+            try
+            {
+                resolver(
+                    // Resolve
+                    value => Resolve(value),
+
+                    // Reject
+                    ex => Reject(ex)
+                );
+            }
+            catch (Exception ex)
+            {
+                Reject(ex);
+            }
+        }
+
         /// <summary>
         /// Helper function clear out all handlers after resolution or rejection.
         /// </summary>

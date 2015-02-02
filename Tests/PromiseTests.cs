@@ -764,5 +764,61 @@ namespace RSG.Promise.Tests
 
             Assert.Equal(expected, ex);
         }
+
+        [Fact]
+        public void can_resolve_promise_via_resolver_function()
+        {
+            var promise = new Promise<int>((resolve, reject) =>
+            {
+                resolve(5);
+            });
+
+            var completed = 0;
+            promise.Done(v => 
+            {
+                Assert.Equal(5, v);
+                ++completed;
+            });
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void can_reject_promise_via_resolver_function()
+        {
+            var ex = new Exception();
+            var promise = new Promise<int>((resolve, reject) =>
+            {
+                reject(ex);
+            });
+
+            var completed = 0;
+            promise.Catch(e =>
+            {
+                Assert.Equal(ex, e);
+                ++completed;
+            });
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void exception_thrown_during_resolver_rejects_proimse()
+        {
+            var ex = new Exception();
+            var promise = new Promise<int>((resolve, reject) =>
+            {
+                throw ex;
+            });
+
+            var completed = 0;
+            promise.Catch(e =>
+            {
+                Assert.Equal(ex, e);
+                ++completed;
+            });
+
+            Assert.Equal(1, completed);
+        }
     }
 }

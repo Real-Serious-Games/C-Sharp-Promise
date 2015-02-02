@@ -76,6 +76,32 @@ To see it in context, here is an example function that downloads text from a URL
         return promise; // Return the promise so the caller can await resolution (or error).
     }
  
+## Create a Promise, Alternate Method
+
+There is another way to create a promise that replicates the JavaScript convention of passing a *resolver* function into the constructor. The resolver function is passed functions that resolve or reject the promise. This allows you to express the previous example like this:
+
+	var promise = new Promise<string>((resolve, reject) => 
+	{        
+		using (var client = new WebClient())
+        {
+            client.DownloadStringCompleted += 	// Monitor event for download completed.
+                (s, ev) =>
+                {
+                    if (ev.Error != null)
+                    {
+                        reject(ev.Error); 		// Error during download, reject the promise.
+                    }
+                    else
+                    {
+                    	resolve(ev.Result); 	// Downloaded completed successfully, resolve the promise.
+                    }
+                };
+
+            client.DownloadStringAsync(new Uri(url), null); // Initiate async op.
+        }
+	});
+
+
 ## Waiting for an Async Operation to Complete ##
 
 The simplest usage is to register a completion handler to be invoked on completion of the async op:
