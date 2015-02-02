@@ -8,8 +8,7 @@ To learn about promises:
 
 - [Promises on Wikpedia](http://en.wikipedia.org/wiki/Futures_and_promises)
 - [Spec](https://www.promisejs.org/)
-- [Mozilla 
-- cs](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+- [Mozilla](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
 
 ## Getting the DLL
@@ -76,7 +75,7 @@ To see it in context, here is an example function that downloads text from a URL
         return promise; // Return the promise so the caller can await resolution (or error).
     }
  
-## Create a Promise, Alternate Method
+## Creating a Promise, Alternate Method
 
 There is another way to create a promise that replicates the JavaScript convention of passing a *resolver* function into the constructor. The resolver function is passed functions that resolve or reject the promise. This allows you to express the previous example like this:
 
