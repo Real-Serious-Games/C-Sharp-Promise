@@ -19,7 +19,7 @@ namespace RSG.Promise
         /// <summary>
         /// Handle completion of the promise.
         /// </summary>
-        IPromise Done(Action onCompleted);
+        void Done(Action onCompleted);
 
         /// <summary>
         /// Chains another asynchronous operation. 
@@ -220,7 +220,7 @@ namespace RSG.Promise
         /// <summary>
         /// Handle completion of the promise.
         /// </summary>
-        public IPromise Done(Action onCompleted)
+        public void Done(Action onCompleted)
         {
             Argument.NotNull(() => onCompleted);
 
@@ -238,8 +238,6 @@ namespace RSG.Promise
                 // Promise has already been resolved, immediately call handler.
                 onCompleted();
             }
-
-            return this;
         }
 
         /// <summary>

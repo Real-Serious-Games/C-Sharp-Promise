@@ -496,7 +496,7 @@ namespace RSG.Promise.Tests
             var promisedValue = 15;
             var completed = 0;
 
-            var transformedPromise = promise
+            promise
                 .Transform(v => v.ToString())
                 .Done(v =>
                 {
@@ -568,7 +568,7 @@ namespace RSG.Promise.Tests
             var chainedPromiseValue = "blah";
             var completed = 0;
 
-            var transformedPromise = promise
+            promise
                 .Then(v => chainedPromise)
                 .Done(v =>
                 {

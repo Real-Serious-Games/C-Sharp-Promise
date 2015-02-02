@@ -485,7 +485,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            var transformedPromise = promise
+            promise
                 .Then(() => chainedPromise)
                 .Done(() => ++completed);
 
