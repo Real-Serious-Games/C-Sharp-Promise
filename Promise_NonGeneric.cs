@@ -34,6 +34,13 @@ namespace RSG.Promise
         IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> chain);
 
         /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        IPromise ThenDo(Action action);
+
+        /// <summary>
         /// Chains another asynchronous operation that yields multiple promises.
         /// Converts to a single promise.
         /// </summary>
@@ -44,13 +51,6 @@ namespace RSG.Promise
         /// Converts to a single promist that yields values.
         /// </summary>
         IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<IEnumerable<IPromise<ConvertedT>>> chain);
-
-        /// <summary>
-        /// Chain a synchronous action.
-        /// The callback receives the promised value and returns no value.
-        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
-        /// </summary>
-        IPromise ThenDo(Action action);
 
         /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
@@ -289,7 +289,7 @@ namespace RSG.Promise
         /// Chains another asynchronous operation. 
         /// May convert to a promise that yields a value.
         /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> chain) //totest
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> chain)
         {
             Argument.NotNull(() => chain);
 
@@ -314,10 +314,24 @@ namespace RSG.Promise
         }
 
         /// <summary>
+        /// Chain a synchronous action.
+        /// The callback receives the promised value and returns no value.
+        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
+        /// </summary>
+        public IPromise ThenDo(Action action)
+        {
+            return Then(() =>
+            {
+                action();
+                return this;
+            });
+        }
+
+        /// <summary>
         /// Chains another asynchronous operation that yields multiple promises.
         /// Converts to a single promise.
         /// </summary>
-        public IPromise ThenAll(Func<IEnumerable<IPromise>> chain) //totest
+        public IPromise ThenAll(Func<IEnumerable<IPromise>> chain)
         {
             Argument.NotNull(() => chain);
 
@@ -346,7 +360,7 @@ namespace RSG.Promise
         /// Chains another asynchronous operation that yields multiple chained promises.
         /// Converts to a single promist that yields values.
         /// </summary>
-        public IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<IEnumerable<IPromise<ConvertedT>>> chain) //totest
+        public IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<IEnumerable<IPromise<ConvertedT>>> chain)
         {
             Argument.NotNull(() => chain);
 
@@ -369,20 +383,6 @@ namespace RSG.Promise
             });
 
             return resultPromise;
-        }
-
-        /// <summary>
-        /// Chain a synchronous action.
-        /// The callback receives the promised value and returns no value.
-        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
-        /// </summary>
-        public IPromise ThenDo(Action action)
-        {
-            return Then(() =>
-            {
-                action();
-                return this;
-            });
         }
 
         /// <summary>

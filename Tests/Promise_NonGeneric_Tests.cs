@@ -322,6 +322,110 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
+        public void chain_multiple_promises()
+        {
+            var promise = new Promise();
+            var chainedPromise1 = new Promise();
+            var chainedPromise2 = new Promise();
+
+            var completed = 0;
+
+            promise
+                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
+                .Done(() => ++completed);
+
+            Assert.Equal(0, completed);
+
+            promise.Resolve();
+
+            Assert.Equal(0, completed);
+
+            chainedPromise1.Resolve();
+
+            Assert.Equal(0, completed);
+
+            chainedPromise2.Resolve();
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void chain_multiple_value_promises()
+        {
+            var promise = new Promise();
+            var chainedPromise1 = new Promise<int>();
+            var chainedPromise2 = new Promise<int>();
+            var chainedResult1 = 10;
+            var chainedResult2 = 15;
+
+            var completed = 0;
+
+            promise
+                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
+                .Done(result =>
+                {
+                    var items = result.ToArray();
+                    Assert.Equal(2, items.Length);
+                    Assert.Equal(chainedResult1, items[0]);
+                    Assert.Equal(chainedResult2, items[1]);
+
+                    ++completed;
+                });
+
+            Assert.Equal(0, completed);
+
+            promise.Resolve();
+
+            Assert.Equal(0, completed);
+
+            chainedPromise1.Resolve(chainedResult1);
+
+            Assert.Equal(0, completed);
+
+            chainedPromise2.Resolve(chainedResult2);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void chain_multiple_value_promises_resolved_out_of_order()
+        {
+            var promise = new Promise();
+            var chainedPromise1 = new Promise<int>();
+            var chainedPromise2 = new Promise<int>();
+            var chainedResult1 = 10;
+            var chainedResult2 = 15;
+
+            var completed = 0;
+
+            promise
+                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
+                .Done(result =>
+                {
+                    var items = result.ToArray();
+                    Assert.Equal(2, items.Length);
+                    Assert.Equal(chainedResult1, items[0]);
+                    Assert.Equal(chainedResult2, items[1]);
+
+                    ++completed;
+                });
+
+            Assert.Equal(0, completed);
+
+            promise.Resolve();
+
+            Assert.Equal(0, completed);
+
+            chainedPromise2.Resolve(chainedResult2);
+
+            Assert.Equal(0, completed);
+
+            chainedPromise1.Resolve(chainedResult1);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
         public void combined_promise_is_resolved_when_children_are_resolved()
         {
             var promise1 = new Promise();
@@ -478,7 +582,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void can_chain_promises()
+        public void can_chain_promise()
         {
             var promise = new Promise();
             var chainedPromise = new Promise();
@@ -491,6 +595,30 @@ namespace RSG.Promise.Tests
 
             promise.Resolve();
             chainedPromise.Resolve();
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void can_chain_promise_and_convert_to_promise_that_yields_a_value()
+        {
+            var promise = new Promise();
+            var chainedPromise = new Promise<string>();
+            var chainedPromiseValue = "some-value";
+
+            var completed = 0;
+
+            promise
+                .Then(() => chainedPromise)
+                .Done(v => 
+                {
+                    Assert.Equal(chainedPromiseValue, v);
+
+                    ++completed;
+                });
+
+            promise.Resolve();
+            chainedPromise.Resolve(chainedPromiseValue);
 
             Assert.Equal(1, completed);
         }
