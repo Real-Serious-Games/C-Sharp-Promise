@@ -596,6 +596,8 @@ namespace RSG.Promise.Tests
                 .Then<IPromise<string>>(v =>
                 {
                     throw ex;
+
+                    return Promise.Resolved(string.Empty);
                 })
                 .Catch(e =>
                 {

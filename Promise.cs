@@ -33,6 +33,24 @@ namespace RSG.Promise
         IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> chain);
 
         /// <summary>
+        /// Chains another asynchronous operation. 
+        /// Converts to a promisse that has no result.
+        /// </summary>
+        IPromise Then(Func<PromisedT, IPromise> chain);
+
+        /// <summary>
+        /// Chains asynchronous operation that produces multiple promises.
+        /// Convert this into a single promise that yields multiple results.
+        /// </summary>
+        IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain);
+
+        /// <summary>
+        /// Chains asynchronous operation that produces multiple promises.
+        /// Convert this into a single promise that yields no value.
+        /// </summary>
+        IPromise ThenAll(Func<PromisedT, IEnumerable<IPromise>> chain);
+
+        /// <summary>
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
@@ -335,6 +353,64 @@ namespace RSG.Promise
                 try
                 {
                     var chainedPromise = chain(v);
+                    chainedPromise.Catch(e => resultPromise.Reject(e));
+                    chainedPromise.Done(() => resultPromise.Resolve());
+                }
+                catch (Exception ex)
+                {
+                    resultPromise.Reject(ex);
+                }
+            });
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Chains asynchronous operation that produces multiple promises.
+        /// Convert this into a single promise that yields multiple results.
+        /// </summary>
+        public IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain) //totest
+        {
+            Argument.NotNull(() => chain);
+
+            var resultPromise = new Promise<IEnumerable<ConvertedT>>();
+
+            Catch(e => resultPromise.Reject(e));
+            Done(v =>
+            {
+                try
+                {
+                    var chainedPromises = chain(v);
+                    var chainedPromise = Promise<ConvertedT>.All(chainedPromises);
+                    chainedPromise.Catch(e => resultPromise.Reject(e));
+                    chainedPromise.Done(chainedValue => resultPromise.Resolve(chainedValue));
+                }
+                catch (Exception ex)
+                {
+                    resultPromise.Reject(ex);
+                }
+            });
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Chains asynchronous operation that produces multiple promises.
+        /// Convert this into a single promise that yields no value.
+        /// </summary>
+        public IPromise ThenAll(Func<PromisedT, IEnumerable<IPromise>> chain) //totest
+        {
+            Argument.NotNull(() => chain);
+
+            var resultPromise = new Promise();
+
+            Catch(e => resultPromise.Reject(e));
+            Done(v =>
+            {
+                try
+                {
+                    var chainedPromises = chain(v);
+                    var chainedPromise = Promise.All(chainedPromises);
                     chainedPromise.Catch(e => resultPromise.Reject(e));
                     chainedPromise.Done(() => resultPromise.Resolve());
                 }
