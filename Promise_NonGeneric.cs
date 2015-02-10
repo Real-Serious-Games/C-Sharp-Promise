@@ -342,8 +342,7 @@ namespace RSG.Promise
             {
                 try
                 {
-                    var chainedPromises = chain();
-                    var chainedPromise = Promise.All(chainedPromises);
+                    var chainedPromise = Promise.All(chain());
                     chainedPromise.Catch(e => resultPromise.Reject(e));
                     chainedPromise.Done(() => resultPromise.Resolve());
                 }
@@ -371,8 +370,7 @@ namespace RSG.Promise
             {
                 try
                 {
-                    var chainedPromises = chain();
-                    var chainedPromise = Promise<ConvertedT>.All(chainedPromises);
+                    var chainedPromise = Promise<ConvertedT>.All(chain());
                     chainedPromise.Catch(e => resultPromise.Reject(e));
                     chainedPromise.Done(chainedValue => resultPromise.Resolve(chainedValue));
                 }
