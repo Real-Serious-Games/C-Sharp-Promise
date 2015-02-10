@@ -320,6 +320,34 @@ namespace RSG.Promise
         }
 
         /// <summary>
+        /// Chains another asynchronous operation. 
+        /// Converts to a promisse that has no result.
+        /// </summary>
+        public IPromise Then(Func<PromisedT, IPromise> chain) //totest
+        {
+            Argument.NotNull(() => chain);
+
+            var resultPromise = new Promise();
+
+            Catch(e => resultPromise.Reject(e));
+            Done(v =>
+            {
+                try
+                {
+                    var chainedPromise = chain(v);
+                    chainedPromise.Catch(e => resultPromise.Reject(e));
+                    chainedPromise.Done(() => resultPromise.Resolve());
+                }
+                catch (Exception ex)
+                {
+                    resultPromise.Reject(ex);
+                }
+            });
+
+            return resultPromise;
+        }
+
+        /// <summary>
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
@@ -415,6 +443,49 @@ namespace RSG.Promise
                     {
                         results[index] = result;
                     
+                        --remainingCount;
+                        if (remainingCount <= 0)
+                        {
+                            // This will never happen if any of the promises errorred.
+                            resultPromise.Resolve(results);
+                        }
+                    });
+            });
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
+        /// Returns a promise of a collection of the resolved results.
+        /// </summary>
+        public static IPromise<IEnumerable<PromisedT>> All(IEnumerable<IPromise<PromisedT>> promises) //totest
+        {
+            var promisesArray = promises.ToArray();
+            if (promisesArray.Length == 0)
+            {
+                return Promise<IEnumerable<PromisedT>>.Resolved(LinqExts.Empty<PromisedT>());
+            }
+
+            var remainingCount = promisesArray.Length;
+            var results = new PromisedT[remainingCount];
+            var resultPromise = new Promise<IEnumerable<PromisedT>>();
+
+            promisesArray.Each((promise, index) =>
+            {
+                promise
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                    })
+                    .Done(result =>
+                    {
+                        results[index] = result;
+
                         --remainingCount;
                         if (remainingCount <= 0)
                         {

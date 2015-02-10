@@ -242,7 +242,6 @@ namespace RSG.Promise
 
         /// <summary>
         /// Chains another asynchronous operation. 
-        /// May also change the type of value that is being fulfilled.
         /// </summary>
         public IPromise Then(Func<IPromise> chain)
         {
@@ -265,6 +264,34 @@ namespace RSG.Promise
                 }
             });
             
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Chains another asynchronous operation. 
+        /// May convert to a promise that yields a value.
+        /// </summary>
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> chain) //totest
+        {
+            Argument.NotNull(() => chain);
+
+            var resultPromise = new Promise<ConvertedT>();
+
+            Catch(e => resultPromise.Reject(e));
+            Done(() =>
+            {
+                try
+                {
+                    var chainedPromise = chain();
+                    chainedPromise.Catch(e => resultPromise.Reject(e));
+                    chainedPromise.Done(chainedValue => resultPromise.Resolve(chainedValue));
+                }
+                catch (Exception ex)
+                {
+                    resultPromise.Reject(ex);
+                }
+            });
+
             return resultPromise;
         }
 
