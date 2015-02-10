@@ -175,8 +175,9 @@ The class *Promise<T>* implements the following interfaces:
 
 ## Combining Multiple Async Operations ##
 
-The *All* function combines multiple async operations. It converts a collection of promises or a variable length parameter list of promises into a single promise that yields a collection. 
- Say that each promise yields a value of type *T*, the resulting promise then yields a collection with values of type *T*.  
+The *All* function combines multiple async operations to run in parallel. It converts a collection of promises or a variable length parameter list of promises into a single promise that yields a collection. 
+
+Say that each promise yields a value of type *T*, the resulting promise then yields a collection with values of type *T*.  
 
 Here is an example that extracts links from multiple pages and merges the results:
 
@@ -199,19 +200,23 @@ Here is an example that extracts links from multiple pages and merges the result
 			}
 		});
 
-The *ThenAll* function does the same thing, but is a more convenient way of chaining:
+## Chaining Multiple Async Operations
+
+The *ThenAll* function is a convenient way of chaining multiple promise onto an existing promise:
 
 	promise
 		.Then(result => SomeAsyncOperation(result)) // Chain a single async operation
-		.ThenAll(result =>
-			SomeAsyncOperation1(result),			// Chain multiple async operations.
-			SomeAsyncOperation2(result),
-			SomeAsyncOperation3(result)
+		.ThenAll(result => 							// Chain multiple async operations.
+			new IPromise<string>[]					// Return an enumerable of promises. 
+			{					
+				SomeAsyncOperation1(result),		
+				SomeAsyncOperation2(result),
+				SomeAsyncOperation3(result)
+			}
 		)
 		.Done(collection => ...);					// Final promise resolves 
 													// with a collection of values 
 													// when all operations have completed.  
-
 
 ## Racing Asynchronous Operations
 
@@ -219,10 +224,10 @@ The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* funct
 
 	promise
 		.Then(result => SomeAsyncOperation(result))	// Chain an async operation.
-		.ThenRace(result =>
-			SomeAsyncOperation1(result),			// Race multiple async operations.
-			SomeAsyncOperation2(result),
-			SomeAsyncOperation3(result)
+		.ThenRace(
+			SomeAsyncOperation1(),					// Race multiple async operations.
+			SomeAsyncOperation2(),
+			SomeAsyncOperation3()
 		)
 		.Done(result => ...);						// The result has come from whichever of
 													// the async operations completed first. 
@@ -238,19 +243,54 @@ The *ThenDo* function can be used to chain synchronous operations that yield no 
 		.Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
 
 
-## Promises that have no Results
+## Promises that have no Results (a non-value promise)
 
-What about a promise that has no result? This represents an asynchronous operation that promises only to complete, it doesn't promise to yield any value as a result. This might seem like a curiousity but it is actually very useful for sequencing visual effects.
+What about a promise that has no result? This represents an asynchronous operation that promises only to complete, it doesn't promise to yield any value as a result. I call this a non-value promise, as opposed to a value promise, which is a promise that does yield a value. This might seem like a curiousity but it is actually very useful for sequencing visual effects.
 
-For this there is a non-generic version of Promise. `Promise` is very similar to `Promise<T>` and implements the same, except non-generic, interfaces: `IPromise` and `IPendingPromise`. 
+`Promise` is very similar to `Promise<T>` and implements the similar interfaces: `IPromise` and `IPendingPromise`. 
 
-`Promise<T>` functions that affect the resulting value, such as `Transform`, have no relevance for the non-generic promise and have been removed.
+`Promise<T>` functions that affect the resulting value, such as `Transform`, have no relevance for the non-value promise and have been removed.
 
 As an example consider the chaining of animation and sound effects as we often need to do in *game development*:
 
 	RunAnimation("Foo")							// RunAnimation returns a promise that 
 		.Then(() => RunAnimation("Bar"))		// is resolved when the animation is complete.
 		.Then(() => PlaySound("AnimComplete"));
+
+## Convert a value promise to a non-value promise
+
+From time to time you might want to convert a value promise to a non-value promise or vice versa. Both `Promise` and `Promise<T>` have overloads of `Then` and `ThenAll` that do this conversion. You just need to return the appropriate type of promise (for `Then`) or enumerable of promises (for `ThenAll`).
+
+As an example consider a recursive link extractor and file downloader function:
+
+	public IPromise DownloadAll(string url) 
+	{
+		return DownloadURL(url)						// Yields a value, the HTML text downloaded.
+			.Transform(html => ExtractLinks(html))	// Convert HTML into an enumerable of links.
+			.ThenAll(links =>						// Process each link. 
+			{
+				// Determine links that should be followed, then follow them.
+				var linksToFollow = links.Where(link => IsLinkToFollow(link)); 
+				var linksFollowing = linksToFollow.Select(link => DownloadAll(link));
+
+				// Determine links that are files to be downloaded, then download them.
+				var linksToDownload = links.Where(link => IsLinkToDownload(link));
+				var linksDownloading = linksToDownload.Select(link => DownloadFile(link));
+
+				// Return an enumerable of promises.
+				// This combines the recursive link following and any files we want to download.				
+				// Because we are returning an enumerable of non-value promises, the resulting
+				// chained promises is also non-value. 
+				return linksToFollow.Concat(linksDownloading);
+			});			
+	}
+
+Usage:
+
+	DownloadAll("www.somewhere.com")
+		.Done(() =>
+			Console.WriteLine("Recursive download completed."); 
+		);
 
 
 ## Running a Sequence of Operations
