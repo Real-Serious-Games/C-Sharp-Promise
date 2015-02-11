@@ -65,18 +65,6 @@ namespace RSG.Promise
         IPromise ThenAll(IEnumerable<IPromise> promises);
 
         /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        IPromise ThenRace(params IPromise[] promises);
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        IPromise ThenRace(IEnumerable<IPromise> promises);
-
-        /// <summary>
         /// Chain a number of operations using promises.
         /// Takes a number of functions each of which starts an async operation and yields a promise.
         /// </summary>
@@ -87,6 +75,12 @@ namespace RSG.Promise
         /// Takes a collection of functions each of which starts an async operation and yields a promise.
         /// </summary>
         IPromise ThenSequence(IEnumerable<Func<IPromise>> fns);
+
+        /// <summary>
+        /// Takes a function that yields an enumerable of promises.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// </summary>
+        IPromise ThenRace(Func<IEnumerable<IPromise>> chain); //todo: totest
     }
 
     /// <summary>
@@ -450,70 +444,6 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        public IPromise ThenRace(params IPromise[] promises)
-        {
-            return ThenRace((IEnumerable<IPromise>)promises); // Cast is required to force use of the other function.
-        }
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        public IPromise ThenRace(IEnumerable<IPromise> promises)
-        {
-            return Promise.Race(promises);
-        }
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        public static IPromise Race(params IPromise[] promises)
-        {
-            return Race((IEnumerable<IPromise>)promises); // Cast is required to force use of the other Race function.
-        }
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        public static IPromise Race(IEnumerable<IPromise> promises)
-        {
-            var promisesArray = promises.ToArray();
-            if (promisesArray.Length == 0)
-            {
-                throw new ApplicationException("At least 1 input promise must be provided for Race");
-            }
-
-            var resultPromise = new Promise();
-
-            promisesArray.Each((promise, index) =>
-            {
-                promise
-                    .Catch(ex =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            // If a promise errorred and the result promise is still pending, reject it.
-                            resultPromise.Reject(ex);
-                        }
-                    })
-                    .Done(() =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            resultPromise.Resolve();
-                        }
-                    });
-            });
-
-            return resultPromise;
-        }
-
-        /// <summary>
         /// Chain a number of operations using promises.
         /// Takes a number of functions each of which starts an async operation and yields a promise.
         /// </summary>
@@ -554,6 +484,61 @@ namespace RSG.Promise
                         return prevPromise.Then(() => fn());
                     }
                 );
+        }
+
+        /// <summary>
+        /// Takes a function that yields an enumerable of promises.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// </summary>
+        public IPromise ThenRace(Func<IEnumerable<IPromise>> chain) //todo: totest
+        {
+            return Then(() => Promise.Race(chain()));
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise Race(params IPromise[] promises)
+        {
+            return Race((IEnumerable<IPromise>)promises); // Cast is required to force use of the other function.
+        }
+
+        /// <summary>
+        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
+        /// Returns the value from the first promise that has resolved.
+        /// </summary>
+        public static IPromise Race(IEnumerable<IPromise> promises) //todo: totest
+        {
+            var promisesArray = promises.ToArray();
+            if (promisesArray.Length == 0)
+            {
+                throw new ApplicationException("At least 1 input promise must be provided for Race");
+            }
+
+            var resultPromise = new Promise();
+
+            promisesArray.Each((promise, index) =>
+            {
+                promise
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                    })
+                    .Done(() =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.Resolve();
+                        }
+                    });
+            });
+
+            return resultPromise;
         }
 
         /// <summary>

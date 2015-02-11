@@ -224,10 +224,13 @@ The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* funct
 
 	promise
 		.Then(result => SomeAsyncOperation(result))	// Chain an async operation.
-		.ThenRace(
-			SomeAsyncOperation1(),					// Race multiple async operations.
-			SomeAsyncOperation2(),
-			SomeAsyncOperation3()
+		.ThenRace(result =>							// Race multiple async operations.
+			new IPromise<string>[]					// Return an enumerable of promises. 
+			{					
+				SomeAsyncOperation1(result),		
+				SomeAsyncOperation2(result),
+				SomeAsyncOperation3(result)
+			}
 		)
 		.Done(result => ...);						// The result has come from whichever of
 													// the async operations completed first. 

@@ -76,16 +76,11 @@ namespace RSG.Promise
         IPromise<IEnumerable<PromisedT>> ThenAll(IEnumerable<IPromise<PromisedT>> promises);
 
         /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
+        /// Takes a function that yields an enumerable of promises.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// Yields the value from the first promise that has resolved.
         /// </summary>
-        IPromise<PromisedT> ThenRace(params IPromise<PromisedT>[] promises);
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        IPromise<PromisedT> ThenRace(IEnumerable<IPromise<PromisedT>> promises);
+        IPromise<ConvertedT> ThenRace<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain);
     }
 
     /// <summary>
@@ -530,21 +525,13 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
+        /// Takes a function that yields an enumerable of promises.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// Yields the value from the first promise that has resolved.
         /// </summary>
-        public IPromise<PromisedT> ThenRace(params IPromise<PromisedT>[] promises)
+        public IPromise<ConvertedT> ThenRace<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain)
         {
-            return ThenRace((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other function.
-        }
-
-        /// <summary>
-        /// Returns a promise that resolves when the first of the promises in the enumerable argument have resolved.
-        /// Returns the value from the first promise that has resolved.
-        /// </summary>
-        public IPromise<PromisedT> ThenRace(IEnumerable<IPromise<PromisedT>> promises)
-        {
-            return Promise<PromisedT>.Race(promises);
+            return Then(value => Promise<ConvertedT>.Race(chain(value)));
         }
 
         /// <summary>
@@ -553,7 +540,7 @@ namespace RSG.Promise
         /// </summary>
         public static IPromise<PromisedT> Race(params IPromise<PromisedT>[] promises)
         {
-            return Race((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other Race function.
+            return Race((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other function.
         }
 
         /// <summary>
