@@ -39,18 +39,6 @@ namespace RSG.Promise
         IPromise Then(Func<PromisedT, IPromise> chain);
 
         /// <summary>
-        /// Chains asynchronous operation that produces multiple promises.
-        /// Convert this into a single promise that yields multiple results.
-        /// </summary>
-        IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain);
-
-        /// <summary>
-        /// Chains asynchronous operation that produces multiple promises.
-        /// Convert this into a single promise that yields no value.
-        /// </summary>
-        IPromise ThenAll(Func<PromisedT, IEnumerable<IPromise>> chain);
-
-        /// <summary>
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
@@ -64,16 +52,20 @@ namespace RSG.Promise
         IPromise<PromisedT> ThenDo(Action<PromisedT> action);
 
         /// <summary>
-        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
-        /// Returns a promise of a collection of the resolved results.
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// Returns a promise for a collection of the resolved results.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
         /// </summary>
-        IPromise<IEnumerable<PromisedT>> ThenAll(params IPromise<PromisedT>[] promises);
+        IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain);
 
         /// <summary>
-        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
-        /// Returns a promise of a collection of the resolved results.
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// Converts to a non-value promise.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
         /// </summary>
-        IPromise<IEnumerable<PromisedT>> ThenAll(IEnumerable<IPromise<PromisedT>> promises);
+        IPromise ThenAll(Func<PromisedT, IEnumerable<IPromise>> chain);
 
         /// <summary>
         /// Takes a function that yields an enumerable of promises.
@@ -81,6 +73,14 @@ namespace RSG.Promise
         /// Yields the value from the first promise that has resolved.
         /// </summary>
         IPromise<ConvertedT> ThenRace<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain);
+
+        /// <summary>
+        /// Takes a function that yields an enumerable of promises.
+        /// Converts to a non-value promise.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// Yields the value from the first promise that has resolved.
+        /// </summary>
+        IPromise ThenRace(Func<PromisedT, IEnumerable<IPromise>> chain);
     }
 
     /// <summary>
@@ -400,79 +400,27 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Chains asynchronous operation that produces multiple promises.
-        /// Convert this into a single promise that yields multiple results.
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// Returns a promise for a collection of the resolved results.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
         /// </summary>
         public IPromise<IEnumerable<ConvertedT>> ThenAll<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain)
         {
-            Argument.NotNull(() => chain);
-
-            var resultPromise = new Promise<IEnumerable<ConvertedT>>();
-
-            Catch(e => resultPromise.Reject(e));
-            Done(v =>
-            {
-                try
-                {
-                    var chainedPromise = Promise<ConvertedT>.All(chain(v));
-                    chainedPromise.Catch(e => resultPromise.Reject(e));
-                    chainedPromise.Done(chainedValue => resultPromise.Resolve(chainedValue));
-                }
-                catch (Exception ex)
-                {
-                    resultPromise.Reject(ex);
-                }
-            });
-
-            return resultPromise;
+            return Then(value => Promise<ConvertedT>.All(chain(value)));
         }
 
         /// <summary>
-        /// Chains asynchronous operation that produces multiple promises.
-        /// Convert this into a single promise that yields no value.
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// Converts to a non-value promise.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
         /// </summary>
         public IPromise ThenAll(Func<PromisedT, IEnumerable<IPromise>> chain)
         {
-            Argument.NotNull(() => chain);
-
-            var resultPromise = new Promise();
-
-            Catch(e => resultPromise.Reject(e));
-            Done(v =>
-            {
-                try
-                {
-                    var chainedPromise = Promise.All(chain(v));
-                    chainedPromise.Catch(e => resultPromise.Reject(e));
-                    chainedPromise.Done(() => resultPromise.Resolve());
-                }
-                catch (Exception ex)
-                {
-                    resultPromise.Reject(ex);
-                }
-            });
-
-            return resultPromise;
+            return Then(value => Promise.All(chain(value)));
         }
 
-        /// <summary>
-        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
-        /// Returns a promise of a collection of the resolved results.
-        /// </summary>
-        public IPromise<IEnumerable<PromisedT>> ThenAll(params IPromise<PromisedT>[] promises)
-        {
-            return ThenAll((IEnumerable<IPromise<PromisedT>>)promises); // Cast is required to force use of the other All function.
-        }
-
-        /// <summary>
-        /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
-        /// Returns a promise of a collection of the resolved results.
-        /// </summary>
-        public IPromise<IEnumerable<PromisedT>> ThenAll(IEnumerable<IPromise<PromisedT>> promises)
-        {
-            return Promise<PromisedT>.All(promises);
-        }
-        
         /// <summary>
         /// Returns a promise that resolves when all of the promises in the enumerable argument have resolved.
         /// Returns a promise of a collection of the resolved results.
@@ -532,6 +480,17 @@ namespace RSG.Promise
         public IPromise<ConvertedT> ThenRace<ConvertedT>(Func<PromisedT, IEnumerable<IPromise<ConvertedT>>> chain)
         {
             return Then(value => Promise<ConvertedT>.Race(chain(value)));
+        }
+
+        /// <summary>
+        /// Takes a function that yields an enumerable of promises.
+        /// Converts to a non-value promise.
+        /// Returns a promise that resolves when the first of the promises has resolved.
+        /// Yields the value from the first promise that has resolved.
+        /// </summary>
+        public IPromise ThenRace(Func<PromisedT, IEnumerable<IPromise>> chain)
+        {
+            return Then(value => Promise.Race(chain(value)));
         }
 
         /// <summary>
