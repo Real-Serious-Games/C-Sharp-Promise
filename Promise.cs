@@ -17,7 +17,7 @@ namespace RSG.Promise
         IPromise<PromisedT> Catch(Action<Exception> onError);
 
         /// <summary>
-        /// Complete the promise. No more handling can be added to the promise after Done is called.
+        /// Complete the promise. Adds a defualt error handler.
         /// </summary>
         void Done();
 
@@ -121,7 +121,7 @@ namespace RSG.Promise
         private PromisedT resolveValue;
 
         /// <summary>
-        /// Error handlers.
+        /// Error handler.
         /// </summary>
         private List<Action<Exception>> errorHandlers;
 
@@ -243,7 +243,7 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Complete the promise. No more handling can be added to the promise after Done is called.
+        /// Complete the promise. Adds a default error handler.
         /// </summary>
         public void Done()
         {
@@ -273,8 +273,7 @@ namespace RSG.Promise
                     {
                         resultPromise.Reject(ex);
                     }
-                })
-                .Done();
+                });
             
             return resultPromise;
         }
@@ -303,8 +302,7 @@ namespace RSG.Promise
                     {
                         resultPromise.Reject(ex);
                     }
-                })
-                .Done();
+                });
 
             return resultPromise;
         }
@@ -331,8 +329,8 @@ namespace RSG.Promise
                     {
                         resultPromise.Reject(ex);
                     }
-                })
-                .Done();
+                });
+
             return resultPromise;
         }
 
