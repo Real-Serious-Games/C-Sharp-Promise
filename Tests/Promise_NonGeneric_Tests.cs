@@ -38,160 +38,6 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void can_resolve_promise_and_trigger_completed_handler()
-        {
-            var promise = new Promise();
-
-            var completed = 0;
-
-            promise.Then(() => ++completed);
-
-            promise.Resolve();
-
-            Assert.Equal(1, completed);
-        }
-
-        [Fact]
-        public void exception_is_thrown_for_resolve_after_resolve()
-        {
-            var promise = new Promise();
-
-            promise.Resolve();
-
-            Assert.Throws<ApplicationException>(() =>
-                promise.Resolve()
-            );
-        }
-
-        [Fact]
-        public void can_resolve_promise_and_trigger_multiple_completed_handlers()
-        {
-            var promise = new Promise();
-
-            var completed1 = 0;
-            var completed2 = 0;
-
-            promise.Then(() => ++completed1);
-            promise.Then(() => ++completed2);
-
-            promise.Resolve();
-
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
-        }
-
-        [Fact]
-        public void can_resolve_promise_and_trigger_completed_handler_with_registration_after_resolve()
-        {
-            var promise = new Promise();
-
-            var completed = 0;
-
-            promise.Resolve();
-
-            promise.Then(() => ++completed);
-
-            Assert.Equal(1, completed);
-        }
-
-        [Fact]
-        public void can_resolve_promise_and_trigger_multiple_completed_handlers_with_registration_after_resolve()
-        {
-            var promise = new Promise();
-
-            var completed1 = 0;
-            var completed2 = 0;
-
-            promise.Resolve();
-
-            promise.Then(() => ++completed1);
-            promise.Then(() => ++completed2);            
-
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
-        }
-
-        [Fact]
-        public void can_resolve_with_value_and_trigger_completed_handler()
-        {
-            var promise = new Promise();
-
-            var completed = 0;
-
-            promise.Then(() => ++completed);
-
-            promise.Resolve();
-
-            Assert.Equal(1, completed);
-        }
-
-        [Fact]
-        public void can_resolve_with_value_and_trigger_multiple_completed_handlers()
-        {
-            var promise = new Promise();
-
-            var completed1 = 0;
-            var completed2 = 0;
-
-            promise.Then(() => ++completed1);
-            promise.Then(() => ++completed2);
-
-            promise.Resolve();
-
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
-        }
-
-        [Fact]
-        public void can_resolve_with_value_and_trigger_completed_handler_with_registration_after_resolve()
-        {
-            var promise = new Promise();
-
-            var completed = 0;
-
-            promise.Then(() => ++completed);
-
-            promise.Resolve();
-
-            Assert.Equal(1, completed);
-        }
-
-        [Fact]
-        public void can_resolve_with_value_and_trigger_multiple_completed_handlers_with_registration_after_resolve()
-        {
-            var promise = new Promise();
-
-            var completed1 = 0;
-            var completed2 = 0;
-
-            promise.Resolve();
-
-            promise.Then(() => ++completed1);
-            promise.Then(() => ++completed2);
-
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
-        }
-
-        [Fact]
-        public void can_reject_promise_and_trigger_error_handler()
-        {
-            var promise = new Promise();
-
-            var ex = new ApplicationException();
-            var completed = 0;
-            promise.Catch(e =>
-            {
-                Assert.Equal(ex, e);
-                ++completed;
-            });
-
-            promise.Reject(ex);
-
-            Assert.Equal(1, completed);
-        }
-
-        [Fact]
         public void exception_is_thrown_for_reject_after_reject()
         {
             var promise = new Promise();
@@ -223,33 +69,105 @@ namespace RSG.Promise.Tests
             promise.Reject(new ApplicationException());
 
             Assert.Throws<ApplicationException>(() =>
-                promise.Resolve()                
+                promise.Resolve()
             );
         }
 
         [Fact]
-        public void can_reject_promise_and_trigger_multiple_error_handlers()
+        public void can_resolve_promise_and_trigger_then_handler()
+        {
+            var promise = new Promise();
+
+            var completed = 0;
+
+            promise.Then(() => ++completed);
+
+            promise.Resolve();
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void exception_is_thrown_for_resolve_after_resolve()
+        {
+            var promise = new Promise();
+
+            promise.Resolve();
+
+            Assert.Throws<ApplicationException>(() =>
+                promise.Resolve()
+            );
+        }
+
+        [Fact]
+        public void can_resolve_promise_and_trigger_multiple_then_handlers_in_order()
+        {
+            var promise = new Promise();
+
+            var completed = 0;
+
+            promise.Then(() => Assert.Equal(1, ++completed));
+            promise.Then(() => Assert.Equal(2, ++completed));
+
+            promise.Resolve();
+
+            Assert.Equal(2, completed);
+        }
+
+        [Fact]
+        public void can_resolve_promise_and_trigger_then_handler_with_callback_registration_after_resolve()
+        {
+            var promise = new Promise();
+
+            var completed = 0;
+
+            promise.Resolve();
+
+            promise.Then(() => ++completed);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void can_reject_promise_and_trigger_error_handler()
         {
             var promise = new Promise();
 
             var ex = new ApplicationException();
-            var completed1 = 0;
-            var completed2 = 0;
-            promise.Catch(e => 
-            {
-                Assert.Equal(ex, e);
-                ++completed1;
-            });
+            var completed = 0;
             promise.Catch(e =>
             {
                 Assert.Equal(ex, e);
-                ++completed2;
+                ++completed;
             });
 
             promise.Reject(ex);
 
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void can_reject_promise_and_trigger_multiple_error_handlers_in_order()
+        {
+            var promise = new Promise();
+
+            var ex = new ApplicationException();
+            var completed = 0;
+
+            promise.Catch(e =>
+            {
+                Assert.Equal(ex, e);
+                Assert.Equal(1, ++completed);
+            });
+            promise.Catch(e =>
+            {
+                Assert.Equal(ex, e);
+                Assert.Equal(2, ++completed);
+            });
+
+            promise.Reject(ex);
+
+            Assert.Equal(2, completed);
         }
 
         [Fact]
@@ -271,31 +189,6 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void can_reject_promise_and_trigger_multiple_error_handlers_with_registration_after_reject()
-        {
-            var promise = new Promise();
-
-            var ex = new ApplicationException();
-            promise.Reject(ex);
-
-            var completed1 = 0;
-            var completed2 = 0;
-            promise.Catch(e =>
-            {
-                Assert.Equal(ex, e);
-                ++completed1;
-            });
-            promise.Catch(e =>
-            {
-                Assert.Equal(ex, e);
-                ++completed2;
-            });
-
-            Assert.Equal(1, completed1);
-            Assert.Equal(1, completed2);
-        }
-
-        [Fact]
         public void error_handler_is_not_invoked_for_resolved_promised()
         {
             var promise = new Promise();
@@ -309,7 +202,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void completed_handler_is_not_invoked_for_rejected_promise()
+        public void then_handler_is_not_invoked_for_rejected_promise()
         {
             var promise = new Promise();
 
@@ -322,7 +215,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void chain_multiple_promises()
+        public void chain_multiple_promises_using_all()
         {
             var promise = new Promise();
             var chainedPromise1 = new Promise();
@@ -350,7 +243,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void chain_multiple_value_promises()
+        public void chain_multiple_promises_using_all_that_are_resolved_out_of_order()
         {
             var promise = new Promise();
             var chainedPromise1 = new Promise<int>();
@@ -388,7 +281,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void chain_multiple_value_promises_resolved_out_of_order()
+        public void chain_multiple_value_promises_using_all_resolved_out_of_order()
         {
             var promise = new Promise();
             var chainedPromise1 = new Promise<int>();
@@ -519,7 +412,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void combined_promise_is_resolved_if_there_are_no_children()
+        public void combined_promise_is_resolved_if_there_are_no_promises()
         {
             var promise1 = new Promise();
             var promise2 = new Promise();
@@ -529,31 +422,6 @@ namespace RSG.Promise.Tests
             var completed = 0;
 
             all.Then(() => ++completed);
-        }
-
-        [Fact]
-        public void rejection_of_source_promise_rejects_resulting_promise()
-        {
-            var promise = new Promise();
-
-            var ex = new Exception();
-            var errors = 0;
-
-            var transformedPromise = promise
-                .Then(() =>
-                {
-                    Assert.True(false, "This code shouldn't be executed");
-                })
-                .Catch(e =>
-                {
-                    Assert.Equal(ex, e);
-
-                    ++errors;
-                });
-
-            promise.Reject(ex);
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -632,7 +500,7 @@ namespace RSG.Promise.Tests
             var ex = new Exception();
             var errors = 0;
 
-            var transformedPromise = promise
+            promise
                 .Then(() =>
                 {
                     throw ex;
@@ -650,7 +518,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void rejection_of_source_promises_rejects_resulting_promise()
+        public void rejection_of_source_promise_rejects_chained_promise()
         {
             var promise = new Promise();
             var chainedPromise = new Promise();
@@ -658,7 +526,7 @@ namespace RSG.Promise.Tests
             var ex = new Exception();
             var errors = 0;
 
-            var transformedPromise = promise
+            promise
                 .Then(() => chainedPromise)
                 .Catch(e =>
                 {
@@ -670,69 +538,6 @@ namespace RSG.Promise.Tests
             promise.Reject(ex);
 
             Assert.Equal(1, errors);
-        }
-
-        [Fact]
-        public void rejection_of_chained_promises_rejects_resulting_promise()
-        {
-            var promise = new Promise();
-            var chainedPromise = new Promise();
-
-            var ex = new Exception();
-            var errors = 0;
-
-            var transformedPromise = promise
-                .Then(() => chainedPromise)
-                .Catch(e =>
-                {
-                    Assert.Equal(ex, e);
-
-                    ++errors;
-                });
-
-            promise.Resolve();
-            chainedPromise.Reject(ex);
-
-            Assert.Equal(1, errors);
-        }
-
-        [Fact]
-        public void can_invoke_do_callback()
-        {
-            var promise = new Promise();
-            var invoked = 0;
-            promise.Then(() => ++invoked);
-
-            promise.Resolve();
-
-            Assert.Equal(1, invoked);
-        }
-
-        [Fact]
-        public void can_invoke_multiple_do_callbacks_in_order()
-        {
-            var promise = new Promise();
-            var order = 0;
-            promise
-                .Then(() => Assert.Equal(1, ++order))
-                .Then(() => Assert.Equal(2, ++order))
-                .Then(() => Assert.Equal(3, ++order));
-
-            promise.Resolve();
-
-            Assert.Equal(3, order);
-        }
-
-        [Fact]
-        public void do_callback_is_not_invoked_when_promise_is_rejected()
-        {
-            var promise = new Promise();
-            var invoked = 0;
-            promise.Then(() => ++invoked);
-
-            promise.Reject(new ApplicationException());
-
-            Assert.Equal(0, invoked);
         }
 
         [Fact]
@@ -964,7 +769,7 @@ namespace RSG.Promise.Tests
         }
 
         [Fact]
-        public void can_reject_promise_via_resolver_function()
+        public void can_reject_promise_via_reject_function()
         {
             var ex = new Exception();
             var promise = new Promise((resolve, reject) =>
