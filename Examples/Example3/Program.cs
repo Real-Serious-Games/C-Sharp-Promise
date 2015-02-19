@@ -38,7 +38,7 @@ namespace Example
                     Console.WriteLine(exception);
                     running = false;
                 })
-                .Done(links =>          // Display the links that were extracted.
+                .Then(links =>          // Display the links that were extracted.
                 {
                     Console.WriteLine("Async operation completed.");
                     foreach (var link in links)
@@ -46,7 +46,8 @@ namespace Example
                         Console.WriteLine(link);
                     }
                     running = false;
-                });
+                })
+                .Done();
 
             Console.WriteLine("Waiting");
 

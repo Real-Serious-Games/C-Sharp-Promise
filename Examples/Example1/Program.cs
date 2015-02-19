@@ -18,12 +18,13 @@ namespace Example
             var running = true;
 
             Download("http://www.google.com")   // Schedule an async operation.
-                .Done(result =>                 // Use Done to register a callback to handle completion of the async operation.
+                .Then(result =>                 // Use Done to register a callback to handle completion of the async operation.
                 {
                     Console.WriteLine("Async operation completed.");
                     Console.WriteLine(result.Substring(0, 250) + "...");
                     running = false;
-                });
+                })
+                .Done();
 
             Console.WriteLine("Waiting");
 

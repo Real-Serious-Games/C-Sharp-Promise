@@ -17,14 +17,9 @@ namespace RSG.Promise
         IPromise<PromisedT> Catch(Action<Exception> onError);
 
         /// <summary>
-        /// Handle completion of the promise.
+        /// Complete the promise. No more handling can be added to the promise after Done is called.
         /// </summary>
-        void Done(Action<PromisedT> onCompleted);
-
-        /// <summary>
-        /// Handle completion of the promise.
-        /// </summary>
-        void Done(Action onCompleted);
+        void Done();
 
         /// <summary>
         /// Chains another asynchronous operation. 
@@ -259,49 +254,10 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Handle completion of the promise.
+        /// Complete the promise. No more handling can be added to the promise after Done is called.
         /// </summary>
-        public void Done(Action<PromisedT> onCompleted)
+        public void Done()
         {
-            Argument.NotNull(() => onCompleted);
-
-            if (CurState == PromiseState.Pending)
-            {
-                // Promise is in flight, queue handler for possible call later.
-                if (valueCompletedHandlers == null)
-                {
-                    valueCompletedHandlers = new List<Action<PromisedT>>();
-                }
-                valueCompletedHandlers.Add(onCompleted);
-            }
-            else if (CurState == PromiseState.Resolved)
-            {
-                // Promise has already been rejected, immediately call handler.
-                onCompleted(resolveValue);
-            }
-        }
-
-        /// <summary>
-        /// Handle completion of the promise.
-        /// </summary>
-        public void Done(Action onCompleted)
-        {
-            Argument.NotNull(() => onCompleted);
-
-            if (CurState == PromiseState.Pending)
-            {
-                // Promise is in flight, queue handler for possible call later.
-                if (completedHandlers == null)
-                {
-                    completedHandlers = new List<Action>();
-                }
-                completedHandlers.Add(onCompleted);
-            }
-            else if (CurState == PromiseState.Resolved)
-            {
-                // Promise has already been resolved, immediately call handler.
-                onCompleted();
-            }
         }
 
         /// <summary>
@@ -313,21 +269,23 @@ namespace RSG.Promise
             Argument.NotNull(() => chain);
 
             var resultPromise = new Promise<ConvertedT>();
-            
-            Catch(e => resultPromise.Reject(e));
-            Done(v =>
-            {
-                try
+
+            this.Catch(e => resultPromise.Reject(e))
+                .Then(v =>
                 {
-                    var chainedPromise = chain(v);
-                    chainedPromise.Catch(e => resultPromise.Reject(e));
-                    chainedPromise.Done(chainedValue => resultPromise.Resolve(chainedValue));
-                }
-                catch (Exception ex)
-                {
-                    resultPromise.Reject(ex);
-                }
-            });
+                    try
+                    {
+                        chain(v)
+                            .Catch(e => resultPromise.Reject(e))
+                            .Then(chainedValue => resultPromise.Resolve(chainedValue))
+                            .Done();
+                    }
+                    catch (Exception ex)
+                    {
+                        resultPromise.Reject(ex);
+                    }
+                })
+                .Done();
             
             return resultPromise;
         }
@@ -342,20 +300,22 @@ namespace RSG.Promise
 
             var resultPromise = new Promise();
 
-            Catch(e => resultPromise.Reject(e));
-            Done(v =>
-            {
-                try
+            this.Catch(e => resultPromise.Reject(e))
+                .Then(v =>
                 {
-                    var chainedPromise = chain(v);
-                    chainedPromise.Catch(e => resultPromise.Reject(e));
-                    chainedPromise.Done(() => resultPromise.Resolve());
-                }
-                catch (Exception ex)
-                {
-                    resultPromise.Reject(ex);
-                }
-            });
+                    try
+                    {
+                        chain(v)
+                            .Catch(e => resultPromise.Reject(e))
+                            .Then(() => resultPromise.Resolve())
+                            .Done();
+                    }
+                    catch (Exception ex)
+                    {
+                        resultPromise.Reject(ex);
+                    }
+                })
+                .Done();
 
             return resultPromise;
         }
@@ -369,19 +329,21 @@ namespace RSG.Promise
             Argument.NotNull(() => transform);
 
             var resultPromise = new Promise<ConvertedT>();
-            Catch(e => resultPromise.Reject(e));
-            Done(v =>
-            {
-                try
+
+            this.Catch(e => resultPromise.Reject(e))
+                .Then(v =>
                 {
-                    var transformedValue = transform(v);
-                    resultPromise.Resolve(transformedValue);
-                }
-                catch (Exception ex)
-                {
-                    resultPromise.Reject(ex);
-                }
-            });
+                    try
+                    {
+                        var transformedValue = transform(v);
+                        resultPromise.Resolve(transformedValue);
+                    }
+                    catch (Exception ex)
+                    {
+                        resultPromise.Reject(ex);
+                    }
+                })
+                .Done();
             return resultPromise;
         }
 
@@ -392,11 +354,23 @@ namespace RSG.Promise
         /// </summary>
         public IPromise<PromisedT> Then(Action<PromisedT> action)
         {
-            return Then(value =>
+            Argument.NotNull(() => action);
+
+            if (CurState == PromiseState.Pending)
             {
-                action(value);
-                return this;
-            });
+                // Promise is in flight, queue handler for possible call later.
+                if (valueCompletedHandlers == null)
+                {
+                    valueCompletedHandlers = new List<Action<PromisedT>>();
+                }
+                valueCompletedHandlers.Add(action);
+            }
+            else if (CurState == PromiseState.Resolved)
+            {
+                // Promise has already been rejected, immediately call handler.
+                action(resolveValue);
+            }
+            return this;
         }
 
         /// <summary>
@@ -449,24 +423,26 @@ namespace RSG.Promise
             promisesArray.Each((promise, index) =>
             {
                 promise
-                    .Catch(ex => {
+                    .Catch(ex =>
+                    {
                         if (resultPromise.CurState == PromiseState.Pending)
                         {
                             // If a promise errorred and the result promise is still pending, reject it.
                             resultPromise.Reject(ex);
                         }
                     })
-                    .Done(result =>                     
+                    .Then(result =>
                     {
                         results[index] = result;
-                    
+
                         --remainingCount;
                         if (remainingCount <= 0)
                         {
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve(results);
                         }
-                    });
+                    })
+                    .Done();
             });
 
             return resultPromise;
@@ -527,13 +503,14 @@ namespace RSG.Promise
                             resultPromise.Reject(ex);
                         }
                     })
-                    .Done(result =>
+                    .Then(result =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
                         {
                             resultPromise.Resolve(result);
                         }
-                    });
+                    })
+                    .Done();
             });
 
             return resultPromise;

@@ -40,12 +40,13 @@ namespace Example4
                     Console.WriteLine(exception);
                     running = false;
                 })
-                .Done(html =>          // Display html from the link that was followed.
+                .Then(html =>          // Display html from the link that was followed.
                 {
                     Console.WriteLine("Async operation completed.");
                     Console.WriteLine(html.Substring(0, 250) + "...");
                     running = false;
-                });
+                })
+                .Done();
 
             Console.WriteLine("Waiting");
 

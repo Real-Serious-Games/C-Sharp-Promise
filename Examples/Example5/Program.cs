@@ -30,7 +30,7 @@ namespace Example4
                         .Find(html)
                         .Select(link => link.Href);
                 })
-                                                                // Download all extracted links.
+                // Download all extracted links.
                 .Then(links => Promise<string>.All(             // Combine multiple promises into a single async operation.
                     links
                         .Where(link => link.StartsWith("http"))    // Filter out relative links.
@@ -44,7 +44,7 @@ namespace Example4
                     Console.WriteLine(exception);
                     running = false;
                 })
-                .Done(htmls =>          // Display html from the link that was followed.
+                .Then(htmls =>          // Display html from the link that was followed.
                 {
                     Console.WriteLine("Async operation completed.");
 
@@ -58,7 +58,8 @@ namespace Example4
                     Console.WriteLine("Downloaded " + htmls.Count() + " pages");
 
                     running = false;
-                });
+                })
+                .Done();
 
             Console.WriteLine("Waiting");
 

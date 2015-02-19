@@ -16,7 +16,7 @@ namespace RSG.Promise.Tests
             var promise = Promise.Resolved();
 
             var completed = 0;
-            promise.Done(() => ++completed);
+            promise.Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -44,7 +44,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            promise.Done(() => ++completed);
+            promise.Then(() => ++completed);
 
             promise.Resolve();
 
@@ -71,8 +71,8 @@ namespace RSG.Promise.Tests
             var completed1 = 0;
             var completed2 = 0;
 
-            promise.Done(() => ++completed1);
-            promise.Done(() => ++completed2);
+            promise.Then(() => ++completed1);
+            promise.Then(() => ++completed2);
 
             promise.Resolve();
 
@@ -89,7 +89,7 @@ namespace RSG.Promise.Tests
 
             promise.Resolve();
 
-            promise.Done(() => ++completed);
+            promise.Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -104,8 +104,8 @@ namespace RSG.Promise.Tests
 
             promise.Resolve();
 
-            promise.Done(() => ++completed1);
-            promise.Done(() => ++completed2);            
+            promise.Then(() => ++completed1);
+            promise.Then(() => ++completed2);            
 
             Assert.Equal(1, completed1);
             Assert.Equal(1, completed2);
@@ -118,7 +118,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            promise.Done(() => ++completed);
+            promise.Then(() => ++completed);
 
             promise.Resolve();
 
@@ -133,8 +133,8 @@ namespace RSG.Promise.Tests
             var completed1 = 0;
             var completed2 = 0;
 
-            promise.Done(() => ++completed1);
-            promise.Done(() => ++completed2);
+            promise.Then(() => ++completed1);
+            promise.Then(() => ++completed2);
 
             promise.Resolve();
 
@@ -149,7 +149,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            promise.Done(() => ++completed);
+            promise.Then(() => ++completed);
 
             promise.Resolve();
 
@@ -166,8 +166,8 @@ namespace RSG.Promise.Tests
 
             promise.Resolve();
 
-            promise.Done(() => ++completed1);
-            promise.Done(() => ++completed2);
+            promise.Then(() => ++completed1);
+            promise.Then(() => ++completed2);
 
             Assert.Equal(1, completed1);
             Assert.Equal(1, completed2);
@@ -313,7 +313,7 @@ namespace RSG.Promise.Tests
         {
             var promise = new Promise();
 
-            promise.Done(() =>
+            promise.Then(() =>
             {
                 throw new ApplicationException("This shouldn't happen");
             });
@@ -332,7 +332,7 @@ namespace RSG.Promise.Tests
 
             promise
                 .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(0, completed);
 
@@ -362,7 +362,7 @@ namespace RSG.Promise.Tests
 
             promise
                 .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Done(result =>
+                .Then(result =>
                 {
                     var items = result.ToArray();
                     Assert.Equal(2, items.Length);
@@ -400,7 +400,7 @@ namespace RSG.Promise.Tests
 
             promise
                 .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Done(result =>
+                .Then(result =>
                 {
                     var items = result.ToArray();
                     Assert.Equal(2, items.Length);
@@ -435,7 +435,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            all.Done(() => ++completed);
+            all.Then(() => ++completed);
 
             promise1.Resolve();
             promise2.Resolve();
@@ -451,7 +451,7 @@ namespace RSG.Promise.Tests
 
             var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
 
-            all.Done(() =>
+            all.Then(() =>
             {
                 throw new ApplicationException("Shouldn't happen");
             });
@@ -476,7 +476,7 @@ namespace RSG.Promise.Tests
 
             var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
 
-            all.Done(() =>
+            all.Then(() =>
             {
                 throw new ApplicationException("Shouldn't happen");
             });
@@ -501,7 +501,7 @@ namespace RSG.Promise.Tests
 
             var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
 
-            all.Done(() =>
+            all.Then(() =>
             {
                 throw new ApplicationException("Shouldn't happen");
             });
@@ -528,7 +528,7 @@ namespace RSG.Promise.Tests
 
             var completed = 0;
 
-            all.Done(() => ++completed);
+            all.Then(() => ++completed);
         }
 
         [Fact]
@@ -591,7 +591,7 @@ namespace RSG.Promise.Tests
 
             promise
                 .Then(() => chainedPromise)
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             promise.Resolve();
             chainedPromise.Resolve();
@@ -610,7 +610,7 @@ namespace RSG.Promise.Tests
 
             promise
                 .Then(() => chainedPromise)
-                .Done(v => 
+                .Then(v => 
                 {
                     Assert.Equal(chainedPromiseValue, v);
 
@@ -745,7 +745,7 @@ namespace RSG.Promise.Tests
 
             Promise
                 .Race(promise1, promise2)
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             promise1.Resolve();
 
@@ -762,7 +762,7 @@ namespace RSG.Promise.Tests
 
             Promise
                 .Race(promise1, promise2)
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             promise2.Resolve();
 
@@ -812,7 +812,7 @@ namespace RSG.Promise.Tests
 
             Promise
                 .Sequence(new Func<IPromise>[0])
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -824,7 +824,7 @@ namespace RSG.Promise.Tests
 
             Promise
                 .Sequence(() => new Promise())
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(0, completed);
         }
@@ -836,7 +836,7 @@ namespace RSG.Promise.Tests
 
             Promise
                 .Sequence(() => Promise.Resolved())
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -851,7 +851,7 @@ namespace RSG.Promise.Tests
                     () => Promise.Resolved(),
                     () => new Promise()
                 )
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(0, completed);
         }
@@ -866,7 +866,7 @@ namespace RSG.Promise.Tests
                     () => Promise.Resolved(),
                     () => Promise.Resolved()
                 )
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -914,7 +914,7 @@ namespace RSG.Promise.Tests
                     Assert.Equal(ex, e);
                     ++errored;
                 })
-                .Done(() => ++completed);
+                .Then(() => ++completed);
 
             Assert.Equal(1, errored);
             Assert.Equal(0, completed);
@@ -955,7 +955,7 @@ namespace RSG.Promise.Tests
             });
 
             var completed = 0;
-            promise.Done(() =>
+            promise.Then(() =>
             {
                 ++completed;
             });
