@@ -540,7 +540,7 @@ namespace RSG.Promise.Tests
             var errors = 0;
 
             var transformedPromise = promise
-                .ThenDo(() =>
+                .Then(() =>
                 {
                     Assert.True(false, "This code shouldn't be executed");
                 })
@@ -701,7 +701,7 @@ namespace RSG.Promise.Tests
         {
             var promise = new Promise();
             var invoked = 0;
-            promise.ThenDo(() => ++invoked);
+            promise.Then(() => ++invoked);
 
             promise.Resolve();
 
@@ -714,9 +714,9 @@ namespace RSG.Promise.Tests
             var promise = new Promise();
             var order = 0;
             promise
-                .ThenDo(() => Assert.Equal(1, ++order))
-                .ThenDo(() => Assert.Equal(2, ++order))
-                .ThenDo(() => Assert.Equal(3, ++order));
+                .Then(() => Assert.Equal(1, ++order))
+                .Then(() => Assert.Equal(2, ++order))
+                .Then(() => Assert.Equal(3, ++order));
 
             promise.Resolve();
 
@@ -728,7 +728,7 @@ namespace RSG.Promise.Tests
         {
             var promise = new Promise();
             var invoked = 0;
-            promise.ThenDo(() => ++invoked);
+            promise.Then(() => ++invoked);
 
             promise.Reject(new ApplicationException());
 

@@ -791,7 +791,7 @@ namespace RSG.Promise.Tests
         {
             var promise = new Promise<int>();
             var invoked = 0;
-            promise.ThenDo(i => ++invoked);
+            promise.Then(i => ++invoked);
 
             promise.Resolve(5);
 
@@ -804,9 +804,9 @@ namespace RSG.Promise.Tests
             var promise = new Promise<int>();
             var order = 0;
             promise
-                .ThenDo(i => Assert.Equal(1, ++order))
-                .ThenDo(i => Assert.Equal(2, ++order))
-                .ThenDo(i => Assert.Equal(3, ++order));
+                .Then(i => Assert.Equal(1, ++order))
+                .Then(i => Assert.Equal(2, ++order))
+                .Then(i => Assert.Equal(3, ++order));
 
             promise.Resolve(5);
 
@@ -818,7 +818,7 @@ namespace RSG.Promise.Tests
         {
             var promise = new Promise<int>();
             var invoked = 0;
-            promise.ThenDo(i => ++invoked);
+            promise.Then(i => ++invoked);
 
             promise.Reject(new ApplicationException());
 

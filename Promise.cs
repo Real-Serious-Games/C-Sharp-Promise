@@ -49,7 +49,7 @@ namespace RSG.Promise
         /// The callback receives the promised value and returns no value.
         /// The callback is invoked when the promise is resolved, after the callback the chain continues.
         /// </summary>
-        IPromise<PromisedT> ThenDo(Action<PromisedT> action);
+        IPromise<PromisedT> Then(Action<PromisedT> action);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -390,7 +390,7 @@ namespace RSG.Promise
         /// The callback receives the promised value and returns no value.
         /// The callback is invoked when the promise is resolved, after the callback the chain continues.
         /// </summary>
-        public IPromise<PromisedT> ThenDo(Action<PromisedT> action)
+        public IPromise<PromisedT> Then(Action<PromisedT> action)
         {
             return Then(value =>
             {

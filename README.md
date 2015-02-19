@@ -237,12 +237,12 @@ The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* funct
 
 ## Chaining Synchronous Actions that have no Result
 
-The *ThenDo* function can be used to chain synchronous operations that yield no result.
+The *Then* function can be used to chain synchronous operations that yield no result.
 
 	var promise = ...
 	promise
-		.Then(result => SomeAsyncOperation(result)) // Chain an async operation.
-		.ThenDo(result => Console.WriteLine(result))    // Chain a sync operation that yields no result.
+		.Then(result => SomeAsyncOperation(result)) 	// Chain an async operation.
+		.Then(result => Console.WriteLine(result))    	// Chain a sync operation that yields no result.
 		.Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
 
 
