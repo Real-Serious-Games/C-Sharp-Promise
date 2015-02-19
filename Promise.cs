@@ -131,11 +131,6 @@ namespace RSG.Promise
         private List<Action<PromisedT>> valueCompletedHandlers;
 
         /// <summary>
-        /// Completed handlers that accept no value.
-        /// </summary>
-        private List<Action> completedHandlers;
-
-        /// <summary>
         /// Tracks the current state of the promise.
         /// </summary>
         public PromiseState CurState { get; private set; }
@@ -172,7 +167,6 @@ namespace RSG.Promise
         {
             errorHandlers = null;
             valueCompletedHandlers = null;
-            completedHandlers = null;
         }
 
         /// <summary>
@@ -218,12 +212,7 @@ namespace RSG.Promise
             {
                 valueCompletedHandlers.Each(handler => handler(resolveValue));
             }
-
-            if (completedHandlers != null)
-            {
-                completedHandlers.Each(handler => handler());
-            }
-            
+           
             ClearHandlers();
         }
 
