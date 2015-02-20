@@ -51,6 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="A+ Spec\2.2.cs" />
     <Compile Include="PromiseTests.cs" />
     <Compile Include="Promise_NonGeneric_Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
