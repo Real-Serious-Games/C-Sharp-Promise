@@ -28,7 +28,7 @@ namespace RSG.Promise.Tests.A__Spec
         {
             // 2.1.2.1
             [Fact]
-            public void must_not_transition_to_any_other_state()
+            public void _must_not_transition_to_any_other_state()
             {
                 var fulfilledPromise = new Promise<object>();
                 fulfilledPromise.Resolve(new object());
@@ -40,7 +40,7 @@ namespace RSG.Promise.Tests.A__Spec
 
 			// 2.1.2.2
             [Fact]
-            public void must_have_a_value_which_must_not_change()
+            public void _must_have_a_value_which_must_not_change()
             {
                 var promisedValue = new object();
                 var fulfilledPromise = new Promise<object>();
@@ -65,7 +65,7 @@ namespace RSG.Promise.Tests.A__Spec
         {
 			// 2.1.3.1
             [Fact]
-            public void must_not_transition_to_any_other_state()
+            public void _must_not_transition_to_any_other_state()
             {
                 var rejectedPromise = new Promise<object>();
                 rejectedPromise.Reject(new Exception());
@@ -77,7 +77,7 @@ namespace RSG.Promise.Tests.A__Spec
             
             // 2.1.3.21
 			[Fact]         
-            public void must_have_a_reason_which_must_not_change()
+            public void _must_have_a_reason_which_must_not_change()
             {
                 var rejectedPromise = new Promise<object>();
                 var reason = new Exception();

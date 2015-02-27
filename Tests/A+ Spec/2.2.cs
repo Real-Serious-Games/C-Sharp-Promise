@@ -8,12 +8,241 @@ namespace RSG.Promise.Tests.A__Spec
 {
     public class _2_2
     {
+        // 2.2.1
+        public class _both_onFulfilled_and_onRejected_are_optional_arguments_
+        {
+            // 2.2.1.1
+            [Fact]
+            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_1()
+            {
+                var promise = new Promise<object>();
+
+                var resultPromise = promise
+                    .Then(
+                        (Action<object>)null,
+                        ex => {}
+                    );
+
+                var resolves = 0;
+                var errors = 0;
+                resultPromise.Then(() => ++resolves);
+                resultPromise.Catch(ex => ++errors);
+
+                promise.Resolve(new object());
+
+                Assert.Equal(1, resolves);
+                Assert.Equal(0, errors);
+            }
+
+            [Fact]
+            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_2()
+            {
+                var promise = new Promise<object>();
+
+                var resultPromise = promise
+                    .Then(
+                        (Func<object, IPromise>)null,
+                        ex => { }
+                    );
+
+                var resolves = 0;
+                var errors = 0;
+                resultPromise.Then(() => ++resolves);
+                resultPromise.Catch(ex => ++errors);
+
+                promise.Resolve(new object());
+
+                Assert.Equal(1, resolves);
+                Assert.Equal(0, errors);
+            }
+
+            // 2.2.1.2
+            [Fact]
+            public void _if_onRejected_is_not_a_function_it_must_be_ignored_1()
+            {
+                var promise = new Promise<object>();
+
+                var resultPromise = promise
+                    .Then(
+                        v => Promise.Resolved(),
+                        null
+                    );
+
+                var resolved = 0;
+                var errors = 0;
+                var e = new Exception();
+                resultPromise.Then(() => ++resolved);
+                resultPromise.Catch(ex =>
+                {
+                    Assert.Equal(e, ex);
+                    ++errors;
+                });
+
+                promise.Reject(e);
+
+                Assert.Equal(0, resolved);
+                Assert.Equal(1, errors);
+            }
+
+            [Fact]
+            public void _if_onRejected_is_not_a_function_it_must_be_ignored_2()
+            {
+                var promise = new Promise<object>();
+
+                var resultPromise = promise
+                    .Then(
+                        v => Promise<object>.Resolved(new object()),
+                        null
+                    );
+
+                var resolved = 0;
+                var errors = 0;
+                var e = new Exception();
+                resultPromise.Then(v => ++resolved);
+                resultPromise.Catch(ex => 
+                {
+                    Assert.Equal(e, ex);
+                    ++errors;
+                });
+
+                promise.Reject(e);
+
+                Assert.Equal(0, resolved);
+                Assert.Equal(1, errors);
+            }
+        }
+
+        // 2.2.2
+        public class _if_onFulfilled_is_a_function_
+        {
+            // 2.2.2.1
+            [Fact]
+            public void _it_must_be_called_after_promise_is_fulfilled_with_promises_value_as_its_first_argument()
+            {
+                var promise = new Promise<object>();
+
+                var promisedValue = new object();
+                var resolved = false;
+
+                promise.Then(
+                    v => 
+                    {
+                        Assert.Equal(promisedValue, v);
+                        resolved = true;
+                    },
+                    null
+                );
+
+                promise.Resolve(promisedValue);
+
+                Assert.True(resolved);
+            }
+
+            // 2.2.2.2
+            [Fact]
+            public void _it_must_not_be_called_before_promise_is_fulfilled()
+            {
+                var promise = new Promise<object>();
+                var resolved = false;
+
+                promise.Then(
+                    v => resolved = true,
+                    null
+                );
+
+                Assert.False(resolved);
+            }
+
+            // 2.2.2.3
+            [Fact]
+            public void _it_must_not_be_called_more_than_once()
+            {
+                var promise = new Promise<object>();
+                var promisedValue = new object();
+                var resolved = 0;
+
+                promise.Then(
+                    v => ++resolved,
+                    null
+                );
+
+                promise.Resolve(promisedValue);
+
+                Assert.Equal(1, resolved);
+            }
+        }
+
+        // 2.2.3
+        public class _If_onRejected_is_a_function_
+        {
+            // 2.2.3.1
+            [Fact]
+            public void _it_must_be_called_after_promise_is_rejected_with_promises_reason_as_its_first_argument()
+            {
+                var promise = new Promise<object>();
+                var rejectedReason = new Exception();
+                var errored = false;
+
+                promise.Then(
+                    v => {},
+                    ex => 
+                    {
+                        Assert.Equal(rejectedReason, ex);
+                        errored = true;
+                    }
+                );
+
+                promise.Reject(rejectedReason);
+
+                Assert.True(errored);
+            }
+
+            // 2.2.3.2
+            [Fact]
+            public void _it_must_not_be_called_before_promise_is_rejected()
+            {
+                var promise = new Promise<object>();
+                var errored = false;
+
+                promise.Then(
+                    v => {},
+                    ex => errored = true                    
+                );
+
+                Assert.False(errored);
+            }
+
+            // 2.2.3.3
+            [Fact]
+            public void _it_must_not_be_called_more_than_once()
+            {
+                var promise = new Promise<object>();
+                var rejectedReason = new Exception();
+                var errored = 0;
+
+                promise.Then(
+                    v => {},
+                    ex => ++errored
+                );
+
+                promise.Reject(rejectedReason);
+
+                Assert.Equal(1, errored);
+            }
+        }
+
+        // 2.2.4
+        // Not really appropriate in C#.
+
+        // 2.2.5
+        // Not really appropriate in C#.
+
         // 2.2.6
-        public class then_may_be_called_multiple_times_on_the_same_promise
+        public class then_may_be_called_multiple_times_on_the_same_promise_
         {
             // 2.2.6.1
             [Fact]
-            public void when_promise_is_fulfilled_all_respective_onFulfilled_callbacks_must_execute_in_the_order_of_their_originating_calls_to_then()
+            public void _when_promise_is_fulfilled_all_respective_onFulfilled_callbacks_must_execute_in_the_order_of_their_originating_calls_to_then_1()
             {
                 var promise = new Promise<object>();
 
@@ -37,9 +266,42 @@ namespace RSG.Promise.Tests.A__Spec
                 Assert.Equal(3, order);
             }
 
+            [Fact]
+            public void _when_promise_is_fulfilled_all_respective_onFulfilled_callbacks_must_execute_in_the_order_of_their_originating_calls_to_then_2()
+            {
+                var promise = new Promise<object>();
+
+                var order = 0;
+
+                promise.Then(_ =>
+                {
+                    Assert.Equal(1, ++order);
+
+                    return Promise<object>.Resolved(new object());
+                });
+
+                promise.Then(_ =>
+                {
+                    Assert.Equal(2, ++order);
+
+                    return Promise<object>.Resolved(new object());
+                });
+
+                promise.Then(_ =>
+                {
+                    Assert.Equal(3, ++order);
+
+                    return Promise<object>.Resolved(new object());
+                });
+
+                promise.Resolve(new object());
+
+                Assert.Equal(3, order);
+            }
+
             // 2.2.6.2
             [Fact]
-            public void when_promise_is_rejected_all_respective_onRejected_callbacks_must_execute_in_the_order_of_their_originating_calls_to_then()
+            public void _when_promise_is_rejected_all_respective_onRejected_callbacks_must_execute_in_the_order_of_their_originating_calls_to_then()
             {
                 var promise = new Promise<object>();
 
@@ -70,10 +332,10 @@ namespace RSG.Promise.Tests.A__Spec
 
             // 2.2.7.1
             // todo: Catch handler needs to be able to return a value.
-            public class If_either_onFulfilled_or_onRejected_returns_a_value_x_fulfill_promise_with_x
+            public class _If_either_onFulfilled_or_onRejected_returns_a_value_x_fulfill_promise_with_x
             {
                 [Fact]
-                public void when_promise1_is_resolved()
+                public void _when_promise1_is_resolved()
                 {
                     var promise1 = new Promise<object>();
 
@@ -107,10 +369,10 @@ namespace RSG.Promise.Tests.A__Spec
             }
 
             // 2.2.7.2
-            public class if_either_onFulfilled_or_onRejected_throws_an_exception_e_promise2_must_be_rejected_with_e_as_the_reason
+            public class _if_either_onFulfilled_or_onRejected_throws_an_exception_e_promise2_must_be_rejected_with_e_as_the_reason
             {
                 [Fact]
-                public void when_promise1_is_resolved_1()
+                public void _when_promise1_is_resolved_1()
                 {
                     var promise1 = new Promise<object>();
 
@@ -142,7 +404,7 @@ namespace RSG.Promise.Tests.A__Spec
                 }
 
                 [Fact]
-                public void when_promise1_is_resolved_2()
+                public void _when_promise1_is_resolved_2()
                 {
                     var promise1 = new Promise<object>();
 
@@ -174,7 +436,7 @@ namespace RSG.Promise.Tests.A__Spec
                 }
 
                 [Fact]
-                public void when_promise1_is_rejected()
+                public void _when_promise1_is_rejected()
                 {
                     var promise1 = new Promise<object>();
 
@@ -206,7 +468,7 @@ namespace RSG.Promise.Tests.A__Spec
 
             // 2.2.7.3
             [Fact]
-            public void If_onFulfilled_is_not_a_function_and_promise1_is_fulfilled_promise2_must_be_fulfilled_with_the_same_value_as_promise1()
+            public void _If_onFulfilled_is_not_a_function_and_promise1_is_fulfilled_promise2_must_be_fulfilled_with_the_same_value_as_promise1()
             {
                 var promise1 = new Promise<object>();
 
@@ -230,7 +492,7 @@ namespace RSG.Promise.Tests.A__Spec
             }
 
             [Fact]
-            public void If_onRejected_is_not_a_function_and_promise1_is_rejected_promise2_must_be_rejected_with_the_same_reason_as_promise1()
+            public void _If_onRejected_is_not_a_function_and_promise1_is_rejected_promise2_must_be_rejected_with_the_same_reason_as_promise1()
             {
                 var promise1 = new Promise<object>();
 

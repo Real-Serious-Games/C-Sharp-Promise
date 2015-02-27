@@ -12,39 +12,52 @@ namespace RSG.Promise
     public interface IPromise<PromisedT>
     {
         /// <summary>
-        /// Catch any execption that is thrown while the promise is being resolved.
-        /// </summary>
-        IPromise<PromisedT> Catch(Action<Exception> onError);
-
-        /// <summary>
-        /// Complete the promise. Adds a defualt error handler.
+        /// Complete the promise. Adds a default error handler.
         /// </summary>
         void Done();
 
         /// <summary>
-        /// Chains another asynchronous operation. 
-        /// May also change the type of value that is being fulfilled.
+        /// Handle errors for the promise. 
         /// </summary>
-        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> chain);
+        IPromise<PromisedT> Catch(Action<Exception> onRejected);
 
         /// <summary>
-        /// Chains another asynchronous operation. 
-        /// Converts to a promisse that has no result.
+        /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
         /// </summary>
-        IPromise Then(Func<PromisedT, IPromise> chain);
+        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved);
+
+        /// <summary>
+        /// Add a resolved callback that chains a non-value promise.
+        /// </summary>
+        IPromise Then(Func<PromisedT, IPromise> onResolved);
+
+        /// <summary>
+        /// Add a resolved callback.
+        /// </summary>
+        IPromise Then(Action<PromisedT> onResolved);
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a value promise (optionally converting to a different value type).
+        /// </summary>
+        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
+        IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected);
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// </summary>
+        IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
         IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
-
-        /// <summary>
-        /// Chain a synchronous action.
-        /// The callback receives the promised value and returns no value.
-        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
-        /// </summary>
-        IPromise<PromisedT> Then(Action<PromisedT> action);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -79,15 +92,21 @@ namespace RSG.Promise
     }
 
     /// <summary>
-    /// Interface for a promise that can be rejected or resolved.
+    /// Interface for a promise that can be rejected.
     /// </summary>
-    public interface IPendingPromise<PromisedT>
+    public interface IRejectable
     {
         /// <summary>
         /// Reject the promise with an exception.
         /// </summary>
         void Reject(Exception ex);
+    }
 
+    /// <summary>
+    /// Interface for a promise that can be rejected or resolved.
+    /// </summary>
+    public interface IPendingPromise<PromisedT> : IRejectable
+    {
         /// <summary>
         /// Resolve the promise with a particular value.
         /// </summary>
@@ -121,14 +140,30 @@ namespace RSG.Promise
         private PromisedT resolveValue;
 
         /// <summary>
+        /// Represents a handler invoked when the promise is resolved or rejected.
+        /// </summary>
+        public struct Handler<T>
+        {
+            /// <summary>
+            /// Callback fn.
+            /// </summary>
+            public Action<T> callback;
+
+            /// <summary>
+            /// The promise that is rejected when there is an error while invoking the handler.
+            /// </summary>
+            public IRejectable rejectable;
+        }
+
+        /// <summary>
         /// Error handler.
         /// </summary>
-        private List<Action<Exception>> errorHandlers;
+        private List<Handler<Exception>> rejectHandlers;
 
         /// <summary>
         /// Completed handlers that accept a value.
         /// </summary>
-        private List<Action<PromisedT>> valueCompletedHandlers;
+        private List<Handler<PromisedT>> resolveHandlers;
 
         /// <summary>
         /// Tracks the current state of the promise.
@@ -161,12 +196,88 @@ namespace RSG.Promise
         }
 
         /// <summary>
+        /// Add a rejection handler for this promise.
+        /// </summary>
+        private void AddRejectHandler(Action<Exception> onRejected, IRejectable rejectable)
+        {
+            if (rejectHandlers == null)
+            {
+                rejectHandlers = new List<Handler<Exception>>();
+            }
+
+            rejectHandlers.Add(new Handler<Exception>() { callback = onRejected, rejectable = rejectable }); ;
+        }
+
+        /// <summary>
+        /// Add a resolve handler for this promise.
+        /// </summary>
+        private void AddResolveHandler(Action<PromisedT> onResolved, IRejectable rejectable)
+        {
+            if (resolveHandlers == null)
+            {
+                resolveHandlers = new List<Handler<PromisedT>>();
+            }
+
+            resolveHandlers.Add(new Handler<PromisedT>() 
+            { 
+                callback = onResolved,
+                rejectable = rejectable 
+            });
+        }
+
+        /// <summary>
+        /// Invoke a single handler.
+        /// </summary>
+        private void InvokeHandler<T>(Action<T> callback, IRejectable rejectable, T value)
+        {
+            Argument.NotNull(() => callback);
+            Argument.NotNull(() => rejectable);            
+
+            try
+            {
+                callback(value);
+            }
+            catch (Exception ex)
+            {
+                rejectable.Reject(ex);
+            }
+        }
+
+        /// <summary>
         /// Helper function clear out all handlers after resolution or rejection.
         /// </summary>
         private void ClearHandlers()
         {
-            errorHandlers = null;
-            valueCompletedHandlers = null;
+            rejectHandlers = null;
+            resolveHandlers = null;
+        }
+
+        /// <summary>
+        /// Invoke all reject handlers.
+        /// </summary>
+        private void InvokeRejectHandlers(Exception ex)
+        {
+            Argument.NotNull(() => ex);
+
+            if (rejectHandlers != null)
+            {
+                rejectHandlers.Each(handler => InvokeHandler(handler.callback, handler.rejectable, ex));
+            }
+
+            ClearHandlers();
+        }
+
+        /// <summary>
+        /// Invoke all resolve handlers.
+        /// </summary>
+        private void InvokeResolveHandlers(PromisedT value)
+        {
+            if (resolveHandlers != null)
+            {
+                resolveHandlers.Each(handler => InvokeHandler(handler.callback, handler.rejectable, value));
+            }
+
+            ClearHandlers();
         }
 
         /// <summary>
@@ -185,14 +296,8 @@ namespace RSG.Promise
 
             CurState = PromiseState.Rejected;
 
-            if (errorHandlers != null)
-            {
-                errorHandlers.Each(handler => handler(rejectionException));
-            }
-
-            ClearHandlers();
+            InvokeRejectHandlers(ex);
         }
-
 
         /// <summary>
         /// Resolve the promise with a particular value.
@@ -208,38 +313,7 @@ namespace RSG.Promise
 
             CurState = PromiseState.Resolved;
 
-            if (valueCompletedHandlers != null)
-            {
-                valueCompletedHandlers.Each(handler => handler(resolveValue));
-            }
-           
-            ClearHandlers();
-        }
-
-        /// <summary>
-        /// Catch any execption that is thrown while the promise is being resolved.
-        /// </summary>
-        public IPromise<PromisedT> Catch(Action<Exception> onError)
-        {
-            Argument.NotNull(() => onError);
-
-            if (CurState == PromiseState.Pending)
-            {
-                // Promise is in flight, queue handler for possible call later.
-                if (errorHandlers == null)
-                {
-                    errorHandlers = new List<Action<Exception>>();
-                }
-
-                errorHandlers.Add(onError);
-            }
-            else if (CurState == PromiseState.Rejected)
-            {
-                // Promise has already been rejected, immediately call handler.
-                onError(rejectionException);
-            }
-
-            return this;
+            InvokeResolveHandlers(value);
         }
 
         /// <summary>
@@ -250,59 +324,208 @@ namespace RSG.Promise
         }
 
         /// <summary>
-        /// Chains another asynchronous operation. 
-        /// May also change the type of value that is being fulfilled.
+        /// Handle errors for the promise. 
         /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> chain)
+        public IPromise<PromisedT> Catch(Action<Exception> onRejected)
         {
-            Argument.NotNull(() => chain);
+            Argument.NotNull(() => onRejected);
 
-            var resultPromise = new Promise<ConvertedT>();
+            var resultPromise = new Promise<PromisedT>();
 
-            this.Catch(e => resultPromise.Reject(e))
-                .Then(v =>
-                {
-                    try
-                    {
-                        chain(v)
-                            .Catch(e => resultPromise.Reject(e))
-                            .Then(chainedValue => resultPromise.Resolve(chainedValue))
-                            .Done();
-                    }
-                    catch (Exception ex)
-                    {
-                        resultPromise.Reject(ex);
-                    }
-                });
-            
+            Action<PromisedT> resolveHandler = v =>
+            {
+                resultPromise.Resolve(v);
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                onRejected(ex);
+
+                resultPromise.Reject(ex);
+            };
+
+            if (CurState == PromiseState.Resolved)
+            {
+                InvokeHandler(resolveHandler, resultPromise, resolveValue);
+            }
+            else if (CurState == PromiseState.Rejected)
+            {
+                InvokeHandler(rejectHandler, resultPromise, rejectionException);
+            }
+            else
+            {
+                AddResolveHandler(resolveHandler, resultPromise);
+                AddRejectHandler(rejectHandler, resultPromise);
+            }
+
             return resultPromise;
         }
 
         /// <summary>
-        /// Chains another asynchronous operation. 
-        /// Converts to a promisse that has no result.
+        /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
         /// </summary>
-        public IPromise Then(Func<PromisedT, IPromise> chain)
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved)
         {
-            Argument.NotNull(() => chain);
+            return Then(onResolved, null);
+        }
 
+        /// <summary>
+        /// Add a resolved callback that chains a non-value promise.
+        /// </summary>
+        public IPromise Then(Func<PromisedT, IPromise> onResolved)
+        {
+            return Then(onResolved, null);
+        }
+
+        /// <summary>
+        /// Add a resolved callback.
+        /// </summary>
+        public IPromise Then(Action<PromisedT> onResolved)
+        {
+            return Then(onResolved, null);
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a value promise (optionally converting to a different value type).
+        /// </summary>
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+        {
+            // This version of the function must supply an onResolved.
+            // Otherwise there is now way to get the converted value to pass to the resulting promise.
+            Argument.NotNull(() => onResolved); 
+
+            var resultPromise = new Promise<ConvertedT>();
+
+            Action<PromisedT> resolveHandler = v =>
+            {
+                onResolved(v)
+                    .Then(
+                        chainedValue => resultPromise.Resolve(chainedValue),
+                        ex => resultPromise.Reject(ex)
+                    )
+                    .Done();
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                if (onRejected != null)
+                {
+                    onRejected(ex);
+                }
+
+                resultPromise.Reject(ex);
+            };
+
+            if (CurState == PromiseState.Resolved)
+            {
+                InvokeHandler(resolveHandler, resultPromise, resolveValue);
+            }
+            else if (CurState == PromiseState.Rejected)
+            {
+                InvokeHandler(rejectHandler, resultPromise, rejectionException);
+            }
+            else 
+            {
+                AddResolveHandler(resolveHandler, resultPromise);
+                AddRejectHandler(rejectHandler, resultPromise);
+            }
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
+        public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected)
+        {
             var resultPromise = new Promise();
 
-            this.Catch(e => resultPromise.Reject(e))
-                .Then(v =>
+            Action<PromisedT> resolveHandler = v =>
+            {
+                if (onResolved != null)
                 {
-                    try
-                    {
-                        chain(v)
-                            .Catch(e => resultPromise.Reject(e))
-                            .Then(() => resultPromise.Resolve())
-                            .Done();
-                    }
-                    catch (Exception ex)
-                    {
-                        resultPromise.Reject(ex);
-                    }
-                });
+                    onResolved(v)
+                        .Then(
+                            () => resultPromise.Resolve(),
+                            ex => resultPromise.Reject(ex)
+                        )
+                        .Done();
+                }
+                else
+                {
+                    resultPromise.Resolve();
+                }
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                if (onRejected != null)
+                {
+                    onRejected(ex);
+                }
+
+                resultPromise.Reject(ex);
+            };
+
+            if (CurState == PromiseState.Resolved)
+            {
+                InvokeHandler(resolveHandler, resultPromise, resolveValue);
+            }
+            else if (CurState == PromiseState.Rejected)
+            {
+                InvokeHandler(rejectHandler, resultPromise, rejectionException);
+            }
+            else
+            {
+                AddResolveHandler(resolveHandler, resultPromise);
+                AddRejectHandler(rejectHandler, resultPromise);
+            }
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// </summary>
+        public IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
+        {
+            var resultPromise = new Promise();
+
+            Action<PromisedT> resolveHandler = v =>
+            {
+                if (onResolved != null)
+                {
+                    onResolved(v);
+                }
+
+                resultPromise.Resolve();
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                if (onRejected != null)
+                {
+                    onRejected(ex);
+                }
+
+                resultPromise.Reject(ex);
+            };
+
+            if (CurState == PromiseState.Resolved)
+            {
+                InvokeHandler(resolveHandler, resultPromise, resolveValue);
+            }
+            else if (CurState == PromiseState.Rejected)
+            {
+                InvokeHandler(rejectHandler, resultPromise, rejectionException);
+            }
+            else
+            {
+                AddResolveHandler(resolveHandler, resultPromise);
+                AddRejectHandler(rejectHandler, resultPromise);
+            }
 
             return resultPromise;
         }
@@ -332,32 +555,6 @@ namespace RSG.Promise
                 });
 
             return resultPromise;
-        }
-
-        /// <summary>
-        /// Chain a synchronous action.
-        /// The callback receives the promised value and returns no value.
-        /// The callback is invoked when the promise is resolved, after the callback the chain continues.
-        /// </summary>
-        public IPromise<PromisedT> Then(Action<PromisedT> action)
-        {
-            Argument.NotNull(() => action);
-
-            if (CurState == PromiseState.Pending)
-            {
-                // Promise is in flight, queue handler for possible call later.
-                if (valueCompletedHandlers == null)
-                {
-                    valueCompletedHandlers = new List<Action<PromisedT>>();
-                }
-                valueCompletedHandlers.Add(action);
-            }
-            else if (CurState == PromiseState.Resolved)
-            {
-                // Promise has already been rejected, immediately call handler.
-                action(resolveValue);
-            }
-            return this;
         }
 
         /// <summary>
