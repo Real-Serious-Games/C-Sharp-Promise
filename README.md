@@ -17,7 +17,7 @@ To learn about promises:
 - 27 Feb 2015: Released v1.1.0.0, this is a big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
   - Breaking changes:
     - *ThenDo* has been renamed to *Then*.
-    - *Done* no longer accepts a function, it is simply used to terminate a chain of promises. If you want to replicate *Done* just replaced it with *Then*. Currently, the new version of *Done* does nothing, in the future it will be used for propagating unhandled errors.   
+    - *Done* no longer accepts a function, it is simply used to terminate a chain of promises. If you want to replicate *Done* replace it with *Then*. Currently, the new version of *Done* does nothing, in the future it will be used for propagating unhandled errors.   
 
 ## Getting the DLL
 
