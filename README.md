@@ -7,9 +7,15 @@ Inspired by Javascript promises, but slightly different.
 To learn about promises:
 
 - [Promises on Wikpedia](http://en.wikipedia.org/wiki/Futures_and_promises)
-- [Spec](https://www.promisejs.org/)
+- [Good overview](https://www.promisejs.org/)
+- [Promises A+ Spec](https://promisesaplus.com/)
 - [Mozilla](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
 
+## Recent Updates
+
+* 27 Feb 2015: Released v1.1.0.0, this is a big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
+** Breaking changes:
+***  
 
 ## Getting the DLL
 
