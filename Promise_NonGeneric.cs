@@ -103,11 +103,51 @@ namespace RSG.Promise
     }
 
     /// <summary>
+    /// Used to list information of pending promises.
+    /// </summary>
+    public struct PromiseInfo
+    {
+        public PromiseInfo(int id, string name)
+        {
+            this.Id = id;
+            this.Name = name;
+        }
+
+        /// <summary>
+        /// Id of the promise.
+        /// </summary>
+        public int Id;
+
+        /// <summary>
+        /// Human-readable name for the promise.
+        /// </summary>
+        public string Name;
+    }
+
+    /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
     /// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
     /// </summary>
     public class Promise : IPromise, IPendingPromise
     {
+        internal static int nextPromiseId = 0;
+        private int promiseId = ++nextPromiseId;
+
+        /// <summary>
+        /// ID of the promise, useful for debugging.
+        /// </summary>
+        public int PromiseId { get { return promiseId; } }
+
+        internal static Dictionary<int, PromiseInfo> pendingPromises = new Dictionary<int,PromiseInfo>();
+
+        /// <summary>
+        /// Information about pending promises, useful for debugging.
+        /// </summary>
+        public static IEnumerable<PromiseInfo> GetPendingPromises()
+        {
+            return pendingPromises.Values;
+        }
+
         /// <summary>
         /// The exception when the promise is rejected.
         /// </summary>
@@ -160,14 +200,43 @@ namespace RSG.Promise
         /// </summary>
         public PromiseState CurState { get; private set; }
 
+        public Promise(string promiseName)
+        {
+            this.CurState = PromiseState.Pending;
+            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
+        }
+
         public Promise()
         {
             this.CurState = PromiseState.Pending;
+            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
+        }
+
+        public Promise(string promiseName, Action<Action, Action<Exception>> resolver)
+        {
+            this.CurState = PromiseState.Pending;
+            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
+
+            try
+            {
+                resolver(
+                    // Resolve
+                    () => Resolve(),
+
+                    // Reject
+                    ex => Reject(ex)
+                );
+            }
+            catch (Exception ex)
+            {
+                Reject(ex);
+            }
         }
 
         public Promise(Action<Action, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
+            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
 
             try
             {
@@ -305,10 +374,10 @@ namespace RSG.Promise
             }
 
             rejectionException = ex;
-
             CurState = PromiseState.Rejected;
+            pendingPromises.Remove(this.PromiseId);
 
-            InvokeRejectHandlers(ex);
+            InvokeRejectHandlers(ex);            
         }
 
 
@@ -323,6 +392,7 @@ namespace RSG.Promise
             }
 
             CurState = PromiseState.Resolved;
+            pendingPromises.Remove(this.PromiseId);
 
             InvokeResolveHandlers();
         }
@@ -406,7 +476,7 @@ namespace RSG.Promise
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
             Argument.NotNull(() => onResolved);
 
-            var resultPromise = new Promise<ConvertedT>();
+            var resultPromise = new Promise<ConvertedT>(onResolved.ToString());
 
             Action resolveHandler = () =>
             {

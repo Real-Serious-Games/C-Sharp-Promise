@@ -130,6 +130,13 @@ namespace RSG.Promise
     /// </summary>
     public class Promise<PromisedT> : IPromise<PromisedT>, IPendingPromise<PromisedT>
     {
+        private int promiseId = ++Promise.nextPromiseId;
+
+        /// <summary>
+        /// ID of the promise, useful for debugging.
+        /// </summary>
+        public int PromiseId { get { return promiseId; } }
+
         /// <summary>
         /// The exception when the promise is rejected.
         /// </summary>
@@ -171,14 +178,43 @@ namespace RSG.Promise
         /// </summary>
         public PromiseState CurState { get; private set; }
 
+        public Promise(string promiseName)
+        {
+            this.CurState = PromiseState.Pending;
+            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
+        }
+
         public Promise()
         {
             this.CurState = PromiseState.Pending;
+            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
+        }
+
+        public Promise(string promiseName, Action<Action<PromisedT>, Action<Exception>> resolver)
+        {
+            this.CurState = PromiseState.Pending;
+            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
+
+            try
+            {
+                resolver(
+                    // Resolve
+                    value => Resolve(value),
+
+                    // Reject
+                    ex => Reject(ex)
+                );
+            }
+            catch (Exception ex)
+            {
+                Reject(ex);
+            }
         }
 
         public Promise(Action<Action<PromisedT>, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
+            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
 
             try
             {
@@ -294,8 +330,8 @@ namespace RSG.Promise
             }
 
             rejectionException = ex;
-
             CurState = PromiseState.Rejected;
+            Promise.pendingPromises.Remove(this.PromiseId);
 
             InvokeRejectHandlers(ex);
         }
@@ -311,8 +347,8 @@ namespace RSG.Promise
             }
 
             resolveValue = value;
-
             CurState = PromiseState.Resolved;
+            Promise.pendingPromises.Remove(this.PromiseId);
 
             InvokeResolveHandlers(value);
         }
