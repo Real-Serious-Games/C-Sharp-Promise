@@ -13,6 +13,11 @@ namespace RSG.Promise
     public interface IPromise<PromisedT>
     {
         /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
+        IPromise<PromisedT> Name(string name);
+
+        /// <summary>
         /// Complete the promise. Adds a default error handler.
         /// </summary>
         void Done();
@@ -130,12 +135,10 @@ namespace RSG.Promise
     /// </summary>
     public class Promise<PromisedT> : IPromise<PromisedT>, IPendingPromise<PromisedT>
     {
-        private int promiseId = ++Promise.nextPromiseId;
-
         /// <summary>
-        /// ID of the promise, useful for debugging.
+        /// Information about the promise, useful for debugging.
         /// </summary>
-        public int PromiseId { get { return promiseId; } }
+        private PromiseInfo promiseInfo = new PromiseInfo(++Promise.nextPromiseId);
 
         /// <summary>
         /// The exception when the promise is rejected.
@@ -178,43 +181,16 @@ namespace RSG.Promise
         /// </summary>
         public PromiseState CurState { get; private set; }
 
-        public Promise(string promiseName)
-        {
-            this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
-        }
-
         public Promise()
         {
             this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
-        }
-
-        public Promise(string promiseName, Action<Action<PromisedT>, Action<Exception>> resolver)
-        {
-            this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
-
-            try
-            {
-                resolver(
-                    // Resolve
-                    value => Resolve(value),
-
-                    // Reject
-                    ex => Reject(ex)
-                );
-            }
-            catch (Exception ex)
-            {
-                Reject(ex);
-            }
+            Promise.pendingPromises.Add(this.promiseInfo);
         }
 
         public Promise(Action<Action<PromisedT>, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
+            Promise.pendingPromises.Add(this.promiseInfo);
 
             try
             {
@@ -331,7 +307,7 @@ namespace RSG.Promise
 
             rejectionException = ex;
             CurState = PromiseState.Rejected;
-            Promise.pendingPromises.Remove(this.PromiseId);
+            Promise.pendingPromises.Remove(this.promiseInfo);
 
             InvokeRejectHandlers(ex);
         }
@@ -348,7 +324,7 @@ namespace RSG.Promise
 
             resolveValue = value;
             CurState = PromiseState.Resolved;
-            Promise.pendingPromises.Remove(this.PromiseId);
+            Promise.pendingPromises.Remove(this.promiseInfo);
 
             InvokeResolveHandlers(value);
         }
@@ -358,6 +334,15 @@ namespace RSG.Promise
         /// </summary>
         public void Done()
         {
+        }
+
+        /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
+        public IPromise<PromisedT> Name(string name)
+        {
+            promiseInfo.Name = name;
+            return this;
         }
 
         /// <summary>

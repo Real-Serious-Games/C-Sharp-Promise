@@ -13,6 +13,11 @@ namespace RSG.Promise
     public interface IPromise
     {
         /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
+        IPromise Name(string name);
+
+        /// <summary>
         /// Complete the promise. Adds a default error handler.
         /// </summary>
         void Done();
@@ -105,23 +110,23 @@ namespace RSG.Promise
     /// <summary>
     /// Used to list information of pending promises.
     /// </summary>
-    public struct PromiseInfo
+    public class PromiseInfo
     {
-        public PromiseInfo(int id, string name)
+        public PromiseInfo(int id)
         {
             this.Id = id;
-            this.Name = name;
+            this.Name = id.ToString();
         }
 
         /// <summary>
         /// Id of the promise.
         /// </summary>
-        public int Id;
+        public int Id { get; private set; }
 
         /// <summary>
         /// Human-readable name for the promise.
         /// </summary>
-        public string Name;
+        public string Name { get; internal set; }
     }
 
     /// <summary>
@@ -130,22 +135,27 @@ namespace RSG.Promise
     /// </summary>
     public class Promise : IPromise, IPendingPromise
     {
+        /// <summary>
+        /// Id for the next promise that is created.
+        /// </summary>
         internal static int nextPromiseId = 0;
-        private int promiseId = ++nextPromiseId;
 
         /// <summary>
-        /// ID of the promise, useful for debugging.
+        /// Information about the promise, useful for debugging.
         /// </summary>
-        public int PromiseId { get { return promiseId; } }
+        private PromiseInfo promiseInfo = new PromiseInfo(++nextPromiseId);
 
-        internal static Dictionary<int, PromiseInfo> pendingPromises = new Dictionary<int,PromiseInfo>();
+        /// <summary>
+        /// Information about pending promises.
+        /// </summary>
+        internal static HashSet<PromiseInfo> pendingPromises = new HashSet<PromiseInfo>();
 
         /// <summary>
         /// Information about pending promises, useful for debugging.
         /// </summary>
         public static IEnumerable<PromiseInfo> GetPendingPromises()
         {
-            return pendingPromises.Values;
+            return pendingPromises;
         }
 
         /// <summary>
@@ -200,43 +210,16 @@ namespace RSG.Promise
         /// </summary>
         public PromiseState CurState { get; private set; }
 
-        public Promise(string promiseName)
-        {
-            this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
-        }
-
         public Promise()
         {
             this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
-        }
-
-        public Promise(string promiseName, Action<Action, Action<Exception>> resolver)
-        {
-            this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, promiseName));
-
-            try
-            {
-                resolver(
-                    // Resolve
-                    () => Resolve(),
-
-                    // Reject
-                    ex => Reject(ex)
-                );
-            }
-            catch (Exception ex)
-            {
-                Reject(ex);
-            }
+            pendingPromises.Add(this.promiseInfo);
         }
 
         public Promise(Action<Action, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.PromiseId, new PromiseInfo(this.PromiseId, this.PromiseId.ToString()));
+            pendingPromises.Add(this.promiseInfo);
 
             try
             {
@@ -375,7 +358,7 @@ namespace RSG.Promise
 
             rejectionException = ex;
             CurState = PromiseState.Rejected;
-            pendingPromises.Remove(this.PromiseId);
+            pendingPromises.Remove(this.promiseInfo);
 
             InvokeRejectHandlers(ex);            
         }
@@ -392,7 +375,7 @@ namespace RSG.Promise
             }
 
             CurState = PromiseState.Resolved;
-            pendingPromises.Remove(this.PromiseId);
+            pendingPromises.Remove(this.promiseInfo);
 
             InvokeResolveHandlers();
         }
@@ -402,6 +385,15 @@ namespace RSG.Promise
         /// </summary>
         public void Done()
         {
+        }
+
+        /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
+        public IPromise Name(string name)
+        {
+            promiseInfo.Name = name;
+            return this;
         }
 
         /// <summary>
@@ -476,7 +468,7 @@ namespace RSG.Promise
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
             Argument.NotNull(() => onResolved);
 
-            var resultPromise = new Promise<ConvertedT>(onResolved.ToString());
+            var resultPromise = new Promise<ConvertedT>();
 
             Action resolveHandler = () =>
             {
