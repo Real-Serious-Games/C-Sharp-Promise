@@ -404,6 +404,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise();
+            resultPromise.Name(promiseInfo.Name);
 
             Action resolveHandler = () =>
             {
@@ -469,6 +470,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
+            resultPromise.Name(promiseInfo.Name);
 
             Action resolveHandler = () =>
             {
@@ -514,6 +516,7 @@ namespace RSG.Promise
         public IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
+            resultPromise.Name(promiseInfo.Name);
 
             Action resolveHandler = () =>
             {
@@ -565,6 +568,7 @@ namespace RSG.Promise
         public IPromise Then(Action onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
+            resultPromise.Name(promiseInfo.Name);
 
             Action resolveHandler = () =>
             {
@@ -647,6 +651,7 @@ namespace RSG.Promise
 
             var remainingCount = promisesArray.Length;
             var resultPromise = new Promise();
+            resultPromise.Name("All");
 
             promisesArray.Each((promise, index) =>
             {
@@ -750,6 +755,7 @@ namespace RSG.Promise
             }
 
             var resultPromise = new Promise();
+            resultPromise.Name("Race");
 
             promisesArray.Each((promise, index) =>
             {

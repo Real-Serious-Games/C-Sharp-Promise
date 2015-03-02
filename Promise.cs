@@ -353,6 +353,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise<PromisedT>();
+            resultPromise.Name(promiseInfo.Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -418,6 +419,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onResolved); 
 
             var resultPromise = new Promise<ConvertedT>();
+            resultPromise.Name(promiseInfo.Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -463,6 +465,7 @@ namespace RSG.Promise
         public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
+            resultPromise.Name(promiseInfo.Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -514,6 +517,7 @@ namespace RSG.Promise
         public IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
+            resultPromise.Name(promiseInfo.Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -561,6 +565,7 @@ namespace RSG.Promise
             Argument.NotNull(() => transform);
 
             var resultPromise = new Promise<ConvertedT>();
+            resultPromise.Name(promiseInfo.Name);
 
             this.Catch(e => resultPromise.Reject(e))
                 .Then(v =>
@@ -625,6 +630,7 @@ namespace RSG.Promise
             var remainingCount = promisesArray.Length;
             var results = new PromisedT[remainingCount];
             var resultPromise = new Promise<IEnumerable<PromisedT>>();
+            resultPromise.Name("All");
 
             promisesArray.Each((promise, index) =>
             {
@@ -697,6 +703,7 @@ namespace RSG.Promise
             }
 
             var resultPromise = new Promise<PromisedT>();
+            resultPromise.Name("Race");
 
             promisesArray.Each((promise, index) =>
             {
