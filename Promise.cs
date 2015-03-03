@@ -40,7 +40,7 @@ namespace RSG.Promise
         /// <summary>
         /// Add a resolved callback.
         /// </summary>
-        IPromise Then(Action<PromisedT> onResolved);
+        IPromise<PromisedT> Then(Action<PromisedT> onResolved);
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
@@ -57,7 +57,7 @@ namespace RSG.Promise
         /// <summary>
         /// Add a resolved callback and a rejected callback.
         /// </summary>
-        IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected);
+        IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Return a new promise with a different value.
@@ -426,7 +426,7 @@ namespace RSG.Promise
         /// <summary>
         /// Add a resolved callback.
         /// </summary>
-        public IPromise Then(Action<PromisedT> onResolved)
+        public IPromise<PromisedT> Then(Action<PromisedT> onResolved)
         {
             return Then(onResolved, null);
         }
@@ -537,9 +537,9 @@ namespace RSG.Promise
         /// <summary>
         /// Add a resolved callback and a rejected callback.
         /// </summary>
-        public IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
+        public IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
         {
-            var resultPromise = new Promise();
+            var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
 
             Action<PromisedT> resolveHandler = v =>
@@ -549,7 +549,7 @@ namespace RSG.Promise
                     onResolved(v);
                 }
 
-                resultPromise.Resolve();
+                resultPromise.Resolve(v);
             };
 
             Action<Exception> rejectHandler = ex =>

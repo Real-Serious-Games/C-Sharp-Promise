@@ -25,7 +25,7 @@ namespace RSG.Promise.Tests.A__Spec
 
                 var resolves = 0;
                 var errors = 0;
-                resultPromise.Then(() => ++resolves);
+                resultPromise.Then(_ => ++resolves);
                 resultPromise.Catch(ex => ++errors);
 
                 promise.Resolve(new object());
