@@ -13,7 +13,7 @@ To learn about promises:
 
 ## Recent Updates
 
-
+- 3 March 2015: v1.1.0.5, added debugging to be able to list promises currently in-flight, this is disabled by default.
 - 27 Feb 2015: Released v1.1.0.0, this is a big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
   - Breaking changes:
     - *ThenDo* has been renamed to *Then*.
