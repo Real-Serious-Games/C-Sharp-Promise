@@ -13,11 +13,12 @@ To learn about promises:
 
 ## Recent Updates
 
-- 3 March 2015: v1.1.0.6
+- 3 March 2015: v1.1.1.0
   - Added debugging to be able to list promises currently in-flight, this is disabled by default.
   - Breaking changes:
     - Namespace has been changed from `RSG.Promise` to `RSG`, this is to avoid C#'s problems with classes having the same name as the namespace.
-- 27 Feb 2015: Released v1.1.0.0, this is a big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
+- 27 Feb 2015: v1.1.0.0
+  - A big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
   - Breaking changes:
     - *ThenDo* has been renamed to *Then*.
     - *Done* no longer accepts a function, it is simply used to terminate a chain of promises. If you want to replicate *Done* replace it with *Then*. Currently, the new version of *Done* does nothing, in the future it will be used for propagating unhandled errors.   
