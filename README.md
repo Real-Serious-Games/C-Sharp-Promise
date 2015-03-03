@@ -13,7 +13,10 @@ To learn about promises:
 
 ## Recent Updates
 
-- 3 March 2015: v1.1.0.5, added debugging to be able to list promises currently in-flight, this is disabled by default.
+- 3 March 2015: v1.1.0.6
+  - Added debugging to be able to list promises currently in-flight, this is disabled by default.
+  - Breaking changes:
+    - Namespace has been changed from `RSG.Promise` to `RSG`, this is to avoid C#'s problems with classes having the same name as the namespace.
 - 27 Feb 2015: Released v1.1.0.0, this is a big update to implement the [Promises A+ Spec](https://promisesaplus.com/). 
   - Breaking changes:
     - *ThenDo* has been renamed to *Then*.
@@ -39,7 +42,7 @@ Alternately, to contribute please fork the project in github.
 
 Reference the DLL and import the namespace:
 
-	using RSG.Promise; 
+	using RSG; 
 
 Create a promise before you start the async operation:
 	

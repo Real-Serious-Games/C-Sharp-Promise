@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSG.Promise
+namespace RSG
 {
     /// <summary>
     /// Implements a C# promise.

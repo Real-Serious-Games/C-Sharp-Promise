@@ -1,4 +1,4 @@
-﻿using RSG.Promise;
+﻿using RSG;
 using System;
 using System.Collections.Generic;
 using System.Linq;

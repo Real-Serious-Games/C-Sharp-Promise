@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace RSG.Promise.Tests.A__Spec
+namespace RSG.Tests.A__Spec
 {
     public class _2_1
     {

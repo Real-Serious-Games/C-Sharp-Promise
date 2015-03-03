@@ -7,7 +7,7 @@
     <ProjectGuid>{7E1C6A8A-84E7-43C3-AE73-C6E8A9F11AF3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RSG.Promise</RootNamespace>
+    <RootNamespace>RSG</RootNamespace>
     <AssemblyName>RSG.Promise</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

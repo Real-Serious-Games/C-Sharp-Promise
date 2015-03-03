@@ -1,5 +1,5 @@
 ﻿using Moq;
-using RSG.Promise;
+using RSG;
 using RSG.Utils;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace RSG.Promise.Tests
+namespace RSG.Tests
 {
     public class PromiseTests
     {
