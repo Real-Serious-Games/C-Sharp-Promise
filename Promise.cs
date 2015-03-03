@@ -15,7 +15,7 @@ namespace RSG.Promise
         /// <summary>
         /// Set the name of the promise, useful for debugging.
         /// </summary>
-        IPromise<PromisedT> Name(string name);
+        IPromise<PromisedT> WithName(string name);
 
         /// <summary>
         /// Complete the promise. Adds a default error handler.
@@ -133,13 +133,8 @@ namespace RSG.Promise
     /// Implements a C# promise.
     /// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
     /// </summary>
-    public class Promise<PromisedT> : IPromise<PromisedT>, IPendingPromise<PromisedT>
+    public class Promise<PromisedT> : IPromise<PromisedT>, IPendingPromise<PromisedT>, IPromiseInfo
     {
-        /// <summary>
-        /// Information about the promise, useful for debugging.
-        /// </summary>
-        private PromiseInfo promiseInfo = new PromiseInfo(++Promise.nextPromiseId);
-
         /// <summary>
         /// The exception when the promise is rejected.
         /// </summary>
@@ -177,6 +172,16 @@ namespace RSG.Promise
         private List<Handler<PromisedT>> resolveHandlers;
 
         /// <summary>
+        /// ID of the promise, useful for debugging.
+        /// </summary>
+        public int Id { get; private set; }
+
+        /// <summary>
+        /// Name of the promise, when set, useful for debugging.
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
         /// Tracks the current state of the promise.
         /// </summary>
         public PromiseState CurState { get; private set; }
@@ -184,13 +189,23 @@ namespace RSG.Promise
         public Promise()
         {
             this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.promiseInfo);
+            this.Id = ++Promise.nextPromiseId;
+
+            if (Promise.EnablePromiseTracking)
+            {
+                Promise.pendingPromises.Add(this);
+            }
         }
 
         public Promise(Action<Action<PromisedT>, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
-            Promise.pendingPromises.Add(this.promiseInfo);
+            this.Id = ++Promise.nextPromiseId;
+
+            if (Promise.EnablePromiseTracking)
+            {
+                Promise.pendingPromises.Add(this);
+            }
 
             try
             {
@@ -307,7 +322,11 @@ namespace RSG.Promise
 
             rejectionException = ex;
             CurState = PromiseState.Rejected;
-            Promise.pendingPromises.Remove(this.promiseInfo);
+
+            if (Promise.EnablePromiseTracking)
+            {
+                Promise.pendingPromises.Remove(this);
+            }
 
             InvokeRejectHandlers(ex);
         }
@@ -324,7 +343,11 @@ namespace RSG.Promise
 
             resolveValue = value;
             CurState = PromiseState.Resolved;
-            Promise.pendingPromises.Remove(this.promiseInfo);
+
+            if (Promise.EnablePromiseTracking)
+            {
+                Promise.pendingPromises.Remove(this);
+            }
 
             InvokeResolveHandlers(value);
         }
@@ -339,9 +362,9 @@ namespace RSG.Promise
         /// <summary>
         /// Set the name of the promise, useful for debugging.
         /// </summary>
-        public IPromise<PromisedT> Name(string name)
+        public IPromise<PromisedT> WithName(string name)
         {
-            promiseInfo.Name = name;
+            this.Name = name;
             return this;
         }
 
@@ -353,7 +376,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise<PromisedT>();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -419,7 +442,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onResolved); 
 
             var resultPromise = new Promise<ConvertedT>();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -465,7 +488,7 @@ namespace RSG.Promise
         public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -517,7 +540,7 @@ namespace RSG.Promise
         public IPromise Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action<PromisedT> resolveHandler = v =>
             {
@@ -565,7 +588,7 @@ namespace RSG.Promise
             Argument.NotNull(() => transform);
 
             var resultPromise = new Promise<ConvertedT>();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             this.Catch(e => resultPromise.Reject(e))
                 .Then(v =>
@@ -630,7 +653,7 @@ namespace RSG.Promise
             var remainingCount = promisesArray.Length;
             var results = new PromisedT[remainingCount];
             var resultPromise = new Promise<IEnumerable<PromisedT>>();
-            resultPromise.Name("All");
+            resultPromise.WithName("All");
 
             promisesArray.Each((promise, index) =>
             {
@@ -703,7 +726,7 @@ namespace RSG.Promise
             }
 
             var resultPromise = new Promise<PromisedT>();
-            resultPromise.Name("Race");
+            resultPromise.WithName("Race");
 
             promisesArray.Each((promise, index) =>
             {

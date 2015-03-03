@@ -15,7 +15,7 @@ namespace RSG.Promise
         /// <summary>
         /// Set the name of the promise, useful for debugging.
         /// </summary>
-        IPromise Name(string name);
+        IPromise WithName(string name);
 
         /// <summary>
         /// Complete the promise. Adds a default error handler.
@@ -110,50 +110,45 @@ namespace RSG.Promise
     /// <summary>
     /// Used to list information of pending promises.
     /// </summary>
-    public class PromiseInfo
+    public interface IPromiseInfo
     {
-        public PromiseInfo(int id)
-        {
-            this.Id = id;
-            this.Name = id.ToString();
-        }
-
         /// <summary>
         /// Id of the promise.
         /// </summary>
-        public int Id { get; private set; }
+        int Id { get; }
 
         /// <summary>
         /// Human-readable name for the promise.
         /// </summary>
-        public string Name { get; internal set; }
+        string Name { get; }
     }
 
     /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
     /// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
     /// </summary>
-    public class Promise : IPromise, IPendingPromise
+    public class Promise : IPromise, IPendingPromise, IPromiseInfo
     {
+        /// <summary>
+        /// Set to true to enable tracking of promises.
+        /// </summary>
+        public static bool EnablePromiseTracking = false;
+
         /// <summary>
         /// Id for the next promise that is created.
         /// </summary>
         internal static int nextPromiseId = 0;
 
         /// <summary>
-        /// Information about the promise, useful for debugging.
-        /// </summary>
-        private PromiseInfo promiseInfo = new PromiseInfo(++nextPromiseId);
-
-        /// <summary>
         /// Information about pending promises.
         /// </summary>
-        internal static HashSet<PromiseInfo> pendingPromises = new HashSet<PromiseInfo>();
+        internal static HashSet<IPromiseInfo> pendingPromises = new HashSet<IPromiseInfo>();
 
         /// <summary>
         /// Information about pending promises, useful for debugging.
+        /// This is only populated when 'EnablePromiseTracking' is set to true.
         /// </summary>
-        public static IEnumerable<PromiseInfo> GetPendingPromises()
+        public static IEnumerable<IPromiseInfo> GetPendingPromises()
         {
             return pendingPromises;
         }
@@ -206,6 +201,16 @@ namespace RSG.Promise
         private List<ResolveHandler> resolveHandlers;
 
         /// <summary>
+        /// ID of the promise, useful for debugging.
+        /// </summary>
+        public int Id { get; private set; }
+
+        /// <summary>
+        /// Name of the promise, when set, useful for debugging.
+        /// </summary>
+        public string Name { get; private set; }
+
+        /// <summary>
         /// Tracks the current state of the promise.
         /// </summary>
         public PromiseState CurState { get; private set; }
@@ -213,13 +218,19 @@ namespace RSG.Promise
         public Promise()
         {
             this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.promiseInfo);
+            if (EnablePromiseTracking)
+            {
+                pendingPromises.Add(this);
+            }
         }
 
         public Promise(Action<Action, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
-            pendingPromises.Add(this.promiseInfo);
+            if (EnablePromiseTracking)
+            {
+                pendingPromises.Add(this);
+            }
 
             try
             {
@@ -358,7 +369,11 @@ namespace RSG.Promise
 
             rejectionException = ex;
             CurState = PromiseState.Rejected;
-            pendingPromises.Remove(this.promiseInfo);
+
+            if (EnablePromiseTracking)
+            {
+                pendingPromises.Remove(this);
+            }
 
             InvokeRejectHandlers(ex);            
         }
@@ -375,7 +390,11 @@ namespace RSG.Promise
             }
 
             CurState = PromiseState.Resolved;
-            pendingPromises.Remove(this.promiseInfo);
+
+            if (EnablePromiseTracking)
+            {
+                pendingPromises.Remove(this);
+            }
 
             InvokeResolveHandlers();
         }
@@ -390,9 +409,9 @@ namespace RSG.Promise
         /// <summary>
         /// Set the name of the promise, useful for debugging.
         /// </summary>
-        public IPromise Name(string name)
+        public IPromise WithName(string name)
         {
-            promiseInfo.Name = name;
+            this.Name = name;
             return this;
         }
 
@@ -404,7 +423,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action resolveHandler = () =>
             {
@@ -470,7 +489,7 @@ namespace RSG.Promise
             Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action resolveHandler = () =>
             {
@@ -516,7 +535,7 @@ namespace RSG.Promise
         public IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action resolveHandler = () =>
             {
@@ -568,7 +587,7 @@ namespace RSG.Promise
         public IPromise Then(Action onResolved, Action<Exception> onRejected)
         {
             var resultPromise = new Promise();
-            resultPromise.Name(promiseInfo.Name);
+            resultPromise.WithName(Name);
 
             Action resolveHandler = () =>
             {
@@ -651,7 +670,7 @@ namespace RSG.Promise
 
             var remainingCount = promisesArray.Length;
             var resultPromise = new Promise();
-            resultPromise.Name("All");
+            resultPromise.WithName("All");
 
             promisesArray.Each((promise, index) =>
             {
@@ -755,7 +774,7 @@ namespace RSG.Promise
             }
 
             var resultPromise = new Promise();
-            resultPromise.Name("Race");
+            resultPromise.WithName("Race");
 
             promisesArray.Each((promise, index) =>
             {
