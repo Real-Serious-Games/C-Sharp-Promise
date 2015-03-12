@@ -437,19 +437,7 @@ namespace RSG
                 resultPromise.Reject(ex);
             };
 
-            if (CurState == PromiseState.Resolved)
-            {
-                InvokeResolveHandler(resolveHandler, resultPromise);
-            }
-            else if (CurState == PromiseState.Rejected)
-            {
-                InvokeRejectHandler(rejectHandler, resultPromise, rejectionException);
-            }
-            else
-            {
-                AddResolveHandler(resolveHandler, resultPromise);
-                AddRejectHandler(rejectHandler, resultPromise);
-            }
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
 
             return resultPromise;
         }
@@ -511,19 +499,7 @@ namespace RSG
                 resultPromise.Reject(ex);
             };
 
-            if (CurState == PromiseState.Resolved)
-            {
-                InvokeResolveHandler(resolveHandler, resultPromise);
-            }
-            else if (CurState == PromiseState.Rejected)
-            {
-                InvokeRejectHandler(rejectHandler, resultPromise, rejectionException);
-            }
-            else
-            {
-                AddResolveHandler(resolveHandler, resultPromise);
-                AddRejectHandler(rejectHandler, resultPromise);
-            }
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
 
             return resultPromise;
         }
@@ -564,19 +540,7 @@ namespace RSG
                 resultPromise.Reject(ex);
             };
 
-            if (CurState == PromiseState.Resolved)
-            {
-                InvokeResolveHandler(resolveHandler, resultPromise);
-            }
-            else if (CurState == PromiseState.Rejected)
-            {
-                InvokeRejectHandler(rejectHandler, resultPromise, rejectionException);
-            }
-            else
-            {
-                AddResolveHandler(resolveHandler, resultPromise);
-                AddRejectHandler(rejectHandler, resultPromise);
-            }
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
 
             return resultPromise;
         }
@@ -609,6 +573,16 @@ namespace RSG
                 resultPromise.Reject(ex);
             };
 
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Helper function to invoke or register resolve/reject handlers.
+        /// </summary>
+        private void ActionHandlers(IRejectable resultPromise, Action resolveHandler, Action<Exception> rejectHandler)
+        {
             if (CurState == PromiseState.Resolved)
             {
                 InvokeResolveHandler(resolveHandler, resultPromise);
@@ -622,8 +596,6 @@ namespace RSG
                 AddResolveHandler(resolveHandler, resultPromise);
                 AddRejectHandler(rejectHandler, resultPromise);
             }
-
-            return resultPromise;
         }
 
         /// <summary>
