@@ -357,6 +357,7 @@ namespace RSG
         /// </summary>
         public void Done()
         {
+            Catch(ex => Promise.PropagateUnhandledException(this, ex));
         }
 
         /// <summary>

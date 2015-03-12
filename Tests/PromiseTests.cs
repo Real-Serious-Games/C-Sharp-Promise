@@ -750,5 +750,75 @@ namespace RSG.Tests
 
             Assert.Equal(1, completed);
         }        
+
+        [Fact]
+        public void unhandled_exception_is_propagated_via_event()
+        {
+            var promise = new Promise<int>();
+            var ex = new Exception();
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) => 
+                {
+                    Assert.Equal(ex, e.Exception);
+
+                    ++eventRaised;
+                };
+
+            Promise.UnhandledException += handler;
+
+            try 
+            {
+                promise
+                    .Then(a =>
+                    {
+                        throw ex;
+                    })
+                    .Done();
+
+                promise.Resolve(5);
+
+                Assert.Equal(1, eventRaised);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
+        }
+
+        [Fact]
+        public void handled_exception_is_not_propagated_via_event()
+        {
+            var promise = new Promise<int>();
+            var ex = new Exception();
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) => ++eventRaised;
+
+            Promise.UnhandledException += handler;
+
+            try
+            {
+                promise
+                    .Then(a =>
+                    {
+                        throw ex;
+                    })
+                    .Catch(_ => 
+                    {
+                        // Catch the error.
+                    })
+                    .Done();
+
+                promise.Resolve(5);
+
+                Assert.Equal(1, eventRaised);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
+
+        }
     }
 }

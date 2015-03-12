@@ -124,6 +124,25 @@ namespace RSG
     }
 
     /// <summary>
+    /// Arguments to the UnhandledError event.
+    /// </summary>
+    public class ExceptionEventArgs : EventArgs
+    {
+        internal ExceptionEventArgs(Exception exception)
+        {
+            Argument.NotNull(() => exception);
+
+            this.Exception = exception;
+        }
+
+        public Exception Exception
+        {
+            get;
+            private set;
+        }
+    }
+
+    /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
     /// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
     /// </summary>
@@ -133,6 +152,12 @@ namespace RSG
         /// Set to true to enable tracking of promises.
         /// </summary>
         public static bool EnablePromiseTracking = false;
+
+        /// <summary>
+        /// Event raised for unhandled errors.
+        /// For this to work you have to complete your promises with a call to Done().
+        /// </summary>
+        public static event EventHandler<ExceptionEventArgs> UnhandledException;
 
         /// <summary>
         /// Id for the next promise that is created.
@@ -404,6 +429,7 @@ namespace RSG
         /// </summary>
         public void Done()
         {
+            Catch(ex => Promise.PropagateUnhandledException(this, ex));
         }
 
         /// <summary>
@@ -792,6 +818,17 @@ namespace RSG
             var promise = new Promise();
             promise.Reject(ex);
             return promise;
+        }
+
+        /// <summary>
+        /// Raises the UnhandledException event.
+        /// </summary>
+        internal static void PropagateUnhandledException(object sender, Exception ex)
+        {
+            if (UnhandledException != null)
+            {
+                UnhandledException(sender, new ExceptionEventArgs(ex));
+            }
         }
     }
 }
