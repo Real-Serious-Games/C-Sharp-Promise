@@ -590,19 +590,29 @@ namespace RSG
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
 
-            this.Catch(e => resultPromise.Reject(e))
-                .Then(v =>
-                {
-                    try
-                    {
-                        var transformedValue = transform(v);
-                        resultPromise.Resolve(transformedValue);
-                    }
-                    catch (Exception ex)
-                    {
-                        resultPromise.Reject(ex);
-                    }
-                });
+            Action<PromisedT> resolveHandler = v =>
+            {
+                resultPromise.Resolve(transform(v));
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                resultPromise.Reject(ex);
+            };
+
+            if (CurState == PromiseState.Resolved)
+            {
+                InvokeHandler(resolveHandler, resultPromise, resolveValue);
+            }
+            else if (CurState == PromiseState.Rejected)
+            {
+                InvokeHandler(rejectHandler, resultPromise, rejectionException);
+            }
+            else
+            {
+                AddResolveHandler(resolveHandler, resultPromise);
+                AddRejectHandler(rejectHandler, resultPromise);
+            }
 
             return resultPromise;
         }
