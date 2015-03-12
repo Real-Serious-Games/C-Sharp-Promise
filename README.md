@@ -13,6 +13,8 @@ To learn about promises:
 
 ## Recent Updates
 
+- 12 March 2015: v1.1.2
+  - Added propagation of unhandled errors via a C# event when the Done function is used to terminate a chain of promises. 
 - 3 March 2015: v1.1.1.0
   - Added debugging to be able to list promises currently in-flight, this is disabled by default.
   - Breaking changes:
