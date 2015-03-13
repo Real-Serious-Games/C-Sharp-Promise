@@ -1,5 +1,10 @@
 # C-Sharp-Promise [![Build Status](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise.svg)](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise) #
 
+<a href="https://promisesaplus.com/">
+    <img src="https://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo"
+         title="Promises/A+ 1.0 compliant" align="right" />
+</a>
+
 Promises library for C# for management of asynchronous operations. 
 
 Inspired by Javascript promises, but slightly different.
@@ -26,6 +31,8 @@ Used by [Real Serious Games](https://github.com/Real-Serious-Games/C-Sharp-Promi
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Understanding Promises](#understanding-promises)
+- [Promises/A+ Spec](#promisesa-spec)
 - [Getting the DLL](#getting-the-dll)
 - [Getting the Code](#getting-the-code)
 - [Creating a Promise for an Async Operation](#creating-a-promise-for-an-async-operation)
