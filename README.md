@@ -4,12 +4,7 @@ Promises library for C# for management of asynchronous operations.
 
 Inspired by Javascript promises, but slightly different.
 
-To learn about promises:
-
-- [Promises on Wikpedia](http://en.wikipedia.org/wiki/Futures_and_promises)
-- [Good overview](https://www.promisejs.org/)
-- [Promises A+ Spec](https://promisesaplus.com/)
-- [Mozilla](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+Used by [Real Serious Games](https://github.com/Real-Serious-Games/C-Sharp-Promise) for building serious games and simulations on Unity3d.
 
 ## Recent Updates
 
@@ -24,6 +19,45 @@ To learn about promises:
   - Breaking changes:
     - *ThenDo* has been renamed to *Then*.
     - *Done* no longer accepts a function, it is simply used to terminate a chain of promises. If you want to replicate *Done* replace it with *Then*. Currently, the new version of *Done* does nothing, in the future it will be used for propagating unhandled errors.   
+
+## Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Getting the DLL](#getting-the-dll)
+- [Getting the Code](#getting-the-code)
+- [Creating a Promise for an Async Operation](#creating-a-promise-for-an-async-operation)
+- [Creating a Promise, Alternate Method](#creating-a-promise-alternate-method)
+- [Waiting for an Async Operation to Complete](#waiting-for-an-async-operation-to-complete)
+- [Chaining Async Operations](#chaining-async-operations)
+- [Transforming the Results](#transforming-the-results)
+- [Promises that are already Resolved/Rejected](#promises-that-are-already-resolvedrejected)
+- [Interfaces](#interfaces)
+- [Combining Multiple Async Operations](#combining-multiple-async-operations)
+- [Chaining Multiple Async Operations](#chaining-multiple-async-operations)
+- [Racing Asynchronous Operations](#racing-asynchronous-operations)
+- [Chaining Synchronous Actions that have no Result](#chaining-synchronous-actions-that-have-no-result)
+- [Promises that have no Results (a non-value promise)](#promises-that-have-no-results-a-non-value-promise)
+- [Convert a value promise to a non-value promise](#convert-a-value-promise-to-a-non-value-promise)
+- [Running a Sequence of Operations](#running-a-sequence-of-operations)
+- [Combining Parallel and Sequential Operations](#combining-parallel-and-sequential-operations)
+- [Examples](#examples)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Understanding Promises
+
+To learn about promises:
+
+- [Promises on Wikpedia](http://en.wikipedia.org/wiki/Futures_and_promises)
+- [Good overview](https://www.promisejs.org/)
+- [Mozilla](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)
+
+## Promises/A+ Spec
+
+This promise library conforms to the [Promises/A+ Spec](https://promisesaplus.com/) (at least, as far as is possible with C#):
 
 ## Getting the DLL
 
