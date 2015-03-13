@@ -213,6 +213,41 @@ Sometimes you will want to simply transform or modify the resulting value withou
 
 As is demonstrated the type of the value can also be changed during transformation. In the previous snippet a `Promise<string>` is transformed to a `Promise<string[]>`.   
 
+## Error Handling
+
+An error raised in a callback aborts the function and all subsequent callbacks in the chain:
+
+	promise.Then(v => Something())   // <--- An error here aborts all subsequent callbacks... 
+		.Then(v => SomethingElse())
+		.Then(v => AnotherThing())
+		.Catch(e => HandleError(e))  // <--- Until the error handler is invoked here. 
+
+## Unhandled Errors
+
+When `Catch` is omitted exceptions go silently unhandled. This is an acknowledged issue with the Promises pattern.
+
+We handle this in a similar way to the JavaScript [Q](http://documentup.com/kriskowal/q) library. The `Done` method is used to terminate a chain, it registers a default catch handler that propagates unhandled exceptions to a default error handling mechanism that can be hooked into by the user.
+
+Terminating a Promise chain using `Done`:
+
+	promise.Then(v => Something()) 
+		.Then(v => SomethingElse())
+		.Then(v => AnotherThing())
+		.Done();	// <--- Terminate the pipeline and propagate unhandled exceptions. 
+
+To use the `Done` you must apply the following rule: When you get to the end of a chain of promises, you should either return the last promise or end the chain by calling `Done`.
+
+To hook into the unhandled exception stream:
+
+	Promise.UnhandledException += Promise_UnhandledException;
+
+Then forward the exceptions to your own logging system:
+
+	private void Promise_UnhandledException(object sender, ExceptionEventArgs e)
+	{
+		Log.Error(e.Exception, "An unhandled proimses exception occured!"); 
+	}
+
 ## Promises that are already Resolved/Rejected 
 
 For convenience or testing you will at some point need to create a promise that *starts out* in the resolved or rejected state. This is easy to achieve using *Resolved* and *Rejected* functions:
