@@ -55,6 +55,16 @@ namespace RSG
         IPromise WaitFor(float seconds);
 
         /// <summary>
+        /// Resolve the returned promise once the predicate evaluates to true
+        /// </summary>
+        IPromise WaitUntil(Func<TimeData, bool> predicate);
+
+        /// <summary>
+        /// Resolve the returned promise once the predicate evaluates to false
+        /// </summary>
+        IPromise WaitWhile(Func<TimeData, bool> predicate);
+
+        /// <summary>
         /// Update all pending promises. Must be called for the promises to progress and resolve at all.
         /// </summary>
         void Update(float deltaTime);
@@ -80,6 +90,21 @@ namespace RSG
             return WaitUntil(t => t.elapsedTime >= seconds);
         }
 
+        /// <summary>
+        /// Resolve the returned promise once the predicate evaluates to false
+        /// </summary>
+        public IPromise WaitWhile(Func<TimeData, bool> predicate)
+        {
+            //negate the predicate
+            Func<TimeData, bool> tempPredicate = predicate;
+            predicate = x => !tempPredicate(x);
+
+            return WaitUntil(predicate);
+        }
+
+        /// <summary>
+        /// Resolve the returned promise once the predicate evalutes to true
+        /// </summary>
         public IPromise WaitUntil(Func<TimeData, bool> predicate)
         {
             var promise = new Promise();

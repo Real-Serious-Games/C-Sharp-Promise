@@ -62,6 +62,27 @@ namespace RSG.Tests
 
             Assert.Equal(true, hasResolved);
         }
+
+        [Fact]
+        public void wait_while_resolves_when_predicate_is_false()
+        {
+            var testObject = new PromiseTimer();
+
+            var hasResovled = false;
+
+            var doWait = true;
+
+            testObject.WaitWhile(timeData => doWait)
+                .Then(() => hasResovled = true)
+                .Done();
+
+            Assert.Equal(false, hasResovled);
+
+            doWait = false;
+            testObject.Update(1f);
+
+            Assert.Equal(true, hasResovled);
+        }
     }
 
 }
