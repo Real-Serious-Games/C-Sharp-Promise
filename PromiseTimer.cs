@@ -77,20 +77,7 @@ namespace RSG
         /// </summary>
         public IPromise WaitFor(float seconds)
         {
-            var promise = new Promise();
-            Func<TimeData, bool> predicate = delegate(TimeData data) { return data.elapsedTime >= seconds; };
-
-            var wait = new PredicateWait()
-            {
-                timeStarted = curTime,
-                pendingPromise = promise,
-                timeData = new TimeData(),
-                predicate = delegate(TimeData data) { return data.elapsedTime >= seconds; }
-            };
-
-            waiting.Add(wait);
-
-            return promise;
+            return WaitUntil(t => t.elapsedTime >= seconds);
         }
 
         public IPromise WaitUntil(Func<TimeData, bool> predicate)
