@@ -93,6 +93,23 @@ namespace RSG
             return promise;
         }
 
+        public IPromise WaitUntil(Func<TimeData, bool> predicate)
+        {
+            var promise = new Promise();
+
+            var wait = new PredicateWait()
+            {
+                timeStarted = curTime,
+                pendingPromise = promise,
+                timeData = new TimeData(),
+                predicate = predicate
+            };
+
+            waiting.Add(wait);
+
+            return promise;
+        }
+
         /// <summary>
         /// Update all pending promises. Must be called for the promises to progress and resolve at all.
         /// </summary>
