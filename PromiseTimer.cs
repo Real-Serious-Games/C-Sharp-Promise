@@ -95,11 +95,7 @@ namespace RSG
         /// </summary>
         public IPromise WaitWhile(Func<TimeData, bool> predicate)
         {
-            //negate the predicate
-            Func<TimeData, bool> tempPredicate = predicate;
-            predicate = x => !tempPredicate(x);
-
-            return WaitUntil(predicate);
+            return WaitUntil(t => !predicate(t));
         }
 
         /// <summary>
