@@ -18,6 +18,20 @@ namespace RSG
         IPromise WithName(string name);
 
         /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// onRejected is called on error.
+        /// </summary>
+        void Done(Action onResolved, Action<Exception> onRejected);
+
+        /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// Adds a default error handler.
+        /// </summary>
+        void Done(Action onResolved);
+
+        /// <summary>
         /// Complete the promise. Adds a default error handler.
         /// </summary>
         void Done();
@@ -425,11 +439,51 @@ namespace RSG
         }
 
         /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// onRejected is called on error.
+        /// </summary>
+        public void Done(Action onResolved, Action<Exception> onRejected)
+        {
+            Argument.NotNull(() => onResolved);
+            Argument.NotNull(() => onRejected);
+
+            var resultPromise = new Promise();
+            resultPromise.WithName(Name);
+
+            ActionHandlers(resultPromise, onResolved, onRejected);
+        }
+
+        /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// Adds a default error handler.
+        /// </summary>
+        public void Done(Action onResolved)
+        {
+            Argument.NotNull(() => onResolved);
+
+            var resultPromise = new Promise();
+            resultPromise.WithName(Name);
+
+            ActionHandlers(resultPromise,
+                onResolved,
+                ex => Promise.PropagateUnhandledException(this, ex)
+            );
+        }
+
+        /// <summary>
         /// Complete the promise. Adds a defualt error handler.
         /// </summary>
         public void Done()
         {
-            Catch(ex => Promise.PropagateUnhandledException(this, ex));
+            var resultPromise = new Promise();
+            resultPromise.WithName(Name);
+
+            ActionHandlers(resultPromise,
+                () => { },
+                ex => Promise.PropagateUnhandledException(this, ex)
+            );
         }
 
         /// <summary>
