@@ -442,10 +442,27 @@ namespace RSG.Tests
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            var promise1 = new Promise<int>();
-            var promise2 = new Promise<int>();
-
             var all = Promise<int>.All(LinqExts.Empty<IPromise<int>>());
+
+            var completed = 0;
+
+            all.Then(v =>
+            {
+                ++completed;
+
+                Assert.Empty(v);
+            });
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void combined_promise_is_resolved_when_all_promises_are_already_resolved()
+        {
+            var promise1 = Promise<int>.Resolved(1);
+            var promise2 = Promise<int>.Resolved(1);
+
+            var all = Promise<int>.All(LinqExts.FromItems(promise1, promise2));
 
             var completed = 0;
 
@@ -819,6 +836,122 @@ namespace RSG.Tests
                 Promise.UnhandledException -= handler;
             }
 
+        }
+
+        [Fact]
+        public void can_handle_Done_onResolved()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            var expectedValue = 5;
+
+            promise.Done(value =>
+            {
+                Assert.Equal(expectedValue, value);
+
+                ++callback;
+            });
+
+            promise.Resolve(expectedValue);
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void can_handle_Done_onResolved_with_onReject()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            var errorCallback = 0;
+            var expectedValue = 5;
+
+            promise.Done(
+                value =>
+                {
+                    Assert.Equal(expectedValue, value);
+
+                    ++callback;
+                },
+                ex =>
+                {
+                    ++errorCallback;
+                }
+            );
+
+            promise.Resolve(expectedValue);
+
+            Assert.Equal(1, callback);
+            Assert.Equal(0, errorCallback);
+        }
+
+        /*todo:
+         * Also want a test that exception thrown during Then triggers the error handler.
+         * How do Javascript promises work in this regard?
+        [Fact]
+        public void exception_during_Done_onResolved_triggers_error_hander()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            var errorCallback = 0;
+            var expectedValue = 5;
+            var expectedException = new Exception();
+
+            promise.Done(
+                value =>
+                {
+                    Assert.Equal(expectedValue, value);
+
+                    ++callback;
+
+                    throw expectedException;
+                },
+                ex =>
+                {
+                    Assert.Equal(expectedException, ex);
+
+                    ++errorCallback;
+                }
+            );
+
+            promise.Resolve(expectedValue);
+
+            Assert.Equal(1, callback);
+            Assert.Equal(1, errorCallback);
+        }
+         * */
+
+        [Fact]
+        public void exception_during_Then_onResolved_triggers_error_hander()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            var errorCallback = 0;
+            var expectedException = new Exception();
+
+            promise
+                .Then(value => 
+                {
+                    throw expectedException;
+
+                    return Promise<int>.Resolved(10);
+                })
+                .Done(
+                    value =>
+                    {
+                        ++callback;
+                    },
+                    ex =>
+                    {
+                        Assert.Equal(expectedException, ex);
+
+                        ++errorCallback;
+                    }
+                );
+
+            promise.Resolve(6);
+
+            Assert.Equal(0, callback);
+            Assert.Equal(1, errorCallback);
         }
     }
 }
