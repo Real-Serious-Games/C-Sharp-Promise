@@ -491,7 +491,8 @@ namespace RSG
             {
                 onResolved(v)
                     .Then(
-                        chainedValue => resultPromise.Resolve(chainedValue),
+						// Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
+                        (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
                         ex => resultPromise.Reject(ex)
                     )
                     .Done();
