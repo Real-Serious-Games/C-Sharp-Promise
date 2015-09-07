@@ -272,8 +272,8 @@ namespace RSG
         /// </summary>
         private void InvokeHandler<T>(Action<T> callback, IRejectable rejectable, T value)
         {
-            Argument.NotNull(() => callback);
-            Argument.NotNull(() => rejectable);            
+//            Argument.NotNull(() => callback);
+//            Argument.NotNull(() => rejectable);            
 
             try
             {
@@ -299,7 +299,7 @@ namespace RSG
         /// </summary>
         private void InvokeRejectHandlers(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             if (rejectHandlers != null)
             {
@@ -327,7 +327,7 @@ namespace RSG
         /// </summary>
         public void Reject(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             if (CurState != PromiseState.Pending)
             {
@@ -373,8 +373,8 @@ namespace RSG
         /// </summary>
         public void Done(Action<PromisedT> onResolved, Action<Exception> onRejected)
         {
-            Argument.NotNull(() => onResolved);
-            Argument.NotNull(() => onRejected);
+//            Argument.NotNull(() => onResolved);
+//            Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
@@ -389,7 +389,7 @@ namespace RSG
         /// </summary>
         public void Done(Action<PromisedT> onResolved)
         {
-            Argument.NotNull(() => onResolved);
+//            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
@@ -428,7 +428,7 @@ namespace RSG
         /// </summary>
         public IPromise<PromisedT> Catch(Action<Exception> onRejected)
         {
-            Argument.NotNull(() => onRejected);
+//            Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
@@ -482,7 +482,7 @@ namespace RSG
         {
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
-            Argument.NotNull(() => onResolved); 
+//            Argument.NotNull(() => onResolved); 
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -592,7 +592,7 @@ namespace RSG
         /// </summary>
         public IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform)
         {
-            Argument.NotNull(() => transform);
+//            Argument.NotNull(() => transform);
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -792,7 +792,7 @@ namespace RSG
         /// </summary>
         public static IPromise<PromisedT> Rejected(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             var promise = new Promise<PromisedT>();
             promise.Reject(ex);
