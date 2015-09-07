@@ -156,6 +156,22 @@ namespace RSG
         }
     }
 
+	/// <summary>
+	/// Represents a handler invoked when the promise is rejected.
+	/// </summary>
+	public struct RejectHandler
+	{
+		/// <summary>
+		/// Callback fn.
+		/// </summary>
+		public Action<Exception> callback;
+
+		/// <summary>
+		/// The promise that is rejected when there is an error while invoking the handler.
+		/// </summary>
+		public IRejectable rejectable;
+	}
+
     /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
     /// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
@@ -201,22 +217,6 @@ namespace RSG
         /// The exception when the promise is rejected.
         /// </summary>
         private Exception rejectionException;
-
-        /// <summary>
-        /// Represents a handler invoked when the promise is rejected.
-        /// </summary>
-        public struct RejectHandler
-        {
-            /// <summary>
-            /// Callback fn.
-            /// </summary>
-            public Action<Exception> callback;
-
-            /// <summary>
-            /// The promise that is rejected when there is an error while invoking the handler.
-            /// </summary>
-            public IRejectable rejectable;
-        }
 
         /// <summary>
         /// Error handlers.
