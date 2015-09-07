@@ -171,7 +171,12 @@ namespace RSG
         /// Event raised for unhandled errors.
         /// For this to work you have to complete your promises with a call to Done().
         /// </summary>
-        public static event EventHandler<ExceptionEventArgs> UnhandledException;
+        public static event EventHandler<ExceptionEventArgs> UnhandledException
+		{
+			add { unhandlerException += value; }
+			remove { unhandlerException -= value; }
+		}
+		private static EventHandler<ExceptionEventArgs> unhandlerException;
 
         /// <summary>
         /// Id for the next promise that is created.
@@ -879,9 +884,9 @@ namespace RSG
         /// </summary>
         internal static void PropagateUnhandledException(object sender, Exception ex)
         {
-            if (UnhandledException != null)
+			if (unhandlerException != null)
             {
-                UnhandledException(sender, new ExceptionEventArgs(ex));
+				unhandlerException(sender, new ExceptionEventArgs(ex));
             }
         }
     }
