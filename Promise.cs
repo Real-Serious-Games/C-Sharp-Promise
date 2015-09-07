@@ -160,30 +160,15 @@ namespace RSG
         private PromisedT resolveValue;
 
         /// <summary>
-        /// Represents a handler invoked when the promise is resolved or rejected.
-        /// </summary>
-        public struct Handler<T>
-        {
-            /// <summary>
-            /// Callback fn.
-            /// </summary>
-            public Action<T> callback;
-
-            /// <summary>
-            /// The promise that is rejected when there is an error while invoking the handler.
-            /// </summary>
-            public IRejectable rejectable;
-        }
-
-        /// <summary>
         /// Error handler.
         /// </summary>
-        private List<Handler<Exception>> rejectHandlers;
+		private List<RejectHandler> rejectHandlers;
 
         /// <summary>
         /// Completed handlers that accept a value.
         /// </summary>
-        private List<Handler<PromisedT>> resolveHandlers;
+		private List<Action<PromisedT>> resolveCallbacks;
+		private List<IRejectable> resolveRejectables;
 
         /// <summary>
         /// ID of the promise, useful for debugging.
@@ -244,10 +229,10 @@ namespace RSG
         {
             if (rejectHandlers == null)
             {
-                rejectHandlers = new List<Handler<Exception>>();
+				rejectHandlers = new List<RejectHandler>();
             }
 
-            rejectHandlers.Add(new Handler<Exception>() { callback = onRejected, rejectable = rejectable }); ;
+			rejectHandlers.Add(new RejectHandler() { callback = onRejected, rejectable = rejectable }); ;
         }
 
         /// <summary>
@@ -255,16 +240,18 @@ namespace RSG
         /// </summary>
         private void AddResolveHandler(Action<PromisedT> onResolved, IRejectable rejectable)
         {
-            if (resolveHandlers == null)
-            {
-                resolveHandlers = new List<Handler<PromisedT>>();
-            }
+			if (resolveCallbacks == null)
+			{
+				resolveCallbacks = new List<Action<PromisedT>>();
+			}
 
-            resolveHandlers.Add(new Handler<PromisedT>() 
-            { 
-                callback = onResolved,
-                rejectable = rejectable 
-            });
+			if (resolveRejectables == null)
+			{
+				resolveRejectables = new List<IRejectable>();
+			}
+
+			resolveCallbacks.Add(onResolved);
+			resolveRejectables.Add(rejectable);
         }
 
         /// <summary>
@@ -291,7 +278,8 @@ namespace RSG
         private void ClearHandlers()
         {
             rejectHandlers = null;
-            resolveHandlers = null;
+			resolveCallbacks = null;
+			resolveRejectables = null;
         }
 
         /// <summary>
@@ -314,9 +302,11 @@ namespace RSG
         /// </summary>
         private void InvokeResolveHandlers(PromisedT value)
         {
-            if (resolveHandlers != null)
+			if (resolveCallbacks != null)
             {
-                resolveHandlers.Each(handler => InvokeHandler(handler.callback, handler.rejectable, value));
+				for (int i = 0, maxI = resolveCallbacks.Count; i < maxI; i++) {
+					InvokeHandler(resolveCallbacks[i], resolveRejectables[i], value);
+				}
             }
 
             ClearHandlers();
@@ -672,7 +662,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                return Promise<IEnumerable<PromisedT>>.Resolved(LinqExts.Empty<PromisedT>());
+                return Promise<IEnumerable<PromisedT>>.Resolved(EnumerableExt.Empty<PromisedT>());
             }
 
             var remainingCount = promisesArray.Length;
