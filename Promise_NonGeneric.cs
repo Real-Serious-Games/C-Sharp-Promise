@@ -144,7 +144,7 @@ namespace RSG
     {
         internal ExceptionEventArgs(Exception exception)
         {
-            Argument.NotNull(() => exception);
+//            Argument.NotNull(() => exception);
 
             this.Exception = exception;
         }
@@ -155,6 +155,22 @@ namespace RSG
             private set;
         }
     }
+
+	/// <summary>
+	/// Represents a handler invoked when the promise is rejected.
+	/// </summary>
+	public struct RejectHandler
+	{
+		/// <summary>
+		/// Callback fn.
+		/// </summary>
+		public Action<Exception> callback;
+
+		/// <summary>
+		/// The promise that is rejected when there is an error while invoking the handler.
+		/// </summary>
+		public IRejectable rejectable;
+	}
 
     /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
@@ -171,7 +187,12 @@ namespace RSG
         /// Event raised for unhandled errors.
         /// For this to work you have to complete your promises with a call to Done().
         /// </summary>
-        public static event EventHandler<ExceptionEventArgs> UnhandledException;
+        public static event EventHandler<ExceptionEventArgs> UnhandledException
+		{
+			add { unhandlerException += value; }
+			remove { unhandlerException -= value; }
+		}
+		private static EventHandler<ExceptionEventArgs> unhandlerException;
 
         /// <summary>
         /// Id for the next promise that is created.
@@ -196,22 +217,6 @@ namespace RSG
         /// The exception when the promise is rejected.
         /// </summary>
         private Exception rejectionException;
-
-        /// <summary>
-        /// Represents a handler invoked when the promise is rejected.
-        /// </summary>
-        public struct RejectHandler
-        {
-            /// <summary>
-            /// Callback fn.
-            /// </summary>
-            public Action<Exception> callback;
-
-            /// <summary>
-            /// The promise that is rejected when there is an error while invoking the handler.
-            /// </summary>
-            public IRejectable rejectable;
-        }
 
         /// <summary>
         /// Error handlers.
@@ -326,8 +331,8 @@ namespace RSG
         /// </summary>
         private void InvokeRejectHandler(Action<Exception> callback, IRejectable rejectable, Exception value)
         {
-            Argument.NotNull(() => callback);
-            Argument.NotNull(() => rejectable);
+//            Argument.NotNull(() => callback);
+//            Argument.NotNull(() => rejectable);
 
             try
             {
@@ -344,8 +349,8 @@ namespace RSG
         /// </summary>
         private void InvokeResolveHandler(Action callback, IRejectable rejectable)
         {
-            Argument.NotNull(() => callback);
-            Argument.NotNull(() => rejectable);
+//            Argument.NotNull(() => callback);
+//            Argument.NotNull(() => rejectable);
 
             try
             {
@@ -371,7 +376,7 @@ namespace RSG
         /// </summary>
         private void InvokeRejectHandlers(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             if (rejectHandlers != null)
             {
@@ -399,7 +404,7 @@ namespace RSG
         /// </summary>
         public void Reject(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             if (CurState != PromiseState.Pending)
             {
@@ -445,8 +450,8 @@ namespace RSG
         /// </summary>
         public void Done(Action onResolved, Action<Exception> onRejected)
         {
-            Argument.NotNull(() => onResolved);
-            Argument.NotNull(() => onRejected);
+//            Argument.NotNull(() => onResolved);
+//            Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -461,7 +466,7 @@ namespace RSG
         /// </summary>
         public void Done(Action onResolved)
         {
-            Argument.NotNull(() => onResolved);
+//            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -500,7 +505,7 @@ namespace RSG
         /// </summary>
         public IPromise Catch(Action<Exception> onRejected)
         {
-            Argument.NotNull(() => onRejected);
+//            Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -554,7 +559,7 @@ namespace RSG
         {
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
-            Argument.NotNull(() => onResolved);
+//            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -868,7 +873,7 @@ namespace RSG
         /// </summary>
         public static IPromise Rejected(Exception ex)
         {
-            Argument.NotNull(() => ex);
+//            Argument.NotNull(() => ex);
 
             var promise = new Promise();
             promise.Reject(ex);
@@ -880,9 +885,9 @@ namespace RSG
         /// </summary>
         internal static void PropagateUnhandledException(object sender, Exception ex)
         {
-            if (UnhandledException != null)
+			if (unhandlerException != null)
             {
-                UnhandledException(sender, new ExceptionEventArgs(ex));
+				unhandlerException(sender, new ExceptionEventArgs(ex));
             }
         }
     }
