@@ -33,9 +33,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RSG.Toolkit">
-      <HintPath>packages\RSG.Toolkit.1.0.0.0\lib\net35\RSG.Toolkit.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumerableExt.cs" />
     <Compile Include="PromiseTimer.cs" />
     <Compile Include="Promise_NonGeneric.cs" />
     <Compile Include="Promise.cs" />
@@ -51,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".travis.yml" />
-    <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
