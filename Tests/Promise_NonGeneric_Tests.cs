@@ -1,5 +1,6 @@
 ﻿using Moq;
 using RSG;
+using RSG.Promises;
 using RSG.Utils;
 using System;
 using System.Collections.Generic;
