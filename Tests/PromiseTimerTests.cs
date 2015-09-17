@@ -83,6 +83,47 @@ namespace RSG.Tests
 
             Assert.Equal(true, hasResovled);
         }
-    }
 
+        [Fact]
+        public void predicate_is_removed_from_timer_after_exception_is_thrown()
+        {
+            var testObject = new PromiseTimer();
+
+            var runCount = 0;
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    runCount++;
+
+                    throw new NotImplementedException();
+                })
+                .Done();
+
+            testObject.Update(1.0f);
+            testObject.Update(1.0f);
+
+            Assert.Equal(1, runCount);
+        }
+
+        [Fact]
+        public void when_predicate_throws_exception_reject_promise()
+        {
+            var testObject = new PromiseTimer();
+
+            var rejected = false;
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    throw new NotImplementedException();
+                })
+                .Then(null, (ex) => rejected = true)
+                .Done();
+
+            testObject.Update(1.0f);
+
+            Assert.True(rejected);
+        }
+    }
 }

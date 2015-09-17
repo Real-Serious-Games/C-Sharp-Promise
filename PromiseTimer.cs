@@ -134,7 +134,19 @@ namespace RSG
                 wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
                 wait.timeData.elapsedTime = newElapsedTime;
 
-                if(wait.predicate(wait.timeData))
+                bool result;
+                try
+                {
+                    result = wait.predicate(wait.timeData);
+                }
+                catch(Exception e)
+                {
+                    wait.pendingPromise.Reject(e);
+                    waiting.RemoveAt(i);
+                    continue;
+                }
+
+                if (result)
                 {
                     wait.pendingPromise.Resolve();
                     waiting.RemoveAt(i);
