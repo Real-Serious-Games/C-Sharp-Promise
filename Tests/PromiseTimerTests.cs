@@ -111,19 +111,21 @@ namespace RSG.Tests
         {
             var testObject = new PromiseTimer();
 
-            var rejected = false;
+            Exception expectedException = new Exception();
+            Exception caughtException = null;
+           
 
             testObject
                 .WaitUntil(timeData =>
                 {
-                    throw new NotImplementedException();
+                    throw expectedException;
                 })
-                .Then(null, (ex) => rejected = true)
+                .Catch(ex => caughtException = ex)
                 .Done();
 
             testObject.Update(1.0f);
 
-            Assert.True(rejected);
+            Assert.Equal(expectedException, caughtException);
         }
     }
 }

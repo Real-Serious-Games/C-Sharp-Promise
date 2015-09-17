@@ -126,7 +126,7 @@ namespace RSG
             curTime += deltaTime;
 
             int i = 0;
-            while(i < waiting.Count)
+            while (i < waiting.Count)
             {
                 var wait = waiting[i];
 
@@ -139,9 +139,9 @@ namespace RSG
                 {
                     result = wait.predicate(wait.timeData);
                 }
-                catch(Exception e)
+                catch (Exception ex)
                 {
-                    wait.pendingPromise.Reject(e);
+                    wait.pendingPromise.Reject(ex);
                     waiting.RemoveAt(i);
                     continue;
                 }
