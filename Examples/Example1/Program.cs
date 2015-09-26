@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 //
 // Example of downloading text from a URL using a promise.
@@ -16,49 +15,61 @@ namespace Example
     {
         static void Main(string[] args)
         {
-            PromiseTask(DownloadGoogleAsync).Then(res =>
+            var running = true;
+
+            Download("http://www.google.com")   // Schedule an async operation.
+                .Then(result =>                 // Use Done to register a callback to handle completion of the async operation.
+                {
+                    Console.WriteLine("Async operation completed.");
+                    Console.WriteLine(result.Substring(0, 250) + "...");
+                    running = false;
+                })
+                .Done();
+
+            Console.WriteLine("Waiting");
+
+            while (running)
             {
-                Console.WriteLine("Google has been downloaded: " + res);
-            });
+                Thread.Sleep(10);
+            }
 
-            Console.WriteLine("This line will be written before Google has been downloaded");
-
-            Console.ReadLine();
+            Console.WriteLine("Exiting");
         }
 
-        private async static Task<IPromise<string>> DownloadGoogleAsync()
+        /// <summary>
+        /// Download text from a URL.
+        /// A promise is returned that is resolved when the download has completed.
+        /// The promise is rejected if an error occurs during download.
+        /// </summary>
+        static IPromise<string> Download(string url)
         {
+            Console.WriteLine("Downloading " + url + " ...");
+
             var promise = new Promise<string>();
-
-            Console.WriteLine("Starting download");
-
-            var result = await new WebClient().DownloadStringTaskAsync(new Uri("https://google.com/"));
-
-            promise.Resolve(result);
-
-            Console.WriteLine("Finished download");
-
-            return promise;
-        }
-
-        public static IPromise<T> PromiseTask<T>(Func<Task<IPromise<T>>> func) where T : class
-        {
-            var promise = new Promise<T>();
-
-            func().ContinueWith(result =>
+            using (var client = new WebClient())
             {
-                result.Result.Then(res =>
-                {
-                    promise.Resolve(res);
-                }).Catch(err =>
-                {
-                    promise.Reject(err);
-                });
+                client.DownloadStringCompleted +=
+                    (s, ev) =>
+                    {
+                        if (ev.Error != null)
+                        {
+                            Console.WriteLine("An error occurred... rejecting the promise.");
 
-            });
+                            // Error during download, reject the promise.
+                            promise.Reject(ev.Error);
+                        }
+                        else
+                        {
+                            Console.WriteLine("... Download completed.");
 
+                            // Downloaded completed successfully, resolve the promise.
+                            promise.Resolve(ev.Result);
+                        }
+                    };
+
+                client.DownloadStringAsync(new Uri(url), null);
+            }
             return promise;
         }
-
     }
 }
