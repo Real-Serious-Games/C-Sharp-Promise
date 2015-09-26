@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 //
 // Example of downloading text from a URL using a promise.
@@ -14,6 +15,21 @@ namespace Example
     class Program
     {
         static void Main(string[] args)
+        {
+            DownloadTest().ContinueWith(result =>
+            {
+                result.Result.Then(res =>
+                {
+                    Console.WriteLine(res);
+                }).Catch(err => Console.WriteLine(err.Message));
+            });
+
+            Console.WriteLine("This line will be written before the task completes");
+
+            Console.ReadLine();
+        }
+
+        private static void RunPromiseTest()
         {
             var running = true;
 
@@ -48,8 +64,7 @@ namespace Example
             var promise = new Promise<string>();
             using (var client = new WebClient())
             {
-                client.DownloadStringCompleted +=
-                    (s, ev) =>
+                client.DownloadStringCompleted += (s, ev) =>
                     {
                         if (ev.Error != null)
                         {
@@ -71,5 +86,21 @@ namespace Example
             }
             return promise;
         }
+
+        private async static Task<IPromise<string>> DownloadTest()
+        {
+            var promise = new Promise<string>();
+
+            Console.WriteLine("Starting download");
+
+            var result = await new WebClient().DownloadStringTaskAsync(new Uri("https://google.com/"));
+
+            promise.Resolve(result);
+
+            Console.WriteLine("Finished download");
+
+            return promise;
+        }
+
     }
 }
