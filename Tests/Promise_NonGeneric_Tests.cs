@@ -450,7 +450,7 @@ namespace RSG.Tests
             var ex = new Exception();
 
             var transformedPromise = promise
-                .Then(() =>
+                .Then(() => 
                 {
                     throw ex;
                 })
@@ -495,7 +495,7 @@ namespace RSG.Tests
 
             promise
                 .Then(() => chainedPromise)
-                .Then(v =>
+                .Then(v => 
                 {
                     Assert.Equal(chainedPromiseValue, v);
 
@@ -728,12 +728,11 @@ namespace RSG.Tests
             var ex = new Exception();
 
             Promise
-                .Sequence(() =>
+                .Sequence(() => 
                 {
                     throw ex;
                 })
-                .Catch(e =>
-                {
+                .Catch(e => {
                     Assert.Equal(ex, e);
                     ++errored;
                 })
@@ -750,7 +749,7 @@ namespace RSG.Tests
 
             Promise
                 .Sequence(
-                    () =>
+                    () => 
                     {
                         ++completed;
                         return Promise.Resolved();
