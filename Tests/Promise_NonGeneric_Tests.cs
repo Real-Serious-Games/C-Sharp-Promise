@@ -450,7 +450,7 @@ namespace RSG.Tests
             var ex = new Exception();
 
             var transformedPromise = promise
-                .Then(() => 
+                .Then(() =>
                 {
                     throw ex;
                 })
@@ -495,7 +495,7 @@ namespace RSG.Tests
 
             promise
                 .Then(() => chainedPromise)
-                .Then(v => 
+                .Then(v =>
                 {
                     Assert.Equal(chainedPromiseValue, v);
 
@@ -728,11 +728,12 @@ namespace RSG.Tests
             var ex = new Exception();
 
             Promise
-                .Sequence(() => 
+                .Sequence(() =>
                 {
                     throw ex;
                 })
-                .Catch(e => {
+                .Catch(e =>
+                {
                     Assert.Equal(ex, e);
                     ++errored;
                 })
@@ -749,7 +750,7 @@ namespace RSG.Tests
 
             Promise
                 .Sequence(
-                    () => 
+                    () =>
                     {
                         ++completed;
                         return Promise.Resolved();
@@ -989,6 +990,94 @@ namespace RSG.Tests
 
             Assert.Equal(0, callback);
             Assert.Equal(1, errorCallback);
+        }
+
+        [Fact]
+        public void inner_exception_handled_by_outer_promise()
+        {
+            var promise = new Promise();
+            var errorCallback = 0;
+            var expectedException = new Exception();
+
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) => ++eventRaised;
+
+            Promise.UnhandledException += handler;
+
+            try
+            {
+                promise
+                    .Then(() =>
+                    {
+                        return Promise.Resolved().Then(() =>
+                        {
+                            throw expectedException;
+                        });
+                    })
+                    .Catch(ex =>
+                    {
+                        Assert.Equal(expectedException, ex);
+
+                        ++errorCallback;
+                    });
+
+                promise.Resolve();
+
+                // No "done" in the chain, no generic event handler should be called
+                Assert.Equal(0, eventRaised);
+
+                // Instead the catch should have got the exception
+                Assert.Equal(1, errorCallback);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
+        }
+
+        [Fact]
+        public void inner_exception_handled_by_outer_promise_with_results()
+        {
+            var promise = new Promise<int>();
+            var errorCallback = 0;
+            var expectedException = new Exception();
+
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) => ++eventRaised;
+
+            Promise.UnhandledException += handler;
+
+            try
+            {
+                promise
+                    .Then((_) =>
+                    {
+                        return Promise<int>.Resolved(5).Then((__) =>
+                        {
+                            throw expectedException;
+                        });
+                    })
+                    .Catch(ex =>
+                    {
+                        Assert.Equal(expectedException, ex);
+
+                        ++errorCallback;
+                    });
+
+                promise.Resolve(2);
+
+                // No "done" in the chain, no generic event handler should be called
+                Assert.Equal(0, eventRaised);
+
+                // Instead the catch should have got the exception
+                Assert.Equal(1, errorCallback);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
         }
     }
 }
