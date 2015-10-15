@@ -571,8 +571,7 @@ namespace RSG
 						// Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
                         (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
                         ex => resultPromise.Reject(ex)
-                    )
-                    .Done();
+                    );
             };
 
             Action<Exception> rejectHandler = ex =>
@@ -607,8 +606,7 @@ namespace RSG
                         .Then(
                             () => resultPromise.Resolve(),
                             ex => resultPromise.Reject(ex)
-                        )
-                        .Done();
+                        );
                 }
                 else
                 {
