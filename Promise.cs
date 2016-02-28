@@ -162,13 +162,13 @@ namespace RSG
         /// <summary>
         /// Error handler.
         /// </summary>
-		private List<RejectHandler> rejectHandlers;
+        private List<RejectHandler> rejectHandlers;
 
         /// <summary>
         /// Completed handlers that accept a value.
         /// </summary>
-		private List<Action<PromisedT>> resolveCallbacks;
-		private List<IRejectable> resolveRejectables;
+        private List<Action<PromisedT>> resolveCallbacks;
+        private List<IRejectable> resolveRejectables;
 
         /// <summary>
         /// ID of the promise, useful for debugging.
@@ -229,10 +229,10 @@ namespace RSG
         {
             if (rejectHandlers == null)
             {
-				rejectHandlers = new List<RejectHandler>();
+                rejectHandlers = new List<RejectHandler>();
             }
 
-			rejectHandlers.Add(new RejectHandler() { callback = onRejected, rejectable = rejectable }); ;
+            rejectHandlers.Add(new RejectHandler() { callback = onRejected, rejectable = rejectable }); ;
         }
 
         /// <summary>
@@ -240,18 +240,18 @@ namespace RSG
         /// </summary>
         private void AddResolveHandler(Action<PromisedT> onResolved, IRejectable rejectable)
         {
-			if (resolveCallbacks == null)
-			{
-				resolveCallbacks = new List<Action<PromisedT>>();
-			}
+            if (resolveCallbacks == null)
+            {
+                resolveCallbacks = new List<Action<PromisedT>>();
+            }
 
-			if (resolveRejectables == null)
-			{
-				resolveRejectables = new List<IRejectable>();
-			}
+            if (resolveRejectables == null)
+            {
+                resolveRejectables = new List<IRejectable>();
+            }
 
-			resolveCallbacks.Add(onResolved);
-			resolveRejectables.Add(rejectable);
+            resolveCallbacks.Add(onResolved);
+            resolveRejectables.Add(rejectable);
         }
 
         /// <summary>
@@ -278,8 +278,8 @@ namespace RSG
         private void ClearHandlers()
         {
             rejectHandlers = null;
-			resolveCallbacks = null;
-			resolveRejectables = null;
+            resolveCallbacks = null;
+            resolveRejectables = null;
         }
 
         /// <summary>
@@ -302,11 +302,11 @@ namespace RSG
         /// </summary>
         private void InvokeResolveHandlers(PromisedT value)
         {
-			if (resolveCallbacks != null)
+            if (resolveCallbacks != null)
             {
-				for (int i = 0, maxI = resolveCallbacks.Count; i < maxI; i++) {
-					InvokeHandler(resolveCallbacks[i], resolveRejectables[i], value);
-				}
+                for (int i = 0, maxI = resolveCallbacks.Count; i < maxI; i++) {
+                    InvokeHandler(resolveCallbacks[i], resolveRejectables[i], value);
+                }
             }
 
             ClearHandlers();
@@ -481,7 +481,7 @@ namespace RSG
             {
                 onResolved(v)
                     .Then(
-						// Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
+                        // Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
                         (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
                         ex => resultPromise.Reject(ex)
                     );

@@ -156,21 +156,21 @@ namespace RSG
         }
     }
 
-	/// <summary>
-	/// Represents a handler invoked when the promise is rejected.
-	/// </summary>
-	public struct RejectHandler
-	{
-		/// <summary>
-		/// Callback fn.
-		/// </summary>
-		public Action<Exception> callback;
+    /// <summary>
+    /// Represents a handler invoked when the promise is rejected.
+    /// </summary>
+    public struct RejectHandler
+    {
+        /// <summary>
+        /// Callback fn.
+        /// </summary>
+        public Action<Exception> callback;
 
-		/// <summary>
-		/// The promise that is rejected when there is an error while invoking the handler.
-		/// </summary>
-		public IRejectable rejectable;
-	}
+        /// <summary>
+        /// The promise that is rejected when there is an error while invoking the handler.
+        /// </summary>
+        public IRejectable rejectable;
+    }
 
     /// <summary>
     /// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
@@ -188,11 +188,11 @@ namespace RSG
         /// For this to work you have to complete your promises with a call to Done().
         /// </summary>
         public static event EventHandler<ExceptionEventArgs> UnhandledException
-		{
-			add { unhandlerException += value; }
-			remove { unhandlerException -= value; }
-		}
-		private static EventHandler<ExceptionEventArgs> unhandlerException;
+        {
+            add { unhandlerException += value; }
+            remove { unhandlerException -= value; }
+        }
+        private static EventHandler<ExceptionEventArgs> unhandlerException;
 
         /// <summary>
         /// Id for the next promise that is created.
@@ -568,7 +568,7 @@ namespace RSG
             {
                 onResolved()
                     .Then(
-						// Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
+                        // Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
                         (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
                         ex => resultPromise.Reject(ex)
                     );
@@ -883,9 +883,9 @@ namespace RSG
         /// </summary>
         internal static void PropagateUnhandledException(object sender, Exception ex)
         {
-			if (unhandlerException != null)
+            if (unhandlerException != null)
             {
-				unhandlerException(sender, new ExceptionEventArgs(ex));
+                unhandlerException(sender, new ExceptionEventArgs(ex));
             }
         }
     }
