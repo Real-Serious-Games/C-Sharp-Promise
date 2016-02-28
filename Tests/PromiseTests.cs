@@ -486,7 +486,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Transform(v => v.ToString())
+                .Then(v => v.ToString())
                 .Then(v =>
                 {
                     Assert.Equal(promisedValue.ToString(), v);
@@ -508,7 +508,7 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Transform(v => v.ToString())
+                .Then(v => v.ToString())
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -531,10 +531,10 @@ namespace RSG.Tests
             var ex = new Exception();
 
             promise
-                .Transform<string>(v => 
+                .Then<string>((Func<int, string>)(v => 
                 {
                     throw ex;
-                })
+                }))
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -558,7 +558,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then<string>(v => chainedPromise)
                 .Then(v =>
                 {
                     Assert.Equal(chainedPromiseValue, v);
@@ -582,7 +582,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then((Func<int, IPromise>)(v => chainedPromise))
                 .Then(() =>
                 {
                     ++completed;
@@ -604,10 +604,10 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Then<IPromise<string>>(v =>
+                .Then<IPromise<string>>((Func<int, IPromise<IPromise<string>>>)(v =>
                 {
                     throw ex;
-                })
+                }))
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -630,7 +630,7 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then<string>(v => chainedPromise)
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -653,7 +653,7 @@ namespace RSG.Tests
 
             Promise<int>
                 .Race(promise1, promise2)
-                .Then(i => resolved = i);
+                .Then((Action<int>)(i => resolved = i));
 
             promise1.Resolve(5);
 
@@ -670,7 +670,7 @@ namespace RSG.Tests
 
             Promise<int>
                 .Race(promise1, promise2)
-                .Then(i => resolved = i);
+                .Then((Action<int>)(i => resolved = i));
 
             promise2.Resolve(12);
 

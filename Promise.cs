@@ -77,7 +77,7 @@ namespace RSG
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
-        IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
+        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -579,26 +579,10 @@ namespace RSG
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
-        public IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform)
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform)
         {
 //            Argument.NotNull(() => transform);
-
-            var resultPromise = new Promise<ConvertedT>();
-            resultPromise.WithName(Name);
-
-            Action<PromisedT> resolveHandler = v =>
-            {
-                resultPromise.Resolve(transform(v));
-            };
-
-            Action<Exception> rejectHandler = ex =>
-            {
-                resultPromise.Reject(ex);
-            };
-
-            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
-
-            return resultPromise;
+            return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
         }
 
         /// <summary>

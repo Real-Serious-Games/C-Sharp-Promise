@@ -343,7 +343,7 @@ namespace RSG.Tests.A__Spec
                     var promisedValue2 = new object();
 
                     var promise2 = 
-                        promise1.Transform(_ => promisedValue2);
+                        promise1.Then(_ => promisedValue2);
 
                     var promise1ThenHandler = 0;
                     promise1.Then(v =>
