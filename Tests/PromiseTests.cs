@@ -653,7 +653,7 @@ namespace RSG.Tests
 
             Promise<int>
                 .Race(promise1, promise2)
-                .Then((Action<int>)(i => resolved = i));
+                .Then(i => resolved = i);
 
             promise1.Resolve(5);
 
@@ -670,7 +670,7 @@ namespace RSG.Tests
 
             Promise<int>
                 .Race(promise1, promise2)
-                .Then((Action<int>)(i => resolved = i));
+                .Then(i => resolved = i);
 
             promise2.Resolve(12);
 
