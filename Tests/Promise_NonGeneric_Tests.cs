@@ -972,8 +972,6 @@ namespace RSG.Tests
                 .Then(() =>
                 {
                     throw expectedException;
-
-                    return Promise.Resolved();
                 })
                 .Done(
                     () => ++callback,
