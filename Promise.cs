@@ -80,6 +80,13 @@ namespace RSG
         IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform);
 
         /// <summary>
+        /// Return a new promise with a different value.
+        /// May also change the type of the value.
+        /// </summary>
+        [Obsolete("Use Then instead")]
+        IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
+
+        /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
         /// Returns a promise for a collection of the resolved results.
         /// The resulting promise is resolved when all of the promises have resolved.
@@ -580,6 +587,17 @@ namespace RSG
         /// May also change the type of the value.
         /// </summary>
         public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform)
+        {
+//            Argument.NotNull(() => transform);
+            return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
+        }
+
+        /// <summary>
+        /// Return a new promise with a different value.
+        /// May also change the type of the value.
+        /// </summary>
+        [Obsolete("Use Then instead")]
+        public IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform)
         {
 //            Argument.NotNull(() => transform);
             return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
