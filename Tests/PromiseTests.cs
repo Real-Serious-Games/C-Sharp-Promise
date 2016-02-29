@@ -751,7 +751,7 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void exception_thrown_during_resolver_rejects_proimse()
+        public void exception_thrown_during_resolver_rejects_promise()
         {
             var ex = new Exception();
             var promise = new Promise<int>((resolve, reject) =>
@@ -793,6 +793,40 @@ namespace RSG.Tests
                         throw ex;
                     })
                     .Done();
+
+                promise.Resolve(5);
+
+                Assert.Equal(1, eventRaised);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
+        }
+
+        [Fact]
+        public void exception_in_done_callback_is_propagated_via_event()
+        {
+            var promise = new Promise<int>();
+            var ex = new Exception();
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) =>
+            {
+                Assert.Equal(ex, e.Exception);
+
+                ++eventRaised;
+            };
+
+            Promise.UnhandledException += handler;
+
+            try
+            {
+                promise
+                    .Done(x =>
+                    {
+                        throw ex;
+                    });
 
                 promise.Resolve(5);
 
