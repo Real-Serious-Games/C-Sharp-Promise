@@ -859,6 +859,40 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void exception_in_done_callback_is_propagated_via_event()
+        {
+            var promise = new Promise();
+            var ex = new Exception();
+            var eventRaised = 0;
+
+            EventHandler<ExceptionEventArgs> handler = (s, e) =>
+            {
+                Assert.Equal(ex, e.Exception);
+
+                ++eventRaised;
+            };
+
+            Promise.UnhandledException += handler;
+
+            try
+            {
+                promise
+                    .Done(() =>
+                    {
+                        throw ex;
+                    });
+
+                promise.Resolve();
+
+                Assert.Equal(1, eventRaised);
+            }
+            finally
+            {
+                Promise.UnhandledException -= handler;
+            }
+        }
+
+        [Fact]
         public void handled_exception_is_not_propagated_via_event()
         {
             var promise = new Promise();
