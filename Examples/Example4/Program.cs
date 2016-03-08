@@ -25,7 +25,7 @@ namespace Example4
             var running = true;
 
             Download(searchUrl)         // Invoke a google search.
-                .Transform(html =>      // Transforms search results and extract links.
+                .Then(html =>           // Transforms search results and extract links.
                 {
                     return LinkFinder
                         .Find(html)

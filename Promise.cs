@@ -77,6 +77,13 @@ namespace RSG
 		/// Return a new promise with a different value.
 		/// May also change the type of the value.
 		/// </summary>
+		IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform);
+
+		/// <summary>
+		/// Return a new promise with a different value.
+		/// May also change the type of the value.
+		/// </summary>
+		[Obsolete("Use Then instead")]
 		IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
 
 		/// <summary>
@@ -363,10 +370,10 @@ namespace RSG
 		/// </summary>
 		public void Done(Action<PromisedT> onResolved, Action<Exception> onRejected)
 		{
-            Then(onResolved, onRejected)
-                .Catch(ex =>
-                    Promise.PropagateUnhandledException(this, ex)
-                );
+			Then(onResolved, onRejected)
+				.Catch(ex =>
+					Promise.PropagateUnhandledException(this, ex)
+				);
 		}
 
 		/// <summary>
@@ -376,21 +383,21 @@ namespace RSG
 		/// </summary>
 		public void Done(Action<PromisedT> onResolved)
 		{
-            Then(onResolved)
-                .Catch(ex =>
-                    Promise.PropagateUnhandledException(this, ex)
-                );
-        }
+			Then(onResolved)
+				.Catch(ex =>
+					Promise.PropagateUnhandledException(this, ex)
+				);
+		}
 
 		/// <summary>
 		/// Complete the promise. Adds a default error handler.
 		/// </summary>
 		public void Done()
 		{
-            Catch(ex =>
-                Promise.PropagateUnhandledException(this, ex)
-            );
-        }
+			Catch(ex =>
+				Promise.PropagateUnhandledException(this, ex)
+			);
+		}
 
 		/// <summary>
 		/// Set the name of the promise, useful for debugging.
@@ -567,26 +574,21 @@ namespace RSG
 		/// Return a new promise with a different value.
 		/// May also change the type of the value.
 		/// </summary>
+		public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform)
+		{
+//            Argument.NotNull(() => transform);
+			return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
+		}
+
+		/// <summary>
+		/// Return a new promise with a different value.
+		/// May also change the type of the value.
+		/// </summary>
+		[Obsolete("Use Then instead")]
 		public IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform)
 		{
 //            Argument.NotNull(() => transform);
-
-			var resultPromise = new Promise<ConvertedT>();
-			resultPromise.WithName(Name);
-
-			Action<PromisedT> resolveHandler = v =>
-			{
-				resultPromise.Resolve(transform(v));
-			};
-
-			Action<Exception> rejectHandler = ex =>
-			{
-				resultPromise.Reject(ex);
-			};
-
-			ActionHandlers(resultPromise, resolveHandler, rejectHandler);
-
-			return resultPromise;
+			return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
 		}
 
 		/// <summary>

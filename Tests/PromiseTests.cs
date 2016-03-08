@@ -486,7 +486,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Transform(v => v.ToString())
+                .Then(v => v.ToString())
                 .Then(v =>
                 {
                     Assert.Equal(promisedValue.ToString(), v);
@@ -508,7 +508,7 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Transform(v => v.ToString())
+                .Then(v => v.ToString())
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -531,7 +531,7 @@ namespace RSG.Tests
             var ex = new Exception();
 
             promise
-                .Transform<string>(v => 
+                .Then(v => 
                 {
                     throw ex;
                 })
@@ -558,7 +558,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then<string>(v => chainedPromise)
                 .Then(v =>
                 {
                     Assert.Equal(chainedPromiseValue, v);
@@ -582,7 +582,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then(v => (IPromise)chainedPromise)
                 .Then(() =>
                 {
                     ++completed;
@@ -604,7 +604,7 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Then<IPromise<string>>(v =>
+                .Then(v =>
                 {
                     throw ex;
                 })
@@ -630,7 +630,7 @@ namespace RSG.Tests
             var errors = 0;
 
             promise
-                .Then(v => chainedPromise)
+                .Then<string>(v => chainedPromise)
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -967,11 +967,9 @@ namespace RSG.Tests
                 .Then(value => 
                 {
                     throw expectedException;
-
-                    return Promise<int>.Resolved(10);
                 })
                 .Done(
-                    value =>
+                    () =>
                     {
                         ++callback;
                     },
