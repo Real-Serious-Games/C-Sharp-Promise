@@ -201,7 +201,7 @@ Here we are chaining another download onto the end of the first download. The fi
 Sometimes you will want to simply transform or modify the resulting value without chaining another async operation.
 
 	Download("http://www.google.com")
-		.Transform(html =>
+		.Then(html =>
 			return ExtractAllLinks(html)) // Extract all links and return an array of strings.  
 		)
 		.Done(links =>					  // The input here is an array of strings.
@@ -342,7 +342,7 @@ What about a promise that has no result? This represents an asynchronous operati
 
 `Promise` is very similar to `Promise<T>` and implements the similar interfaces: `IPromise` and `IPendingPromise`. 
 
-`Promise<T>` functions that affect the resulting value, such as `Transform`, have no relevance for the non-value promise and have been removed.
+`Promise<T>` functions that affect the resulting value have no relevance for the non-value promise and have been removed.
 
 As an example consider the chaining of animation and sound effects as we often need to do in *game development*:
 
@@ -359,7 +359,7 @@ As an example consider a recursive link extractor and file downloader function:
 	public IPromise DownloadAll(string url) 
 	{
 		return DownloadURL(url)						// Yields a value, the HTML text downloaded.
-			.Transform(html => ExtractLinks(html))	// Convert HTML into an enumerable of links.
+			.Then(html => ExtractLinks(html))	// Convert HTML into an enumerable of links.
 			.ThenAll(links =>						// Process each link. 
 			{
 				// Determine links that should be followed, then follow them.
