@@ -11,6 +11,8 @@ Inspired by Javascript promises, but slightly different.
 
 Used by [Real Serious Games](https://github.com/Real-Serious-Games/C-Sharp-Promise) for building serious games and simulations on Unity3d.
 
+If you are interested in using promises for game development and Unity please see [this article](http://www.what-could-possibly-go-wrong.com/promises-for-game-development/).  
+
 ## Recent Updates
 
 - 8 March 2015
