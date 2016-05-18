@@ -823,10 +823,10 @@ namespace RSG.Tests
             try
             {
                 promise
-                    .Done(x =>
+                    .Then(x =>
                     {
                         throw ex;
-                    });
+                    }).Done();
 
                 promise.Resolve(5);
 
@@ -880,7 +880,7 @@ namespace RSG.Tests
             var callback = 0;
             var expectedValue = 5;
 
-            promise.Done(value =>
+            promise.Then(value =>
             {
                 Assert.Equal(expectedValue, value);
 
@@ -900,7 +900,7 @@ namespace RSG.Tests
             var errorCallback = 0;
             var expectedValue = 5;
 
-            promise.Done(
+            promise.Then(
                 value =>
                 {
                     Assert.Equal(expectedValue, value);
@@ -968,7 +968,7 @@ namespace RSG.Tests
                 {
                     throw expectedException;
                 })
-                .Done(
+                .Then(
                     () =>
                     {
                         ++callback;
