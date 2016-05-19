@@ -474,11 +474,10 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            Assert.False(true);
             promise
-				// this test won't pass any more!
-				//.Then(() => chainedPromise)
-				.Then(() => ++completed);
+                // unfortunately, needs type to infer correct overload of Then
+                .Then((Func<IPromise>)(() => chainedPromise))
+                .Then(() => ++completed);
 
 			promise.Resolve();
             chainedPromise.Resolve();

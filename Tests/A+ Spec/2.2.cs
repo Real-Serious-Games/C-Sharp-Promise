@@ -64,8 +64,9 @@ namespace RSG.Tests.A__Spec
 
                 var resultPromise = promise
                     .Then(
-                        v => Promise.Resolved()
-                        //null
+                        v => Promise.Resolved(),
+                        // unfortunately, needs type to infer correct overload of Then
+                        (Action<Exception>)null
                     );
 
                 var resolved = 0;
