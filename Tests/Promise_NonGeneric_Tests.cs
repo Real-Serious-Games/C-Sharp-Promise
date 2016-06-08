@@ -475,10 +475,11 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(() => chainedPromise)
+                // unfortunately, needs type to infer correct overload of Then
+                .Then((Func<IPromise>)(() => chainedPromise))
                 .Then(() => ++completed);
 
-            promise.Resolve();
+			promise.Resolve();
             chainedPromise.Resolve();
 
             Assert.Equal(1, completed);
@@ -494,9 +495,8 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .Then(() => chainedPromise)
-                .Then(v => 
-                {
+                .Then<string>(() => chainedPromise)
+                .Then(v => {
                     Assert.Equal(chainedPromiseValue, v);
 
                     ++completed;
@@ -877,10 +877,10 @@ namespace RSG.Tests
             try
             {
                 promise
-                    .Done(() =>
+                    .Then(() =>
                     {
                         throw ex;
-                    });
+                    }).Done();
 
                 promise.Resolve();
 
@@ -933,7 +933,7 @@ namespace RSG.Tests
             var promise = new Promise();
             var callback = 0;
 
-            promise.Done(() => ++callback);
+            promise.Then(() => ++callback);
 
             promise.Resolve();
 
@@ -947,7 +947,7 @@ namespace RSG.Tests
             var callback = 0;
             var errorCallback = 0;
 
-            promise.Done(
+            promise.Then(
                 () => ++callback,
                 ex => ++errorCallback
             );
@@ -1007,7 +1007,7 @@ namespace RSG.Tests
                 {
                     throw expectedException;
                 })
-                .Done(
+                .Then(
                     () => ++callback,
                     ex =>
                     {
