@@ -18,6 +18,20 @@ namespace RSG
 		new IPromise WithName(string name);
 
         /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// onRejected is called on error.
+        /// </summary>
+        void Done(Action onResolved, Action<Exception> onRejected);
+
+        /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// Adds a default error handler.
+        /// </summary>
+        void Done(Action onResolved);
+
+        /// <summary>
         /// Handle errors for the promise. 
         /// </summary>
         new IPromise Catch(Action<Exception> onRejected);
@@ -30,12 +44,12 @@ namespace RSG
         /// <summary>
         /// Add a resolved callback that chains a non-value promise.
         /// </summary>
-        new IPromise Then(Func<IPromise> onResolved);
+        IPromise Then(Func<IPromise> onResolved);
 
         /// <summary>
         /// Add a resolved callback.
         /// </summary>
-        new IPromise Then(Action onResolved);
+        IPromise Then(Action onResolved);
 
 		/// <summary>
 		/// Add a resolved callback and a rejected callback.
@@ -47,12 +61,12 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a non-value promise.
         /// </summary>
-        new IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
+        IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
         /// </summary>
-        new IPromise Then(Action onResolved, Action<Exception> onRejected);
+        IPromise Then(Action onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -306,10 +320,36 @@ namespace RSG
 				);
 		}
 
-		/// <summary>
-		/// Complete the promise. Adds a defualt error handler.
-		/// </summary>
-		public void Done()
+        /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// onRejected is called on error.
+        /// </summary>
+        void IPromiseBase.Done(Action<PromiseResult> onResolved, Action<Exception> onRejected)
+        {
+            Then(() => { onResolved(PromiseResult.None); }, onRejected)
+                .Catch(ex =>
+                    Promise.PropagateUnhandledException(this, ex)
+                );
+        }
+
+        /// <summary>
+        /// Completes the promise. 
+        /// onResolved is called on successful completion.
+        /// Adds a default error handler.
+        /// </summary>
+        void IPromiseBase.Done(Action<PromiseResult> onResolved)
+        {
+            Then(() => { onResolved(PromiseResult.None); })
+                .Catch(ex =>
+                    Promise.PropagateUnhandledException(this, ex)
+                );
+        }
+
+        /// <summary>
+        /// Complete the promise. Adds a defualt error handler.
+        /// </summary>
+        public void Done()
 		{
 			Catch(ex =>
 				Promise.PropagateUnhandledException(this, ex)
@@ -378,9 +418,9 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
-        IPromiseBase IPromiseBase.Then(Func<IPromise> onResolved)
+        IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved)
         {
-            return Then(onResolved);
+            return Then(() => { onResolved(PromiseResult.None); });
         }
 
 		/// <summary>
@@ -391,9 +431,9 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
-        IPromiseBase IPromiseBase.Then(Action onResolved)
+        IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved)
         {
-            return Then(onResolved);
+            return Then(() => { onResolved(PromiseResult.None); });
         }
 
         /// <summary>
@@ -474,9 +514,9 @@ namespace RSG
 			return resultPromise;
 		}
 
-        IPromiseBase IPromiseBase.Then(Func<IPromise> onResolved, Action<Exception> onRejected)
+        IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved, Action<Exception> onRejected)
         {
-            return Then(onResolved, onRejected);
+            return Then(() => { onResolved(PromiseResult.None); }, onRejected);
         }
 
 		/// <summary>
@@ -512,9 +552,9 @@ namespace RSG
 			return resultPromise;
 		}
 
-        IPromiseBase IPromiseBase.Then(Action onResolved, Action<Exception> onRejected)
+        IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved, Action<Exception> onRejected)
         {
-            return Then(onResolved, onRejected);
+            return Then(() => { onResolved(PromiseResult.None); }, onRejected);
         }
 
         /// <summary>

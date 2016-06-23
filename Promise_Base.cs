@@ -16,14 +16,14 @@ namespace RSG
         /// onResolved is called on successful completion.
         /// onRejected is called on error.
         /// </summary>
-        void Done(Action onResolved, Action<Exception> onRejected);
+        void Done(Action<PromiseResult> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Completes the promise. 
         /// onResolved is called on successful completion.
         /// Adds a default error handler.
         /// </summary>
-        void Done(Action onResolved);
+        void Done(Action<PromiseResult> onResolved);
 
         /// <summary>
         /// Complete the promise. Adds a default error handler.
@@ -38,23 +38,23 @@ namespace RSG
         /// <summary>
         /// Add a resolved callback that chains a non-value promise.
         /// </summary>
-        IPromiseBase Then(Func<IPromise> onResolved);
+        IPromiseBase Then(Func<PromiseResult, IPromise> onResolved);
 
         /// <summary>
         /// Add a resolved callback.
         /// </summary>
-        IPromiseBase Then(Action onResolved);
+        IPromiseBase Then(Action<PromiseResult> onResolved);
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a non-value promise.
         /// </summary>
-        IPromiseBase Then(Func<IPromise> onResolved, Action<Exception> onRejected);
+        IPromiseBase Then(Func<PromiseResult, IPromise> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
         /// </summary>
-        IPromiseBase Then(Action onResolved, Action<Exception> onRejected);
+        IPromiseBase Then(Action<PromiseResult> onResolved, Action<Exception> onRejected);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -108,6 +108,25 @@ namespace RSG
         /// The promise that is rejected when there is an error while invoking the handler.
         /// </summary>
         public IRejectable rejectable;
+    }
+
+    public class PromiseResult
+    {
+        public static readonly PromiseResult None = new PromiseResult();
+
+        public readonly bool hasValue;
+        public readonly object Result;
+
+        public PromiseResult()
+        {
+            hasValue = false;
+        }
+
+        public PromiseResult(object value)
+        {
+            hasValue = true;
+            Result = value;
+        }
     }
 
     /// <summary>
