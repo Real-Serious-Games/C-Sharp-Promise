@@ -10,51 +10,32 @@ namespace RSG
 	/// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
 	/// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
 	/// </summary>
-	public interface IPromise
+	public interface IPromise : IPromiseBase
 	{
 		/// <summary>
 		/// Set the name of the promise, useful for debugging.
 		/// </summary>
-		IPromise WithName(string name);
+		new IPromise WithName(string name);
 
-		/// <summary>
-		/// Completes the promise. 
-		/// onResolved is called on successful completion.
-		/// onRejected is called on error.
-		/// </summary>
-		void Done(Action onResolved, Action<Exception> onRejected);
-
-		/// <summary>
-		/// Completes the promise. 
-		/// onResolved is called on successful completion.
-		/// Adds a default error handler.
-		/// </summary>
-		void Done(Action onResolved);
-
-		/// <summary>
-		/// Complete the promise. Adds a default error handler.
-		/// </summary>
-		void Done();
-
-		/// <summary>
-		/// Handle errors for the promise. 
-		/// </summary>
-		IPromise Catch(Action<Exception> onRejected);
+        /// <summary>
+        /// Handle errors for the promise. 
+        /// </summary>
+        new IPromise Catch(Action<Exception> onRejected);
 
 		/// <summary>
 		/// Add a resolved callback that chains a value promise (optionally converting to a different value type).
 		/// </summary>
 		IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved);
 
-		/// <summary>
-		/// Add a resolved callback that chains a non-value promise.
-		/// </summary>
-		IPromise Then(Func<IPromise> onResolved);
+        /// <summary>
+        /// Add a resolved callback that chains a non-value promise.
+        /// </summary>
+        new IPromise Then(Func<IPromise> onResolved);
 
-		/// <summary>
-		/// Add a resolved callback.
-		/// </summary>
-		IPromise Then(Action onResolved);
+        /// <summary>
+        /// Add a resolved callback.
+        /// </summary>
+        new IPromise Then(Action onResolved);
 
 		/// <summary>
 		/// Add a resolved callback and a rejected callback.
@@ -62,23 +43,23 @@ namespace RSG
 		/// </summary>
 		IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
 
-		/// <summary>
-		/// Add a resolved callback and a rejected callback.
-		/// The resolved callback chains a non-value promise.
-		/// </summary>
-		IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
+        new IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
 
-		/// <summary>
-		/// Add a resolved callback and a rejected callback.
-		/// </summary>
-		IPromise Then(Action onResolved, Action<Exception> onRejected);
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// </summary>
+        new IPromise Then(Action onResolved, Action<Exception> onRejected);
 
-		/// <summary>
-		/// Chain an enumerable of promises, all of which must resolve.
-		/// The resulting promise is resolved when all of the promises have resolved.
-		/// It is rejected as soon as any of the promises have been rejected.
-		/// </summary>
-		IPromise ThenAll(Func<IEnumerable<IPromise>> chain);
+        /// <summary>
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
+        /// </summary>
+        new IPromise ThenAll(Func<IEnumerable<IPromise>> chain);
 
 		/// <summary>
 		/// Chain an enumerable of promises, all of which must resolve.
@@ -122,61 +103,10 @@ namespace RSG
 	}
 
 	/// <summary>
-	/// Used to list information of pending promises.
-	/// </summary>
-	public interface IPromiseInfo
-	{
-		/// <summary>
-		/// Id of the promise.
-		/// </summary>
-		int Id { get; }
-
-		/// <summary>
-		/// Human-readable name for the promise.
-		/// </summary>
-		string Name { get; }
-	}
-
-	/// <summary>
-	/// Arguments to the UnhandledError event.
-	/// </summary>
-	public class ExceptionEventArgs : EventArgs
-	{
-		internal ExceptionEventArgs(Exception exception)
-		{
-//            Argument.NotNull(() => exception);
-
-			this.Exception = exception;
-		}
-
-		public Exception Exception
-		{
-			get;
-			private set;
-		}
-	}
-
-	/// <summary>
-	/// Represents a handler invoked when the promise is rejected.
-	/// </summary>
-	public struct RejectHandler
-	{
-		/// <summary>
-		/// Callback fn.
-		/// </summary>
-		public Action<Exception> callback;
-
-		/// <summary>
-		/// The promise that is rejected when there is an error while invoking the handler.
-		/// </summary>
-		public IRejectable rejectable;
-	}
-
-	/// <summary>
 	/// Implements a non-generic C# promise, this is a promise that simply resolves without delivering a value.
 	/// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise
 	/// </summary>
-	public class Promise : IPromise, IPendingPromise, IPromiseInfo
+	public class Promise : Promise_Base, IPromise, IPendingPromise
 	{
 		/// <summary>
 		/// Set to true to enable tracking of promises.
@@ -214,16 +144,6 @@ namespace RSG
 		}
 
 		/// <summary>
-		/// The exception when the promise is rejected.
-		/// </summary>
-		private Exception rejectionException;
-
-		/// <summary>
-		/// Error handlers.
-		/// </summary>
-		private List<RejectHandler> rejectHandlers;
-
-		/// <summary>
 		/// Represents a handler invoked when the promise is resolved.
 		/// </summary>
 		public struct ResolveHandler
@@ -244,38 +164,11 @@ namespace RSG
 		/// </summary>
 		private List<ResolveHandler> resolveHandlers;
 
-		/// <summary>
-		/// ID of the promise, useful for debugging.
-		/// </summary>
-		public int Id { get; private set; }
+		public Promise() : base()
+		{ }
 
-		/// <summary>
-		/// Name of the promise, when set, useful for debugging.
-		/// </summary>
-		public string Name { get; private set; }
-
-		/// <summary>
-		/// Tracks the current state of the promise.
-		/// </summary>
-		public PromiseState CurState { get; private set; }
-
-		public Promise()
+		public Promise(Action<Action, Action<Exception>> resolver): this()
 		{
-			this.CurState = PromiseState.Pending;
-			if (EnablePromiseTracking)
-			{
-				pendingPromises.Add(this);
-			}
-		}
-
-		public Promise(Action<Action, Action<Exception>> resolver)
-		{
-			this.CurState = PromiseState.Pending;
-			if (EnablePromiseTracking)
-			{
-				pendingPromises.Add(this);
-			}
-
 			try
 			{
 				resolver(
@@ -290,23 +183,6 @@ namespace RSG
 			{
 				Reject(ex);
 			}
-		}
-
-		/// <summary>
-		/// Add a rejection handler for this promise.
-		/// </summary>
-		private void AddRejectHandler(Action<Exception> onRejected, IRejectable rejectable)
-		{
-			if (rejectHandlers == null)
-			{
-				rejectHandlers = new List<RejectHandler>();
-			}
-
-			rejectHandlers.Add(new RejectHandler()
-			{
-				callback = onRejected,
-				rejectable = rejectable
-			});
 		}
 
 		/// <summary>
@@ -365,25 +241,10 @@ namespace RSG
 		/// <summary>
 		/// Helper function clear out all handlers after resolution or rejection.
 		/// </summary>
-		private void ClearHandlers()
+		override protected void ClearHandlers()
 		{
-			rejectHandlers = null;
+            base.ClearHandlers();
 			resolveHandlers = null;
-		}
-
-		/// <summary>
-		/// Invoke all reject handlers.
-		/// </summary>
-		private void InvokeRejectHandlers(Exception ex)
-		{
-//            Argument.NotNull(() => ex);
-
-			if (rejectHandlers != null)
-			{
-				rejectHandlers.Each(handler => InvokeRejectHandler(handler.callback, handler.rejectable, ex));
-			}
-
-			ClearHandlers();
 		}
 
 		/// <summary>
@@ -398,30 +259,6 @@ namespace RSG
 
 			ClearHandlers();
 		}
-
-		/// <summary>
-		/// Reject the promise with an exception.
-		/// </summary>
-		public void Reject(Exception ex)
-		{
-//            Argument.NotNull(() => ex);
-
-			if (CurState != PromiseState.Pending)
-			{
-				throw new ApplicationException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
-			}
-
-			rejectionException = ex;
-			CurState = PromiseState.Rejected;
-
-			if (EnablePromiseTracking)
-			{
-				pendingPromises.Remove(this);
-			}
-
-			InvokeRejectHandlers(ex);            
-		}
-
 
 		/// <summary>
 		/// Resolve the promise with a particular value.
@@ -488,6 +325,11 @@ namespace RSG
 			return this;
 		}
 
+        IPromiseBase IPromiseBase.WithName(string name)
+        {
+            return WithName(name);
+        }
+
 		/// <summary>
 		/// Handle errors for the promise. 
 		/// </summary>
@@ -515,6 +357,11 @@ namespace RSG
 			return resultPromise;
 		}
 
+        IPromiseBase IPromiseBase.Catch(Action<Exception> onRejected)
+        {
+            return Catch(onRejected);
+        }
+
 		/// <summary>
 		/// Add a resolved callback that chains a value promise (optionally converting to a different value type).
 		/// </summary>
@@ -531,6 +378,11 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
+        IPromiseBase IPromiseBase.Then(Func<IPromise> onResolved)
+        {
+            return Then(onResolved);
+        }
+
 		/// <summary>
 		/// Add a resolved callback.
 		/// </summary>
@@ -539,11 +391,16 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
-		/// <summary>
-		/// Add a resolved callback and a rejected callback.
-		/// The resolved callback chains a value promise (optionally converting to a different value type).
-		/// </summary>
-		public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+        IPromiseBase IPromiseBase.Then(Action onResolved)
+        {
+            return Then(onResolved);
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a value promise (optionally converting to a different value type).
+        /// </summary>
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
 		{
 			// This version of the function must supply an onResolved.
 			// Otherwise there is now way to get the converted value to pass to the resulting promise.
@@ -617,6 +474,11 @@ namespace RSG
 			return resultPromise;
 		}
 
+        IPromiseBase IPromiseBase.Then(Func<IPromise> onResolved, Action<Exception> onRejected)
+        {
+            return Then(onResolved, onRejected);
+        }
+
 		/// <summary>
 		/// Add a resolved callback and a rejected callback.
 		/// </summary>
@@ -650,10 +512,15 @@ namespace RSG
 			return resultPromise;
 		}
 
-		/// <summary>
-		/// Helper function to invoke or register resolve/reject handlers.
-		/// </summary>
-		private void ActionHandlers(IRejectable resultPromise, Action resolveHandler, Action<Exception> rejectHandler)
+        IPromiseBase IPromiseBase.Then(Action onResolved, Action<Exception> onRejected)
+        {
+            return Then(onResolved, onRejected);
+        }
+
+        /// <summary>
+        /// Helper function to invoke or register resolve/reject handlers.
+        /// </summary>
+        private void ActionHandlers(IRejectable resultPromise, Action resolveHandler, Action<Exception> rejectHandler)
 		{
 			if (CurState == PromiseState.Resolved)
 			{
@@ -679,6 +546,11 @@ namespace RSG
 		{
 			return Then(() => Promise.All(chain()));
 		}
+
+        IPromiseBase IPromiseBase.ThenAll(Func<IEnumerable<IPromise>> chain)
+        {
+            return ThenAll(chain);
+        }
 
 		/// <summary>
 		/// Chain an enumerable of promises, all of which must resolve.
