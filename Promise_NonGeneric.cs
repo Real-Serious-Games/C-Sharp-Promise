@@ -17,39 +17,39 @@ namespace RSG
 		/// </summary>
 		new IPromise WithName(string name);
 
-        /// <summary>
-        /// Completes the promise. 
-        /// onResolved is called on successful completion.
-        /// onRejected is called on error.
-        /// </summary>
-        void Done(Action onResolved, Action<Exception> onRejected);
+		/// <summary>
+		/// Completes the promise. 
+		/// onResolved is called on successful completion.
+		/// onRejected is called on error.
+		/// </summary>
+		void Done(Action onResolved, Action<Exception> onRejected);
 
-        /// <summary>
-        /// Completes the promise. 
-        /// onResolved is called on successful completion.
-        /// Adds a default error handler.
-        /// </summary>
-        void Done(Action onResolved);
+		/// <summary>
+		/// Completes the promise. 
+		/// onResolved is called on successful completion.
+		/// Adds a default error handler.
+		/// </summary>
+		void Done(Action onResolved);
 
-        /// <summary>
-        /// Handle errors for the promise. 
-        /// </summary>
-        new IPromise Catch(Action<Exception> onRejected);
+		/// <summary>
+		/// Handle errors for the promise. 
+		/// </summary>
+		new IPromise Catch(Action<Exception> onRejected);
 
 		/// <summary>
 		/// Add a resolved callback that chains a value promise (optionally converting to a different value type).
 		/// </summary>
 		IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved);
 
-        /// <summary>
-        /// Add a resolved callback that chains a non-value promise.
-        /// </summary>
-        IPromise Then(Func<IPromise> onResolved);
+		/// <summary>
+		/// Add a resolved callback that chains a non-value promise.
+		/// </summary>
+		IPromise Then(Func<IPromise> onResolved);
 
-        /// <summary>
-        /// Add a resolved callback.
-        /// </summary>
-        IPromise Then(Action onResolved);
+		/// <summary>
+		/// Add a resolved callback.
+		/// </summary>
+		IPromise Then(Action onResolved);
 
 		/// <summary>
 		/// Add a resolved callback and a rejected callback.
@@ -57,23 +57,23 @@ namespace RSG
 		/// </summary>
 		IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
 
-        /// <summary>
-        /// Add a resolved callback and a rejected callback.
-        /// The resolved callback chains a non-value promise.
-        /// </summary>
-        IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
+		/// <summary>
+		/// Add a resolved callback and a rejected callback.
+		/// The resolved callback chains a non-value promise.
+		/// </summary>
+		IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected);
 
-        /// <summary>
-        /// Add a resolved callback and a rejected callback.
-        /// </summary>
-        IPromise Then(Action onResolved, Action<Exception> onRejected);
+		/// <summary>
+		/// Add a resolved callback and a rejected callback.
+		/// </summary>
+		IPromise Then(Action onResolved, Action<Exception> onRejected);
 
-        /// <summary>
-        /// Chain an enumerable of promises, all of which must resolve.
-        /// The resulting promise is resolved when all of the promises have resolved.
-        /// It is rejected as soon as any of the promises have been rejected.
-        /// </summary>
-        new IPromise ThenAll(Func<IEnumerable<IPromise>> chain);
+		/// <summary>
+		/// Chain an enumerable of promises, all of which must resolve.
+		/// The resulting promise is resolved when all of the promises have resolved.
+		/// It is rejected as soon as any of the promises have been rejected.
+		/// </summary>
+		new IPromise ThenAll(Func<IEnumerable<IPromise>> chain);
 
 		/// <summary>
 		/// Chain an enumerable of promises, all of which must resolve.
@@ -257,7 +257,7 @@ namespace RSG
 		/// </summary>
 		override protected void ClearHandlers()
 		{
-            base.ClearHandlers();
+			base.ClearHandlers();
 			resolveHandlers = null;
 		}
 
@@ -320,36 +320,36 @@ namespace RSG
 				);
 		}
 
-        /// <summary>
-        /// Completes the promise. 
-        /// onResolved is called on successful completion.
-        /// onRejected is called on error.
-        /// </summary>
-        void IPromiseBase.Done(Action<PromiseResult> onResolved, Action<Exception> onRejected)
-        {
-            Then(() => { onResolved(PromiseResult.None); }, onRejected)
-                .Catch(ex =>
-                    Promise.PropagateUnhandledException(this, ex)
-                );
-        }
+		/// <summary>
+		/// Completes the promise. 
+		/// onResolved is called on successful completion.
+		/// onRejected is called on error.
+		/// </summary>
+		void IPromiseBase.Done(Action<PromiseResult> onResolved, Action<Exception> onRejected)
+		{
+			Then(() => { onResolved(PromiseResult.None); }, onRejected)
+				.Catch(ex =>
+					Promise.PropagateUnhandledException(this, ex)
+				);
+		}
 
-        /// <summary>
-        /// Completes the promise. 
-        /// onResolved is called on successful completion.
-        /// Adds a default error handler.
-        /// </summary>
-        void IPromiseBase.Done(Action<PromiseResult> onResolved)
-        {
-            Then(() => { onResolved(PromiseResult.None); })
-                .Catch(ex =>
-                    Promise.PropagateUnhandledException(this, ex)
-                );
-        }
+		/// <summary>
+		/// Completes the promise. 
+		/// onResolved is called on successful completion.
+		/// Adds a default error handler.
+		/// </summary>
+		void IPromiseBase.Done(Action<PromiseResult> onResolved)
+		{
+			Then(() => { onResolved(PromiseResult.None); })
+				.Catch(ex =>
+					Promise.PropagateUnhandledException(this, ex)
+				);
+		}
 
-        /// <summary>
-        /// Complete the promise. Adds a defualt error handler.
-        /// </summary>
-        public void Done()
+		/// <summary>
+		/// Complete the promise. Adds a defualt error handler.
+		/// </summary>
+		public void Done()
 		{
 			Catch(ex =>
 				Promise.PropagateUnhandledException(this, ex)
@@ -365,10 +365,10 @@ namespace RSG
 			return this;
 		}
 
-        IPromiseBase IPromiseBase.WithName(string name)
-        {
-            return WithName(name);
-        }
+		IPromiseBase IPromiseBase.WithName(string name)
+		{
+			return WithName(name);
+		}
 
 		/// <summary>
 		/// Handle errors for the promise. 
@@ -397,10 +397,10 @@ namespace RSG
 			return resultPromise;
 		}
 
-        IPromiseBase IPromiseBase.Catch(Action<Exception> onRejected)
-        {
-            return Catch(onRejected);
-        }
+		IPromiseBase IPromiseBase.Catch(Action<Exception> onRejected)
+		{
+			return Catch(onRejected);
+		}
 
 		/// <summary>
 		/// Add a resolved callback that chains a value promise (optionally converting to a different value type).
@@ -418,10 +418,10 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
-        IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved)
-        {
-            return Then(() => { onResolved(PromiseResult.None); });
-        }
+		IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved)
+		{
+			return Then(() => { onResolved(PromiseResult.None); });
+		}
 
 		/// <summary>
 		/// Add a resolved callback.
@@ -431,16 +431,16 @@ namespace RSG
 			return Then(onResolved, null);
 		}
 
-        IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved)
-        {
-            return Then(() => { onResolved(PromiseResult.None); });
-        }
+		IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved)
+		{
+			return Then(() => { onResolved(PromiseResult.None); });
+		}
 
-        /// <summary>
-        /// Add a resolved callback and a rejected callback.
-        /// The resolved callback chains a value promise (optionally converting to a different value type).
-        /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+		/// <summary>
+		/// Add a resolved callback and a rejected callback.
+		/// The resolved callback chains a value promise (optionally converting to a different value type).
+		/// </summary>
+		public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
 		{
 			// This version of the function must supply an onResolved.
 			// Otherwise there is now way to get the converted value to pass to the resulting promise.
@@ -514,10 +514,10 @@ namespace RSG
 			return resultPromise;
 		}
 
-        IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved, Action<Exception> onRejected)
-        {
-            return Then(() => { onResolved(PromiseResult.None); }, onRejected);
-        }
+		IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved, Action<Exception> onRejected)
+		{
+			return Then(() => { onResolved(PromiseResult.None); }, onRejected);
+		}
 
 		/// <summary>
 		/// Add a resolved callback and a rejected callback.
@@ -552,15 +552,15 @@ namespace RSG
 			return resultPromise;
 		}
 
-        IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved, Action<Exception> onRejected)
-        {
-            return Then(() => { onResolved(PromiseResult.None); }, onRejected);
-        }
+		IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved, Action<Exception> onRejected)
+		{
+			return Then(() => { onResolved(PromiseResult.None); }, onRejected);
+		}
 
-        /// <summary>
-        /// Helper function to invoke or register resolve/reject handlers.
-        /// </summary>
-        private void ActionHandlers(IRejectable resultPromise, Action resolveHandler, Action<Exception> rejectHandler)
+		/// <summary>
+		/// Helper function to invoke or register resolve/reject handlers.
+		/// </summary>
+		private void ActionHandlers(IRejectable resultPromise, Action resolveHandler, Action<Exception> rejectHandler)
 		{
 			if (CurState == PromiseState.Resolved)
 			{
@@ -587,10 +587,10 @@ namespace RSG
 			return Then(() => Promise.All(chain()));
 		}
 
-        IPromiseBase IPromiseBase.ThenAll(Func<IEnumerable<IPromise>> chain)
-        {
-            return ThenAll(chain);
-        }
+		IPromiseBase IPromiseBase.ThenAll(Func<IEnumerable<IPromise>> chain)
+		{
+			return ThenAll(chain);
+		}
 
 		/// <summary>
 		/// Chain an enumerable of promises, all of which must resolve.
