@@ -6,6 +6,9 @@ namespace RSG
 {
     public interface IPromiseBase
     {
+        /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
         IPromiseBase WithName(string name);
 
         /// <summary>
