@@ -694,7 +694,7 @@ namespace RSG
 		/// <summary>
 		/// Convert an exception directly into a rejected promise.
 		/// </summary>
-		new public static IPromise<PromisedT> Rejected(Exception ex)
+		public static IPromise<PromisedT> Rejected(Exception ex)
 		{
 //            Argument.NotNull(() => ex);
 
