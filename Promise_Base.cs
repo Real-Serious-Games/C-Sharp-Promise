@@ -63,12 +63,12 @@ namespace RSG
 		/// </summary>
 		IPromiseBase ThenAll(Func<IEnumerable<IPromise>> chain);
 
-        /// <summary>
-        /// Add a finally callback.
-        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
-        /// </summary>
-        IPromiseBase Finally(Action onComplete);
-    }
+		/// <summary>
+		/// Add a finally callback.
+		/// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+		/// </summary>
+		IPromiseBase Finally(Action onComplete);
+	}
 
 	/// <summary>
 	/// Interface for a promise that can be rejected.
