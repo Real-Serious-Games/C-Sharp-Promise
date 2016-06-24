@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Promise_Base.cs" />
     <Compile Include="EnumerableExt.cs" />
     <Compile Include="PromiseTimer.cs" />
     <Compile Include="Promise_NonGeneric.cs" />

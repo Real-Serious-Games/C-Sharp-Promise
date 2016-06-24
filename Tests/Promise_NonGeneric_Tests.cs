@@ -1110,5 +1110,100 @@ namespace RSG.Tests
                 Promise.UnhandledException -= handler;
             }
         }
+
+        [Fact]
+        public void finally_is_called_after_resolve()
+        {
+            var promise = new Promise();
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+            });
+
+            promise.Resolve();
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void finally_is_called_after_reject()
+        {
+            var promise = new Promise();
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void resolved_chain_continues_after_finally()
+        {
+            var promise = new Promise();
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+            })
+            .Then(() =>
+            {
+                ++callback;
+            });
+
+            promise.Resolve();
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void rejected_chain_continues_after_finally()
+        {
+            var promise = new Promise();
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+            })
+            .Then(() =>
+            {
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void can_chain_promise_after_finally()
+        {
+            var promise = new Promise();
+            var expectedValue = 5;
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+                return Promise<int>.Resolved(expectedValue);
+            })
+            .Then((x) =>
+            {
+                ++callback;
+                Assert.Equal(expectedValue, x);
+            });
+
+            promise.Resolve();
+
+            Assert.Equal(2, callback);
+        }
     }
 }
