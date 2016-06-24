@@ -806,10 +806,8 @@ namespace RSG
             Promise promise = new Promise();
             promise.WithName(Name);
 
-            Promise.Race(
-                this.Then(() => { promise.Resolve(); }),
-                this.Catch((e) => { promise.Resolve(); })
-            );
+            this.Then(() => { promise.Resolve(); });
+            this.Catch((e) => { promise.Resolve(); });
 
             return promise.Then(onComplete);
         }
@@ -819,10 +817,8 @@ namespace RSG
             Promise promise = new Promise();
             promise.WithName(Name);
 
-            Promise.Race(
-                this.Then(() => { promise.Resolve(); }),
-                this.Catch((e) => { promise.Resolve(); })
-            );
+            this.Then(() => { promise.Resolve(); });
+            this.Catch((e) => { promise.Resolve(); });
 
             return promise.Then(() => { return onComplete(); });
         }
