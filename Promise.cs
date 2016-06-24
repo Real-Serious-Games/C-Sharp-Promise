@@ -718,6 +718,7 @@ namespace RSG
         public IPromise Finally(Action onComplete)
         {
             Promise promise = new Promise();
+            promise.WithName(Name);
 
             Promise<PromisedT>.Race(
                 this.Then((x) => { promise.Resolve(); }),
@@ -730,6 +731,7 @@ namespace RSG
         public IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
         {
             Promise promise = new Promise();
+            promise.WithName(Name);
 
             Promise<PromisedT>.Race(
                 this.Then((x) => { promise.Resolve(); }),
