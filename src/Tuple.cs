@@ -1,4 +1,5 @@
-﻿namespace RSG
+#if NET35 
+namespace RSG
 {
     /// <summary>
     /// Provides static methods for creating tuple objects.
@@ -146,3 +147,4 @@
         public T4 Item4 { get; }
     }
 }
+#endif

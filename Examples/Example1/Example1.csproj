@@ -50,9 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\C-Sharp-Promise.csproj">
-      <Project>{7e1c6a8a-84e7-43c3-ae73-c6e8a9f11af3}</Project>
-      <Name>C-Sharp-Promise</Name>
+    <ProjectReference Include="..\..\src\RSG.Promise.csproj">
+      <Project>{9a1ea9f3-5dd1-4d25-8d62-abb4a543510b}</Project>
+      <Name>RSG.Promise</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

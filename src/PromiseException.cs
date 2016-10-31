@@ -1,8 +1,10 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace RSG
 {
+#if NET35
+    [System.Serializable]
+#endif
     public abstract class PromiseException : Exception
     {
         public PromiseException() { }
@@ -10,7 +12,8 @@ namespace RSG
         public PromiseException(string message) : base(message) { }
 
         public PromiseException(string message, Exception innerException) : base(message, innerException) { }
-
-        public PromiseException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+#if NET35
+        public PromiseException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+#endif
     }
 }
