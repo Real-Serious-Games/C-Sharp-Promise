@@ -50,7 +50,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumerableExt.cs" />
+    <Compile Include="ProgressReportException.cs" />
+    <Compile Include="PromiseException.cs" />
     <Compile Include="PromiseHelpers.cs" />
+    <Compile Include="PromiseStateException.cs" />
     <Compile Include="PromiseTimer.cs" />
     <Compile Include="Promise_NonGeneric.cs" />
     <Compile Include="Promise.cs" />

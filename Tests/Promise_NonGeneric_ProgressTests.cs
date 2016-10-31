@@ -130,7 +130,7 @@ namespace RSG.Tests
             var promise = new Promise();
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() => promise.ReportProgress(1f));
+            Assert.Throws<ProgressReportException>(() => promise.ReportProgress(1f));
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace RSG.Tests
             var promise = new Promise();
             promise.Reject(new ApplicationException());
 
-            Assert.Throws<ApplicationException>(() => promise.ReportProgress(1f));
+            Assert.Throws<ProgressReportException>(() => promise.ReportProgress(1f));
         }
 
         [Fact]

@@ -206,7 +206,7 @@ namespace RSG
     {
         internal ExceptionEventArgs(Exception exception)
         {
-//            Argument.NotNull(() => exception);
+            //            Argument.NotNull(() => exception);
 
             this.Exception = exception;
         }
@@ -434,8 +434,8 @@ namespace RSG
         /// </summary>
         private void InvokeRejectHandler(Action<Exception> callback, IRejectable rejectable, Exception value)
         {
-//            Argument.NotNull(() => callback);
-//            Argument.NotNull(() => rejectable);
+            //            Argument.NotNull(() => callback);
+            //            Argument.NotNull(() => rejectable);
 
             try
             {
@@ -452,8 +452,8 @@ namespace RSG
         /// </summary>
         private void InvokeResolveHandler(Action callback, IRejectable rejectable)
         {
-//            Argument.NotNull(() => callback);
-//            Argument.NotNull(() => rejectable);
+            //            Argument.NotNull(() => callback);
+            //            Argument.NotNull(() => rejectable);
 
             try
             {
@@ -470,8 +470,8 @@ namespace RSG
         /// </summary>
         private void InvokeProgressHandler(Action<float> callback, IRejectable rejectable, float progress)
         {
-//            Argument.NotNull(() => callback);
-//            Argument.NotNull(() => rejectable);
+            //            Argument.NotNull(() => callback);
+            //            Argument.NotNull(() => rejectable);
 
             try
             {
@@ -498,7 +498,7 @@ namespace RSG
         /// </summary>
         private void InvokeRejectHandlers(Exception ex)
         {
-//            Argument.NotNull(() => ex);
+            //            Argument.NotNull(() => ex);
 
             if (rejectHandlers != null)
             {
@@ -537,11 +537,11 @@ namespace RSG
         /// </summary>
         public void Reject(Exception ex)
         {
-//            Argument.NotNull(() => ex);
+            //            Argument.NotNull(() => ex);
 
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException($"Attempt to reject a promise that is already in state: ${CurState}, a promise can only be rejected when it is still in state: {PromiseState.Pending}");
             }
 
             rejectionException = ex;
@@ -552,7 +552,7 @@ namespace RSG
                 pendingPromises.Remove(this);
             }
 
-            InvokeRejectHandlers(ex);            
+            InvokeRejectHandlers(ex);
         }
 
 
@@ -563,7 +563,7 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to resolve a promise that is already in state: " + CurState + ", a promise can only be resolved when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException($"Attempt to resolve a promise that is already in state: ${CurState}, a promise can only be resolved when it is still in state: ${PromiseState.Pending}");
             }
 
             CurState = PromiseState.Resolved;
@@ -584,7 +584,7 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to report progress on a promise that is already in state: " + CurState + ", a promise can only report progress when it is still in state: " + PromiseState.Pending);
+                throw new ProgressReportException("Attempt to report progress on a promise that is already in state: " + CurState + ", a promise can only report progress when it is still in state: " + PromiseState.Pending);
             }
 
             InvokeProgressHandlers(progress);
@@ -612,7 +612,7 @@ namespace RSG
         public void Done(Action onResolved)
         {
             Then(onResolved)
-                .Catch(ex => 
+                .Catch(ex =>
                     Promise.PropagateUnhandledException(this, ex)
                 );
         }
@@ -639,7 +639,7 @@ namespace RSG
         /// </summary>
         public IPromise Catch(Action<Exception> onRejected)
         {
-//            Argument.NotNull(() => onRejected);
+            //            Argument.NotNull(() => onRejected);
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -726,7 +726,7 @@ namespace RSG
         {
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
-//            Argument.NotNull(() => onResolved);
+            //            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -1023,15 +1023,15 @@ namespace RSG
         /// </summary>
         public static IPromise Race(IEnumerable<IPromise> promises)
         {
-            var promisesArray = promises.ToArray();
-            if (promisesArray.Length == 0)
+            if (!promises.Any())
             {
-                throw new ApplicationException("At least 1 input promise must be provided for Race");
+                throw new ArgumentException("At least 1 input promise must be provided for Race", nameof(promises));
             }
 
             var resultPromise = new Promise();
             resultPromise.WithName("Race");
 
+            var promisesArray = promises.ToArray();
             var progress = new float[promisesArray.Length];
 
             promisesArray.Each((promise, index) =>
@@ -1078,7 +1078,7 @@ namespace RSG
         /// </summary>
         public static IPromise Rejected(Exception ex)
         {
-//            Argument.NotNull(() => ex);
+            //            Argument.NotNull(() => ex);
 
             var promise = new Promise();
             promise.Reject(ex);
@@ -1091,11 +1091,15 @@ namespace RSG
             promise.WithName(Name);
 
             this.Then(() => { promise.Resolve(); });
-            this.Catch((e) => {
-                try {
+            this.Catch((e) =>
+            {
+                try
+                {
                     onComplete();
                     promise.Reject(e);
-                } catch (Exception ne) {
+                }
+                catch (Exception ne)
+                {
                     promise.Reject(ne);
                 }
             });
