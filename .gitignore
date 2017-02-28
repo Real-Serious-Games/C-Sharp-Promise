@@ -158,3 +158,8 @@ packages/**/*.nupkg
 packages/**/*.nuspec
 *.nupkg
 packages/
+.idea/.idea.C-Sharp-Promise/riderModule.iml
+.idea/.idea.C-Sharp-Promise/.idea/contentModel.xml
+.idea/.idea.C-Sharp-Promise/.idea/modules.xml
+.idea/.idea.C-Sharp-Promise/.idea/vcs.xml
+.idea/.idea.C-Sharp-Promise/.idea/workspace.xml

@@ -107,13 +107,59 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void when_promise_is_not_cancelled_by_user_resolve_promise()
+        {
+            var testObject = new PromiseTimer();
+            var hasResolved = false;
+            Exception caughtException = null;
+
+
+            var promise = testObject
+                .WaitUntil(timeData => timeData.elapsedTime > 1.0f)
+                .Then(() => hasResolved = true)
+                .Catch(ex => caughtException = ex);
+
+            promise.Done(null, ex => caughtException = ex);
+
+            testObject.Update(1.0f);
+
+            Assert.Equal(hasResolved, false);
+
+            testObject.Update(1.0f);
+
+            Assert.Equal(caughtException, null);
+            Assert.Equal(hasResolved, true);
+        }
+
+        [Fact]
+        public void when_promise_is_cancelled_by_user_reject_promise()
+        {
+            var testObject = new PromiseTimer();
+            Exception caughtException = null;
+
+
+            var promise = testObject
+                .WaitUntil(timeData => timeData.elapsedTime > 1.0f)
+                .Catch(ex => caughtException = ex);
+
+            promise.Done(null, ex => caughtException = ex);
+
+            testObject.Update(1.0f);
+            testObject.Cancel(promise);
+            testObject.Update(1.0f);
+
+            Assert.IsType<PromiseCancelledException>(caughtException);
+            Assert.Equal(caughtException.Message, "Promise was cancelled by user.");
+        }
+
+        [Fact]
         public void when_predicate_throws_exception_reject_promise()
         {
             var testObject = new PromiseTimer();
 
             Exception expectedException = new Exception();
             Exception caughtException = null;
-           
+
 
             testObject
                 .WaitUntil(timeData =>

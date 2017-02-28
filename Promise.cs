@@ -12,6 +12,11 @@ namespace RSG
 	/// </summary>
 	public interface IPromise<PromisedT>
 	{
+	    /// <summary>
+	    /// Gets the id of the promise, useful for referencing the promise during runtime.
+	    /// </summary>
+	    int Id { get; }
+
 		/// <summary>
 		/// Set the name of the promise, useful for debugging.
 		/// </summary>
@@ -134,6 +139,11 @@ namespace RSG
 	/// </summary>
 	public interface IPendingPromise<PromisedT> : IRejectable
 	{
+	    /// <summary>
+	    /// ID of the promise, useful for debugging.
+	    /// </summary>
+	    int Id { get; }
+
 		/// <summary>
 		/// Resolve the promise with a particular value.
 		/// </summary>

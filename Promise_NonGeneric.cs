@@ -12,7 +12,12 @@ namespace RSG
 	/// </summary>
 	public interface IPromise
 	{
-		/// <summary>
+	    /// <summary>
+	    /// ID of the promise, useful for debugging.
+	    /// </summary>
+	    int Id { get; }
+
+	    /// <summary>
 		/// Set the name of the promise, useful for debugging.
 		/// </summary>
 		IPromise WithName(string name);
@@ -115,6 +120,11 @@ namespace RSG
 	/// </summary>
 	public interface IPendingPromise : IRejectable
 	{
+	    /// <summary>
+	    /// ID of the promise, useful for debugging.
+	    /// </summary>
+	    int Id { get; }
+
 		/// <summary>
 		/// Resolve the promise with a particular value.
 		/// </summary>
