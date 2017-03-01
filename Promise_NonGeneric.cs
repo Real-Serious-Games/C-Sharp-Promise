@@ -197,7 +197,7 @@ namespace RSG
 		/// <summary>
 		/// Id for the next promise that is created.
 		/// </summary>
-		internal static int nextPromiseId = 0;
+		private static int nextPromiseId = 0;
 
 		/// <summary>
 		/// Information about pending promises.
@@ -262,6 +262,7 @@ namespace RSG
 		public Promise()
 		{
 			this.CurState = PromiseState.Pending;
+		    this.Id = NextId();
 			if (EnablePromiseTracking)
 			{
 				pendingPromises.Add(this);
@@ -271,6 +272,7 @@ namespace RSG
 		public Promise(Action<Action, Action<Exception>> resolver)
 		{
 			this.CurState = PromiseState.Pending;
+		    this.Id = NextId();
 			if (EnablePromiseTracking)
 			{
 				pendingPromises.Add(this);
@@ -291,6 +293,14 @@ namespace RSG
 				Reject(ex);
 			}
 		}
+
+        /// <summary>
+        /// Increments the ID counter and gives us the ID for the next promise.
+        /// </summary>
+	    internal static int NextId()
+        {
+            return ++nextPromiseId;
+        }
 
 		/// <summary>
 		/// Add a rejection handler for this promise.

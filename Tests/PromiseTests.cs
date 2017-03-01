@@ -986,5 +986,14 @@ namespace RSG.Tests
             Assert.Equal(0, callback);
             Assert.Equal(1, errorCallback);
         }
+
+        [Fact]
+        public void promises_have_sequential_ids()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<int>();
+
+            Assert.Equal(promise1.Id + 1, promise2.Id);
+        }
     }
 }

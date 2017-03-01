@@ -1110,5 +1110,14 @@ namespace RSG.Tests
                 Promise.UnhandledException -= handler;
             }
         }
+
+        [Fact]
+        public void promises_have_sequential_ids()
+        {
+            var promise1 = new Promise();
+            var promise2 = new Promise();
+
+            Assert.Equal(promise1.Id + 1, promise2.Id);
+        }
     }
 }

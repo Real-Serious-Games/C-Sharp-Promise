@@ -195,7 +195,7 @@ namespace RSG
 		public Promise()
 		{
 			this.CurState = PromiseState.Pending;
-			this.Id = ++Promise.nextPromiseId;
+		    this.Id = Promise.NextId();
 
 			if (Promise.EnablePromiseTracking)
 			{
@@ -206,7 +206,7 @@ namespace RSG
 		public Promise(Action<Action<PromisedT>, Action<Exception>> resolver)
 		{
 			this.CurState = PromiseState.Pending;
-			this.Id = ++Promise.nextPromiseId;
+			this.Id = Promise.NextId();
 
 			if (Promise.EnablePromiseTracking)
 			{
