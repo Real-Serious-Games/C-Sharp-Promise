@@ -247,7 +247,7 @@ namespace RSG
 		/// <summary>
 		/// ID of the promise, useful for debugging.
 		/// </summary>
-		public int Id { get; private set; }
+		public int Id { get; }
 
 		/// <summary>
 		/// Name of the promise, when set, useful for debugging.
