@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace RSG
 {
@@ -11,15 +9,17 @@ namespace RSG
 		/// Just create the exception
 		/// </summary>
 		public PromiseCancelledException()
-			: base() {
+		{
+
 		}
 
 		/// <summary>
 		/// Create the exception with description
 		/// </summary>
 		/// <param name="message">Exception description</param>
-		public PromiseCancelledException(String message)
-			: base(message) {
+		public PromiseCancelledException(String message) : base(message)
+		{
+
 		}
 	}
 
@@ -145,7 +145,8 @@ namespace RSG
 		{
 			var wait = waiting.Find(w => w.pendingPromise.Id.Equals(promise.Id));
 
-			if (wait == null) {
+			if (wait == null)
+			{
 				return false;
 			}
 
