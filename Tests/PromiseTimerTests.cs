@@ -139,8 +139,8 @@ namespace RSG.Tests
 
 
             var promise = testObject
-                .WaitUntil(timeData => timeData.elapsedTime > 1.0f)
-                .Catch(ex => caughtException = ex);
+                .WaitUntil(timeData => timeData.elapsedTime > 1.0f);
+            promise.Catch(ex => caughtException = ex);
 
             promise.Done(null, ex => caughtException = ex);
 
