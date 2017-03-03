@@ -1,10 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace RSG
 {
+
+	public class PromiseCancelledException: Exception {
+		/// <summary>
+		/// Just create the exception
+		/// </summary>
+		public PromiseCancelledException()
+		{
+
+		}
+
+		/// <summary>
+		/// Create the exception with description
+		/// </summary>
+		/// <param name="message">Exception description</param>
+		public PromiseCancelledException(String message) : base(message)
+		{
+
+		}
+	}
+
     /// <summary>
     /// A class that wraps a pending promise with it's predicate and time data
     /// </summary>
@@ -68,6 +86,11 @@ namespace RSG
         /// Update all pending promises. Must be called for the promises to progress and resolve at all.
         /// </summary>
         void Update(float deltaTime);
+
+		/// <summary>
+		/// Cancel a waiting promise and reject it immediately.
+		/// </summary>
+		bool Cancel(IPromise promise);
     }
 
     public class PromiseTimer : IPromiseTimer
@@ -117,6 +140,21 @@ namespace RSG
 
             return promise;
         }
+
+		public bool Cancel(IPromise promise)
+		{
+			var wait = waiting.Find(w => w.pendingPromise.Id.Equals(promise.Id));
+
+			if (wait == null)
+			{
+				return false;
+			}
+
+			wait.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
+			waiting.Remove(wait);
+
+			return true;
+		}
 
         /// <summary>
         /// Update all pending promises. Must be called for the promises to progress and resolve at all.
