@@ -17,7 +17,7 @@
         /// <returns>A 2-tuple whose value is (item1, item2)</returns>
         public static Tuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2)
         {
-            return new Tuple<T1, T2>() { Item1 = item1, Item2 = item2 };
+            return new Tuple<T1, T2>(item1, item2);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@
         /// <returns>A 3-tuple whose value is (item1, item2, item3)</returns>
         public static Tuple<T1, T2, T3> Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3)
         {
-            return new Tuple<T1, T2, T3>() { Item1 = item1, Item2 = item2, Item3 = item3 };
+            return new Tuple<T1, T2, T3>(item1, item2, item3);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@
         /// <returns>A 3-tuple whose value is (item1, item2, item3, item4)</returns>
         public static Tuple<T1, T2, T3, T4> Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4)
         {
-            return new Tuple<T1, T2, T3, T4>() { Item1 = item1, Item2 = item2, Item3 = item3, Item4 = item4 };
+            return new Tuple<T1, T2, T3, T4>(item1, item2, item3, item4);
         }
     }
 
@@ -60,15 +60,21 @@
     /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
     public class Tuple<T1, T2>
     {
+        internal Tuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+
         /// <summary>
         /// Gets the value of the current tuple's first component.
         /// </summary>
-        public T1 Item1 { get; internal set; }
+        public T1 Item1 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's second component.
         /// </summary>
-        public T2 Item2 { get; internal set; }
+        public T2 Item2 { get; }
     }
 
     /// <summary>
@@ -79,20 +85,27 @@
     /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
     public class Tuple<T1, T2, T3>
     {
+        internal Tuple(T1 item1, T2 item2, T3 item3)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+        }
+
         /// <summary>
         /// Gets the value of the current tuple's first component.
         /// </summary>
-        public T1 Item1 { get; internal set; }
+        public T1 Item1 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's second component.
         /// </summary>
-        public T2 Item2 { get; internal set; }
+        public T2 Item2 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's third component.
         /// </summary>
-        public T3 Item3 { get; internal set; }
+        public T3 Item3 { get; }
     }
 
     /// <summary>
@@ -104,24 +117,32 @@
     /// <typeparam name="T4">The type of the tuple's fourth component.</typeparam>
     public class Tuple<T1, T2, T3, T4>
     {
+        internal Tuple(T1 item1, T2 item2, T3 item3, T4 item4)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            Item3 = item3;
+            Item4 = item4;
+        }
+
         /// <summary>
         /// Gets the value of the current tuple's first component.
         /// </summary>
-        public T1 Item1 { get; internal set; }
+        public T1 Item1 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's second component.
         /// </summary>
-        public T2 Item2 { get; internal set; }
+        public T2 Item2 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's third component.
         /// </summary>
-        public T3 Item3 { get; internal set; }
+        public T3 Item3 { get; }
 
         /// <summary>
         /// Gets the value of the current tuple's fourth component.
         /// </summary>
-        public T4 Item4 { get; internal set; }
+        public T4 Item4 { get; }
     }
 }
