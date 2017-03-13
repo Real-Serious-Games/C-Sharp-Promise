@@ -366,6 +366,87 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void combined_promise_of_multiple_types_is_resolved_when_children_are_resolved()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+
+            var all = PromiseHelpers.All(promise1, promise2);
+
+            var completed = 0;
+
+            all.Then(v =>
+            {
+                ++completed;
+
+                Assert.Equal(1, v.Item1);
+                Assert.Equal(true, v.Item2);
+            });
+
+            promise1.Resolve(1);
+            promise2.Resolve(true);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void combined_promise_of_three_types_is_resolved_when_children_are_resolved()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+            var promise3 = new Promise<float>();
+
+            var all = PromiseHelpers.All(promise1, promise2, promise3);
+
+            var completed = 0;
+
+            all.Then(v =>
+            {
+                ++completed;
+
+                Assert.Equal(1, v.Item1);
+                Assert.Equal(true, v.Item2);
+                Assert.Equal(3.0f, v.Item3);
+            });
+
+            promise1.Resolve(1);
+            promise2.Resolve(true);
+            promise3.Resolve(3.0f);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void combined_promise_of_four_types_is_resolved_when_children_are_resolved()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+            var promise3 = new Promise<float>();
+            var promise4 = new Promise<double>();
+
+            var all = PromiseHelpers.All(promise1, promise2, promise3, promise4);
+
+            var completed = 0;
+
+            all.Then(v =>
+            {
+                ++completed;
+
+                Assert.Equal(1, v.Item1);
+                Assert.Equal(true, v.Item2);
+                Assert.Equal(3.0f, v.Item3);
+                Assert.Equal(4.0, v.Item4);
+            });
+
+            promise1.Resolve(1);
+            promise2.Resolve(true);
+            promise3.Resolve(3.0f);
+            promise4.Resolve(4.0);
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
         public void combined_promise_is_rejected_when_first_promise_is_rejected()
         {
             var promise1 = new Promise<int>();
@@ -386,6 +467,31 @@ namespace RSG.Tests
 
             promise1.Reject(new ApplicationException("Error!"));
             promise2.Resolve(2);
+
+            Assert.Equal(1, errors);
+        }
+
+        [Fact]
+        public void combined_promise_of_multiple_types_is_rejected_when_first_promise_is_rejected()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+
+            var all = PromiseHelpers.All(promise1, promise2);
+
+            all.Then(v =>
+            {
+                throw new ApplicationException("Shouldn't happen");
+            });
+
+            var errors = 0;
+            all.Catch(e =>
+            {
+                ++errors;
+            });
+
+            promise1.Reject(new ApplicationException("Error!"));
+            promise2.Resolve(true);
 
             Assert.Equal(1, errors);
         }
@@ -416,12 +522,62 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void combined_promise_of_multiple_types_is_rejected_when_second_promise_is_rejected()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+
+            var all = PromiseHelpers.All(promise1, promise2);
+
+            all.Then(v =>
+            {
+                throw new ApplicationException("Shouldn't happen");
+            });
+
+            var errors = 0;
+            all.Catch(e =>
+            {
+                ++errors;
+            });
+
+            promise1.Resolve(2);
+            promise2.Reject(new ApplicationException("Error!"));
+
+            Assert.Equal(1, errors);
+        }
+
+        [Fact]
         public void combined_promise_is_rejected_when_both_promises_are_rejected()
         {
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
             var all = Promise<int>.All(LinqExts.FromItems<IPromise<int>>(promise1, promise2));
+
+            all.Then(v =>
+            {
+                throw new ApplicationException("Shouldn't happen");
+            });
+
+            var errors = 0;
+            all.Catch(e =>
+            {
+                ++errors;
+            });
+
+            promise1.Reject(new ApplicationException("Error!"));
+            promise2.Reject(new ApplicationException("Error!"));
+
+            Assert.Equal(1, errors);
+        }
+
+        [Fact]
+        public void combined_promise_of_multiple_types_is_rejected_when_both_promises_are_rejected()
+        {
+            var promise1 = new Promise<int>();
+            var promise2 = new Promise<bool>();
+
+            var all = PromiseHelpers.All(promise1, promise2);
 
             all.Then(v =>
             {
@@ -472,6 +628,27 @@ namespace RSG.Tests
                 ++completed;
 
                 Assert.Empty(v);
+            });
+
+            Assert.Equal(1, completed);
+        }
+
+        [Fact]
+        public void combined_promise_of_multiple_types_is_resolved_when_all_promises_are_already_resolved()
+        {
+            var promise1 = Promise<int>.Resolved(1);
+            var promise2 = Promise<bool>.Resolved(true);
+
+            var all = PromiseHelpers.All(promise1, promise2);
+
+            var completed = 0;
+
+            all.Then(v =>
+            {
+                ++completed;
+
+                Assert.Equal(1, v.Item1);
+                Assert.Equal(true, v.Item2);
             });
 
             Assert.Equal(1, completed);
