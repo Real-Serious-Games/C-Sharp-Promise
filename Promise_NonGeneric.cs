@@ -113,6 +113,18 @@ namespace RSG
         /// Returns a promise that resolves when the first of the promises has resolved.
         /// </summary>
         IPromise<ConvertedT> ThenRace<ConvertedT>(Func<IEnumerable<IPromise<ConvertedT>>> chain);
+
+        /// <summary> 
+        /// Add a finally callback. 
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
+        /// </summary> 
+        IPromise Finally(Action onComplete);
+
+        /// <summary> 
+        /// Add a finally callback. 
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
+        /// </summary> 
+        IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
     }
 
     /// <summary>
@@ -884,6 +896,28 @@ namespace RSG
             var promise = new Promise();
             promise.Reject(ex);
             return promise;
+        }
+
+        public IPromise Finally(Action onComplete)
+        {
+            Promise promise = new Promise();
+            promise.WithName(Name);
+
+            this.Then(() => { promise.Resolve(); });
+            this.Catch((e) => { promise.Resolve(); });
+
+            return promise.Then(onComplete);
+        }
+
+        public IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
+        {
+            Promise promise = new Promise();
+            promise.WithName(Name);
+
+            this.Then(() => { promise.Resolve(); });
+            this.Catch((e) => { promise.Resolve(); });
+
+            return promise.Then(() => { return onComplete(); });
         }
 
         /// <summary>
