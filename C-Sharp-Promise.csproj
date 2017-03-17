@@ -46,6 +46,7 @@
     <Compile Include="EnumerableExt.cs" />
     <Compile Include="PromiseHelpers.cs" />
     <Compile Include="PromiseTimer.cs" />
+    <Compile Include="Promise_Base.cs" />
     <Compile Include="Promise_NonGeneric.cs" />
     <Compile Include="Promise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
