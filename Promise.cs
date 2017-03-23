@@ -303,6 +303,9 @@ namespace RSG
             return this;
         }
 
+        /// <summary>
+        /// Set the name of the promise, useful for debugging.
+        /// </summary>
         IPromiseBase IPromiseBase.WithName(string name)
         {
             return WithName(name);
@@ -335,6 +338,9 @@ namespace RSG
             return resultPromise;
         }
 
+        /// <summary>
+        /// Handle errors for the promise.
+        /// </summary>
         IPromiseBase IPromiseBase.Catch(Action<Exception> onRejected)
         {
             return Catch(onRejected);
@@ -356,6 +362,9 @@ namespace RSG
             return Then(onResolved, null);
         }
 
+        /// <summary>
+        /// Add a resolved callback that chains a non-value promise.
+        /// </summary>
         IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved)
         {
             return Then((x) => { onResolved(new PromiseResult(x)); }, null);
@@ -369,6 +378,9 @@ namespace RSG
             return Then(onResolved, null);
         }
 
+        /// <summary>
+        /// Add a resolved callback.
+        /// </summary>
         IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved)
         {
             return Then((x) => { onResolved(new PromiseResult(x)); }, null);
@@ -452,6 +464,10 @@ namespace RSG
             return resultPromise;
         }
 
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
         IPromiseBase IPromiseBase.Then(Func<PromiseResult, IPromise> onResolved, Action<Exception> onRejected)
         {
             return Then((x) => { onResolved(new PromiseResult(x)); }, onRejected);
@@ -490,6 +506,9 @@ namespace RSG
             return resultPromise;
         }
 
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// </summary>
         IPromiseBase IPromiseBase.Then(Action<PromiseResult> onResolved, Action<Exception> onRejected)
         {
             return Then((x) => { onResolved(new PromiseResult(x)); }, onRejected);
@@ -558,6 +577,12 @@ namespace RSG
             return Then(value => Promise.All(chain(value)));
         }
 
+        /// <summary>
+        /// Chain an enumerable of promises, all of which must resolve.
+        /// Converts to a non-value promise.
+        /// The resulting promise is resolved when all of the promises have resolved.
+        /// It is rejected as soon as any of the promises have been rejected.
+        /// </summary>
         IPromiseBase IPromiseBase.ThenAll(Func<IEnumerable<IPromise>> chain)
         {
             return ThenAll((x) => { return chain(); });

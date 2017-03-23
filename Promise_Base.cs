@@ -115,6 +115,9 @@ namespace RSG
         public IRejectable rejectable;
     }
 
+    /// <summary>
+    /// Option type for generic access to promised data
+    /// </summary>
     public struct PromiseResult
     {
         public static readonly PromiseResult None = new PromiseResult();
