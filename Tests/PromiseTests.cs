@@ -1247,7 +1247,7 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void can_chain_promise_after_finally()
+        public void can_chain_promise_generic_after_finally()
         {
             var promise = new Promise<int>();
             var expectedValue = 5;
@@ -1262,6 +1262,27 @@ namespace RSG.Tests
             {
                 ++callback;
                 Assert.Equal(expectedValue, x);
+            });
+
+            promise.Resolve(0);
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void can_chain_promise_after_finally()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise.Finally(() =>
+            {
+                ++callback;
+                return Promise.Resolved();
+            })
+            .Then(() =>
+            {
+                ++callback;
             });
 
             promise.Resolve(0);

@@ -128,6 +128,12 @@ namespace RSG
         /// </summary> 
         IPromise Finally(Action onComplete);
 
+        /// <summary>
+        /// Add a finally callback. 
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
+        /// </summary>
+        IPromise Finally(Func<IPromise> onResolved);
+
         /// <summary> 
         /// Add a finally callback. 
         /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
@@ -801,6 +807,17 @@ namespace RSG
         }
 
         public IPromise Finally(Action onComplete)
+        {
+            Promise promise = new Promise();
+            promise.WithName(Name);
+
+            this.Then((x) => { promise.Resolve(); });
+            this.Catch((e) => { promise.Resolve(); });
+
+            return promise.Then(onComplete);
+        }
+
+        public IPromise Finally(Func<IPromise> onComplete)
         {
             Promise promise = new Promise();
             promise.WithName(Name);
