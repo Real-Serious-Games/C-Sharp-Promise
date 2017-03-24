@@ -103,7 +103,7 @@ namespace RSG
         /// <summary>
         /// Currently pending promises
         /// </summary>
-        private List<PredicateWait> waiting = new List<PredicateWait>();
+        private LinkedList<PredicateWait> waiting = new LinkedList<PredicateWait>();
 
         /// <summary>
         /// Resolve the returned promise once the time has elapsed
@@ -136,24 +136,37 @@ namespace RSG
                 predicate = predicate
             };
 
-            waiting.Add(wait);
+            waiting.AddLast(wait);
 
             return promise;
         }
 
         public bool Cancel(IPromise promise)
         {
-            var wait = waiting.Find(w => w.pendingPromise.Id.Equals(promise.Id));
+            var node = FindInWaiting(promise);
 
-            if (wait == null)
+            if (node == null)
             {
-                return false;
+               return false;
             }
 
-            wait.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
-            waiting.Remove(wait);
+            node.Value.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
+            waiting.Remove(node);
 
             return true;
+        }
+
+        LinkedListNode<PredicateWait> FindInWaiting(IPromise promise) 
+        {
+           for (var node = waiting.First; node != null; node = node.Next) 
+           {
+              if (node.Value.pendingPromise.Id.Equals(promise.Id))
+              {
+                 return node;
+              }
+           }
+
+           return null;
         }
 
         /// <summary>
@@ -163,36 +176,31 @@ namespace RSG
         {
             curTime += deltaTime;
 
-            int i = 0;
-            while (i < waiting.Count)
+            for (var node = waiting.First; node != null; node = node.Next)
             {
-                var wait = waiting[i];
+               var wait = node.Value;
 
-                var newElapsedTime = curTime - wait.timeStarted;
-                wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
-                wait.timeData.elapsedTime = newElapsedTime;
+               var newElapsedTime = curTime - wait.timeStarted;
+               wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
+               wait.timeData.elapsedTime = newElapsedTime;
 
-                bool result;
-                try
-                {
-                    result = wait.predicate(wait.timeData);
-                }
-                catch (Exception ex)
-                {
-                    wait.pendingPromise.Reject(ex);
-                    waiting.RemoveAt(i);
-                    continue;
-                }
+               bool result;
+               try
+               {
+                  result = wait.predicate(wait.timeData);
+               }
+               catch (Exception ex)
+               {
+                  wait.pendingPromise.Reject(ex);
+                  waiting.Remove(node);
+                  continue;
+               }
 
-                if (result)
-                {
-                    wait.pendingPromise.Resolve();
-                    waiting.RemoveAt(i);
-                }
-                else
-                {
-                    i++;
-                }
+               if (result)
+               {
+                  wait.pendingPromise.Resolve();
+                  waiting.Remove(node);
+               }
             }
         }
     }
