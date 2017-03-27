@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace RSG
 {
 
-    public class PromiseCancelledException: Exception {
+    public class PromiseCancelledException : Exception
+    {
         /// <summary>
         /// Just create the exception
         /// </summary>
@@ -147,7 +148,7 @@ namespace RSG
 
             if (node == null)
             {
-               return false;
+                return false;
             }
 
             node.Value.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
@@ -156,17 +157,17 @@ namespace RSG
             return true;
         }
 
-        LinkedListNode<PredicateWait> FindInWaiting(IPromise promise) 
+        LinkedListNode<PredicateWait> FindInWaiting(IPromise promise)
         {
-           for (var node = waiting.First; node != null; node = node.Next) 
-           {
-              if (node.Value.pendingPromise.Id.Equals(promise.Id))
-              {
-                 return node;
-              }
-           }
+            for (var node = waiting.First; node != null; node = node.Next)
+            {
+                if (node.Value.pendingPromise.Id.Equals(promise.Id))
+                {
+                    return node;
+                }
+            }
 
-           return null;
+            return null;
         }
 
         /// <summary>
@@ -176,32 +177,52 @@ namespace RSG
         {
             curTime += deltaTime;
 
-            for (var node = waiting.First; node != null; node = node.Next)
+            var node = waiting.First;
+            while (node != null)
             {
-               var wait = node.Value;
+                var wait = node.Value;
 
-               var newElapsedTime = curTime - wait.timeStarted;
-               wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
-               wait.timeData.elapsedTime = newElapsedTime;
+                var newElapsedTime = curTime - wait.timeStarted;
+                wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
+                wait.timeData.elapsedTime = newElapsedTime;
 
-               bool result;
-               try
-               {
-                  result = wait.predicate(wait.timeData);
-               }
-               catch (Exception ex)
-               {
-                  wait.pendingPromise.Reject(ex);
-                  waiting.Remove(node);
-                  continue;
-               }
+                bool result;
+                try
+                {
+                    result = wait.predicate(wait.timeData);
+                }
+                catch (Exception ex)
+                {
+                    wait.pendingPromise.Reject(ex);
 
-               if (result)
-               {
-                  wait.pendingPromise.Resolve();
-                  waiting.Remove(node);
-               }
+                    node = RemoveNode(node);
+                    continue;
+                }
+
+                if (result)
+                {
+                    wait.pendingPromise.Resolve();
+
+                    node = RemoveNode(node);
+                }
+                else
+                {
+                    node = node.Next;
+                }
             }
+        }
+
+        /// <summary>
+        /// Removes the provided node and returns the next node in the list.
+        /// </summary>
+        private LinkedListNode<PredicateWait> RemoveNode(LinkedListNode<PredicateWait> node)
+        {
+            var currentNode = node;
+            node = node.Next;
+
+            waiting.Remove(currentNode);
+
+            return node;
         }
     }
 }

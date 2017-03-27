@@ -175,7 +175,47 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void all_promises_are_updated_when_a_pending_promise_is_removed_during_update()
+        public void all_promises_are_updated_when_a_pending_promise_is_resolved_during_update()
+        {
+            var testObject = new PromiseTimer();
+
+            var p1Updates = 0;
+            var p2Updates = 0;
+            var p3Updates = 0;
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p1Updates++;
+
+                    return false;
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p2Updates++;
+
+                    return true;
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p3Updates++;
+
+                    return false;
+                });
+
+            testObject.Update(0.01f);
+
+            Assert.Equal(1, p1Updates);
+            Assert.Equal(1, p2Updates);
+            Assert.Equal(1, p3Updates);
+        }
+
+        [Fact]
+        public void all_promises_are_updated_when_a_pending_promise_is_canceled_during_update()
         {
             var testObject = new PromiseTimer();
 
@@ -191,16 +231,19 @@ namespace RSG.Tests
                     return false;
                 });
 
-            var p2 = testObject
+            testObject
                 .WaitUntil(timeData =>
                 {
                     p2Updates++;
-                    testObject.Cancel(p1);
 
-                    return false;
+                    return true;
+                })
+                .Then(() => 
+                {
+                    testObject.Cancel(p1);
                 });
 
-            var p3 = testObject
+            testObject
                 .WaitUntil(timeData =>
                 {
                     p3Updates++;
