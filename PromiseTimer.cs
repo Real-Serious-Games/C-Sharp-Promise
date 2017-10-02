@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RSG
@@ -74,6 +74,11 @@ namespace RSG
         IPromise WaitFor(float seconds);
 
         /// <summary>
+        /// Resolve the returned promise once update has been called "amount" times
+        /// </summary>
+        IPromise WaitFrames(int amount);
+
+        /// <summary>
         /// Resolve the returned promise once the predicate evaluates to true
         /// </summary>
         IPromise WaitUntil(Func<TimeData, bool> predicate);
@@ -100,6 +105,11 @@ namespace RSG
         /// The current running total for time that this PromiseTimer has run for
         /// </summary>
         private float curTime;
+
+        /// <summary>
+        /// The current amount update has been called
+        /// </summary>
+        private int frameCount = 0;
 
         /// <summary>
         /// Currently pending promises
@@ -142,6 +152,14 @@ namespace RSG
             return promise;
         }
 
+        /// <summary>
+        /// Resolve the returned promise once update has been called "amount" times
+        /// </summary>
+        public IPromise WaitFrames(int amount)
+        {
+            return WaitUntil(t => frameCount == frameCount + amount);
+        }
+
         public bool Cancel(IPromise promise)
         {
             var node = FindInWaiting(promise);
@@ -175,6 +193,7 @@ namespace RSG
         /// </summary>
         public void Update(float deltaTime)
         {
+            frameCount++;
             curTime += deltaTime;
 
             var node = waiting.First;
