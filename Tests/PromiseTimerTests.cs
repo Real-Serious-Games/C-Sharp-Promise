@@ -14,7 +14,9 @@ namespace RSG.Tests
             var testObject = new PromiseTimer();
 
             //Just used to put it at a random "frame"
-            for (int frame = 0; frame < 18; frame++)
+            Random rnd = new Random();
+            var randomFrame = rnd.Next(1, 1000);
+            for (int frame = 0; frame < randomFrame; frame++)
             {
                 testObject.Update(1f / 60f);
             }
@@ -40,7 +42,9 @@ namespace RSG.Tests
             var testObject = new PromiseTimer();
 
             //Just used to put it at a random "frame"
-            for (int frame = 0; frame < 18; frame++)
+            Random rnd = new Random();
+            var randomFrame = rnd.Next(1, 1000);
+            for (int frame = 0; frame < randomFrame; frame++)
             {
                 testObject.Update(1f / 60f);
             }
