@@ -157,7 +157,8 @@ namespace RSG
         /// </summary>
         public IPromise WaitFrames(int amount)
         {
-            return WaitUntil(t => frameCount == frameCount + amount);
+            var neededFrameCount = frameCount + amount;
+            return WaitUntil(t => frameCount == neededFrameCount);
         }
 
         public bool Cancel(IPromise promise)

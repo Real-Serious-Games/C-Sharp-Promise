@@ -61,7 +61,7 @@ namespace RSG.Tests
                 testObject.Update(1f / 60f);
             }
 
-            Assert.Equal(false, hasResolved);
+            Assert.Equal(true, hasResolved);
         }
 
         [Fact]
