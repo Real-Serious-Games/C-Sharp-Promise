@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +8,62 @@ namespace RSG.Tests
 {
     public class PromiseTimerTests
     {
+        [Fact]
+        public void wait_frames_doesnt_resolve_before_specified_frame()
+        {
+            var testObject = new PromiseTimer();
+
+            //Just used to put it at a random "frame"
+            Random rnd = new Random();
+            var randomFrame = rnd.Next(1, 1000);
+            for (int frame = 0; frame < randomFrame; frame++)
+            {
+                testObject.Update(1f / 60f);
+            }
+
+            var testFrame = 20;
+            var hasResolved = false;
+
+            testObject.WaitFrames(testFrame)
+                .Then(() => hasResolved = true)
+                .Done();
+
+            for (int frame = 0; frame < 10; frame++)
+            {
+                testObject.Update(1f / 60f);
+            }
+
+            Assert.Equal(false, hasResolved);
+        }
+
+        [Fact]
+        public void wait_frames_resolves_after_specified_frame()
+        {
+            var testObject = new PromiseTimer();
+
+            //Just used to put it at a random "frame"
+            Random rnd = new Random();
+            var randomFrame = rnd.Next(1, 1000);
+            for (int frame = 0; frame < randomFrame; frame++)
+            {
+                testObject.Update(1f / 60f);
+            }
+
+            var testFrame = 10;
+            var hasResolved = false;
+
+            testObject.WaitFrames(testFrame)
+                .Then(() => hasResolved = true)
+                .Done();
+
+            for (int frame = 0; frame < 20; frame++)
+            {
+                testObject.Update(1f / 60f);
+            }
+
+            Assert.Equal(true, hasResolved);
+        }
+
         [Fact]
         public void wait_for_doesnt_resolve_before_specified_time()
         {
