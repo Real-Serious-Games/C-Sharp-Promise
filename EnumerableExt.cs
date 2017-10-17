@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RSG.Promises
@@ -39,6 +39,17 @@ namespace RSG.Promises
             {
                 fn.Invoke(item, index);
                 index++;
+            }
+        }
+
+        /// <summary>
+        /// Convert a variable length argument list of items to an enumerable.
+        /// </summary>
+        public static IEnumerable<T> FromItems<T>(params T[] items)
+        {
+            foreach (var item in items)
+            {
+                yield return item;
             }
         }
     }

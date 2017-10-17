@@ -1,7 +1,6 @@
-﻿using Moq;
+using Moq;
 using RSG;
 using RSG.Promises;
-using RSG.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -226,7 +225,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
+                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
                 .Then(() => ++completed);
 
             Assert.Equal(0, completed);
@@ -256,7 +255,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
+                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
                 .Then(result =>
                 {
                     var items = result.ToArray();
@@ -294,7 +293,7 @@ namespace RSG.Tests
             var completed = 0;
 
             promise
-                .ThenAll(() => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
+                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
                 .Then(result =>
                 {
                     var items = result.ToArray();
@@ -326,7 +325,7 @@ namespace RSG.Tests
             var promise1 = new Promise();
             var promise2 = new Promise();
 
-            var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
+            var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
             var completed = 0;
 
@@ -344,7 +343,7 @@ namespace RSG.Tests
             var promise1 = new Promise();
             var promise2 = new Promise();
 
-            var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
+            var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
             all.Then(() =>
             {
@@ -369,7 +368,7 @@ namespace RSG.Tests
             var promise1 = new Promise();
             var promise2 = new Promise();
 
-            var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
+            var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
             all.Then(() =>
             {
@@ -394,7 +393,7 @@ namespace RSG.Tests
             var promise1 = new Promise();
             var promise2 = new Promise();
 
-            var all = Promise.All(LinqExts.FromItems<IPromise>(promise1, promise2));
+            var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
             all.Then(() =>
             {
@@ -416,7 +415,7 @@ namespace RSG.Tests
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            var all = Promise.All(LinqExts.Empty<IPromise>());
+            var all = Promise.All(EnumerableExt.Empty<IPromise>());
 
             var completed = 0;
 
@@ -429,7 +428,7 @@ namespace RSG.Tests
             var promise1 = Promise.Resolved();
             var promise2 = Promise.Resolved();
 
-            var all = Promise.All(LinqExts.FromItems(promise1, promise2));
+            var all = Promise.All(EnumerableExt.FromItems(promise1, promise2));
 
             var completed = 0;
 
