@@ -17,6 +17,9 @@ If you are interested in using promises for game development and Unity please se
 
 - 8 March 2015
 	- *Transform* function has been renamed to *Then* (another overload of *Then*).
+    
+## Projects using this library
+- **[RestClient for Unity 🤘](https://github.com/proyecto26/RestClient)**
 
 ## Contents
 
