@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +8,27 @@ namespace RSG.Tests
 {
     public class PromiseTimerTests
     {
+        [Fact]
+        public void wait_until_elapsedUpdates_resolves_when_predicate_is_true()
+        {
+            var testObject = new PromiseTimer();
+
+            var testFrame = 3;
+            var hasResolved = false;
+
+            testObject.WaitUntil((timeData) => timeData.elapsedUpdates == testFrame)
+                .Then(() => hasResolved = true)
+                .Done();
+
+            Assert.False(hasResolved);
+
+            testObject.Update(1);
+            testObject.Update(2);
+            testObject.Update(3);
+
+            Assert.True(hasResolved);
+        }
+
         [Fact]
         public void wait_for_doesnt_resolve_before_specified_time()
         {

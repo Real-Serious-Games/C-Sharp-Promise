@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RSG
@@ -48,6 +48,11 @@ namespace RSG
         /// The time data specific to this pending promise. Includes elapsed time and delta time.
         /// </summary>
         public TimeData timeData;
+
+        /// <summary>
+        /// The frame the promise was started
+        /// </summary>
+        public int frameStarted;
     }
 
     /// <summary>
@@ -64,6 +69,11 @@ namespace RSG
         /// The amount of time since the last time the pending promise was updated.
         /// </summary>
         public float deltaTime;
+
+        /// <summary>
+        /// The amount of times that update has been called since the pending promise started running
+        /// </summary>
+        public int elapsedUpdates;
     }
 
     public interface IPromiseTimer
@@ -102,6 +112,11 @@ namespace RSG
         private float curTime;
 
         /// <summary>
+        /// The current running total for the amount of frames the PromiseTimer has run for
+        /// </summary>
+        private int curFrame;
+
+        /// <summary>
         /// Currently pending promises
         /// </summary>
         private LinkedList<PredicateWait> waiting = new LinkedList<PredicateWait>();
@@ -134,7 +149,8 @@ namespace RSG
                 timeStarted = curTime,
                 pendingPromise = promise,
                 timeData = new TimeData(),
-                predicate = predicate
+                predicate = predicate,
+                frameStarted = curFrame
             };
 
             waiting.AddLast(wait);
@@ -176,6 +192,7 @@ namespace RSG
         public void Update(float deltaTime)
         {
             curTime += deltaTime;
+            curFrame += 1;
 
             var node = waiting.First;
             while (node != null)
@@ -185,6 +202,8 @@ namespace RSG
                 var newElapsedTime = curTime - wait.timeStarted;
                 wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
                 wait.timeData.elapsedTime = newElapsedTime;
+                var newElapsedUpdates = curFrame - wait.frameStarted;
+                wait.timeData.elapsedUpdates = newElapsedUpdates;
 
                 bool result;
                 try
