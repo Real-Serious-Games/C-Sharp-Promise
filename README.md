@@ -517,9 +517,9 @@ WaitFor is exactly the same as WaitUntil except that it resolves when its predic
 
 TimeData is passed to you as a paramter when using either PromiseTimer.WaitUntil or PromiseTimer.WaitWhile. It contains the following public fields:
 
-    elapsedTime - The amount of time that has elapsed since the pending promise started running
-    deltaTime - The amount of time since the last time the pending promise was updated.
-    elapsedUpdates - The amount of times that PromiseTimer.Update() has been called since the pending promise started running
+- elapsedTime - The amount of time that has elapsed since the pending promise started running
+- deltaTime - The amount of time since the last time the pending promise was updated.
+- elapsedUpdates - The amount of times that PromiseTimer.Update() has been called since the pending promise started running
 
 ## Examples
 
