@@ -36,6 +36,8 @@ If you are interested in using promises for game development and Unity please se
 - [Waiting for an Async Operation to Complete](#waiting-for-an-async-operation-to-complete)
 - [Chaining Async Operations](#chaining-async-operations)
 - [Transforming the Results](#transforming-the-results)
+- [Error Handling](#error-handling)
+- [Unhandled Errors](#unhandled-errors)
 - [Promises that are already Resolved/Rejected](#promises-that-are-already-resolvedrejected)
 - [Interfaces](#interfaces)
 - [Combining Multiple Async Operations](#combining-multiple-async-operations)
@@ -46,6 +48,10 @@ If you are interested in using promises for game development and Unity please se
 - [Convert a value promise to a non-value promise](#convert-a-value-promise-to-a-non-value-promise)
 - [Running a Sequence of Operations](#running-a-sequence-of-operations)
 - [Combining Parallel and Sequential Operations](#combining-parallel-and-sequential-operations)
+- [PromiseTimer class](#promisetimer-class)
+  - [PromiseTimer.WaitFor](#promisetimerwaitfor)
+  - [PromiseTimer.WaitUntil](#promisetimerwaituntil)
+  - [PromiseTimer.WaitWhile](#promisetimerwaitwhile)
 - [Examples](#examples)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
