@@ -446,6 +446,63 @@ We can easily combine sequential and parallel operations to build very expressiv
 
 I'm starting to feel like we are defining behavior trees.
 
+
+## PromiseTimer class
+
+The promise timer is not part of the Promises/A+ standard but is a utility that makes promises a bit easier to use for operations that run across several frames, common in games.
+
+To use it, create an instance of the promise timer and call its `Update` method in your main loop:
+
+    class ExampleScript : MonoBehaviour
+    {
+        private IPromiseTimer promiseTimer;
+
+        void Start()
+        {
+            promiseTimer = new PromiseTimer();
+        }
+
+        void Update() 
+        {
+            promiseTimer.Update(Time.deltaTime);
+        }
+    }
+
+### PromiseTimer.WaitFor
+
+This method creates a promise that resolves after the specified amount of time in seconds has passed. Time is calculated as the sum of the delta values passed into `PromiseTimer.Update`
+
+    IPromise LogAfterFourSeconds() 
+    {
+        return promiseTimer.WaitFor(4f)
+            .Then(() => Console.Log("4 seconds have passed!"));
+    }
+
+### PromiseTimer.WaitUntil
+
+WaitUntil takes a predicate to check each update and resolves once the predicate returns true. This predicate function is passed a `TimeData` object, which just contains the most recent frame's `deltaTime` and `elapsedTime` which is the total amount of time since the promise was created.
+
+    IPromise FadeOut(float duration) 
+    {
+        return promiseTimer.WaitUntil(timeData => 
+        {
+            // Here we are using the amount of elapsed time to calculate what the current
+            // fade value should be (between 0 and 1).
+            // Since we're fading our we should be going from 0 (not faded) to 1 (full)
+            var fadeAmount = Mathf.Clamp01(timeData.elapsedTime / duration);
+            SetFadeValue(fadeAmount);
+
+            // Resolve the promsie once we've finished.
+            return fadeAmount >= 1f;
+        });
+    }
+
+### PromiseTimer.WaitWhile
+
+WaitFor is exactly the same as WaitUntil except that it resolves when its predicate function returns false. Think of WaitUntil as running *until* its predicate returns true, and WaitWhile as running *while* its predicate returns true, stopping when it is false.
+
+
+
 ## Examples
 
 
