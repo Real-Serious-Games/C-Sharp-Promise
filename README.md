@@ -478,7 +478,7 @@ To use it, create an instance of the promise timer and call its `Update` method 
         }
     }
 
-Note that usually it is best to call `PromiseTimer.Update` *before* your other logic, otherwise you may have unintended behaviour like promises that are supposed to take a very short time resolving in the same update loop as they were created in.
+Note that usually it is best to call `PromiseTimer.Update` *before* your other logic, otherwise you may have unintended behaviour such as promises that are supposed to take a very short time resolving in the same update loop as they were created in.
 
 ### PromiseTimer.WaitFor
 
