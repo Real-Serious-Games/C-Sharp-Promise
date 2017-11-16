@@ -513,7 +513,13 @@ WaitUntil takes a predicate to check each update and resolves once the predicate
 
 WaitFor is exactly the same as WaitUntil except that it resolves when its predicate function returns false. Think of WaitUntil as running *until* its predicate returns true, and WaitWhile as running *while* its predicate returns true, stopping when it is false.
 
+### TimeData struct
 
+TimeData is passed to you as a paramter when using either PromiseTimer.WaitUntil or PromiseTimer.WaitWhile. It contains the following public fields:
+
+    elapsedTime - The amount of time that has elapsed since the pending promise started running
+    deltaTime - The amount of time since the last time the pending promise was updated.
+    elapsedUpdates - The amount of times that PromiseTimer.Update() has been called since the pending promise started running
 
 ## Examples
 
