@@ -455,24 +455,30 @@ I'm starting to feel like we are defining behavior trees.
 
 ## PromiseTimer class
 
-The promise timer is not part of the Promises/A+ standard but is a utility that makes promises a bit easier to use for operations that run across several frames, common in games.
+The promise timer is not part of the Promises/A+ standard but is a utility that makes it possible to create promises that check if a condition is met each time the promise timer is updated. A common usage of this is in games where the promise timer is updated each frame.
 
 To use it, create an instance of the promise timer and call its `Update` method in your main loop:
 
-    class ExampleScript : MonoBehaviour
+    class Example
     {
         private IPromiseTimer promiseTimer;
 
-        void Start()
+        Example()
         {
             promiseTimer = new PromiseTimer();
         }
 
-        void Update() 
+        // Run once for every frame - equivilant to Update() in Unity
+        void MainLoop() 
         {
+            // deltaTime is equal to the time since the last MainLoop
             promiseTimer.Update(Time.deltaTime);
+
+            // Process your other logic here
         }
     }
+
+Note that usually it is best to call `PromiseTimer.Update` *before* your other logic, otherwise you may have unintended behaviour like promises that are supposed to take a very short time resolving in the same update loop as they were created in.
 
 ### PromiseTimer.WaitFor
 
