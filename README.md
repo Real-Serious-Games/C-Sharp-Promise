@@ -1,4 +1,4 @@
-# C-Sharp-Promise [![Build Status](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise.svg)](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise) #
+# C-Sharp-Promise [![Build Status](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise.svg)](https://travis-ci.org/Real-Serious-Games/C-Sharp-Promise) [![NuGet](https://img.shields.io/nuget/v/RSG.Promise.svg)](https://www.nuget.org/packages/RSG.Promise/) #
 
 <a href="https://promisesaplus.com/">
     <img src="https://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo"
