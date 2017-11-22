@@ -38,12 +38,6 @@ namespace Example4
                             link => Download(link)                  // Download each link.
                         )
                 ))
-                .Catch(exception =>     // Catch any errors that happen during download or transform.
-                {
-                    Console.WriteLine("Async operation errorred.");
-                    Console.WriteLine(exception);
-                    running = false;
-                })
                 .Then(htmls =>          // Display html from the link that was followed.
                 {
                     Console.WriteLine("Async operation completed.");
@@ -57,6 +51,12 @@ namespace Example4
                     Console.WriteLine("---------------");
                     Console.WriteLine("Downloaded " + htmls.Count() + " pages");
 
+                    running = false;
+                })
+                .Catch(exception =>     // Catch any errors that happen during download or transform.
+                {
+                    Console.WriteLine("Async operation errorred.");
+                    Console.WriteLine(exception);
                     running = false;
                 })
                 .Done();

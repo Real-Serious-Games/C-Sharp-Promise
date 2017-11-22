@@ -19,8 +19,7 @@ namespace RSG
             var promise = new Promise<Tuple<T1, T2>>();
 
             p1
-                .Catch(e => promise.Reject(e))
-                .Done(val => 
+                .Then(val => 
                 {
                     val1 = val;
                     numUnresolved--;
@@ -28,11 +27,12 @@ namespace RSG
                     {
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
-                });
+                })
+                .Catch(e => promise.Reject(e))
+                .Done();
 
             p2
-                .Catch(e => promise.Reject(e))
-                .Done(val => 
+                .Then(val => 
                 {
                     val2 = val;
                     numUnresolved--;
@@ -40,7 +40,9 @@ namespace RSG
                     {
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
-                });
+                })
+                .Catch(e => promise.Reject(e))
+                .Done();
 
             return promise;
         }
