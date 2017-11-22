@@ -44,7 +44,7 @@ namespace RSG
         /// <summary>
         /// Handle errors for the promise. 
         /// </summary>
-        IPromise<PromisedT> Catch(Action<Exception> onRejected);
+        IPromise Catch(Action<Exception> onRejected);
 
         /// <summary>
         /// Handle errors for the promise. 
@@ -444,14 +444,14 @@ namespace RSG
         /// <summary>
         /// Handle errors for the promise. 
         /// </summary>
-        public IPromise<PromisedT> Catch(Action<Exception> onRejected)
+        public IPromise Catch(Action<Exception> onRejected)
         {
-            var resultPromise = new Promise<PromisedT>();
+            var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action<PromisedT> resolveHandler = v =>
+            Action<PromisedT> resolveHandler = _ =>
             {
-                resultPromise.Resolve(v);
+                resultPromise.Resolve();
             };
 
             Action<Exception> rejectHandler = ex =>
@@ -459,7 +459,7 @@ namespace RSG
                 try
                 {
                     onRejected(ex);
-                    resultPromise.Resolve(default(PromisedT));
+                    resultPromise.Resolve();
                 }
                 catch(Exception cbEx)
                 {
@@ -729,14 +729,6 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
-                    .Catch(ex =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            // If a promise errorred and the result promise is still pending, reject it.
-                            resultPromise.Reject(ex);
-                        }
-                    })
                     .Then(result =>
                     {
                         results[index] = result;
@@ -747,6 +739,15 @@ namespace RSG
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve(results);
                         }
+                    })
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                        return default(PromisedT);
                     })
                     .Done();
             });
@@ -802,19 +803,19 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Then(result =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.Resolve(result);
+                        }
+                    })
                     .Catch(ex =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
                         {
                             // If a promise errorred and the result promise is still pending, reject it.
                             resultPromise.Reject(ex);
-                        }
-                    })
-                    .Then(result =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            resultPromise.Resolve(result);
                         }
                     })
                     .Done();
