@@ -163,7 +163,7 @@ There is another way to create a promise that replicates the JavaScript conventi
 The simplest usage is to register a completion handler to be invoked on completion of the async op:
 
     Download("http://www.google.com")
-        .Done(html =>
+        .Then(html =>
             Console.WriteLine(html)
         );
 
@@ -172,11 +172,11 @@ This snippet downloads the front page from Google and prints it to the console.
 For all but the most trivial applications you will also want to register an error hander:
 
     Download("http://www.google.com")
+        .Then(html =>
+            Console.WriteLine(html)
+        )
         .Catch(exception =>
             Console.WriteLine("An exception occured while downloading!")
-        )
-        .Done(html =>
-            Console.WriteLine(html)
         );
 
 The chain of processing for a promise ends as soon as an error/exception occurs. In this case when an error occurs the *Catch* handler would be called, but not the *Done* handler. If there is no error, then only *Done* is called.
@@ -189,11 +189,11 @@ Multiple async operations can be chained one after the other using *Then*:
         .Then(html =>
             return Download(ExtractFirstLink(html)) // Extract the first link and download it. 
         )
+        .Then(firstLinkHtml =>
+            Console.WriteLine(firstLinkHtml)
+        )
         .Catch(exception =>
             Console.WriteLine("An exception occured while downloading!")
-        )
-        .Done(firstLinkHtml =>
-            Console.WriteLine(firstLinkHtml)
         );
  
 Here we are chaining another download onto the end of the first download. The first link in the html is extracted and we then download that. *Then* expects the return value to be another promise. The chained promise can have a different *result type*.
@@ -206,7 +206,7 @@ Sometimes you will want to simply transform or modify the resulting value withou
         .Then(html =>
             return ExtractAllLinks(html))   // Extract all links and return an array of strings.  
         )
-        .Done(links =>                      // The input here is an array of strings.
+        .Then(links =>                      // The input here is an array of strings.
             foreach (var link in links)
             {
                 Console.WriteLine(link);
