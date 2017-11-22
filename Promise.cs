@@ -441,8 +441,6 @@ namespace RSG
         /// </summary>
         public IPromise<PromisedT> Catch(Action<Exception> onRejected)
         {
-//            Argument.NotNull(() => onRejected);
-
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
 
@@ -453,9 +451,15 @@ namespace RSG
 
             Action<Exception> rejectHandler = ex =>
             {
-                onRejected(ex);
-
-                resultPromise.Reject(ex);
+                try
+                {
+                    onRejected(ex);
+                    resultPromise.Resolve(default(PromisedT));
+                }
+                catch(Exception cbEx)
+                {
+                    resultPromise.Reject(cbEx);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);

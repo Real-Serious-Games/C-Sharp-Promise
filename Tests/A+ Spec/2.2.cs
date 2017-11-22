@@ -366,6 +366,18 @@ namespace RSG.Tests.A__Spec
                     Assert.Equal(1, promise1ThenHandler);
                     Assert.Equal(1, promise2ThenHandler);
                 }
+
+                [Fact]
+                public void _when_promise1_is_rejected_with_no_value()
+                {
+                    var callbackInvoked = false;
+
+                    new Promise<object>((res, rej) => rej(new Exception()))
+                        .Catch(ex => {})
+                        .Then(_ => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
+                }
             }
 
             // 2.2.7.2
