@@ -47,6 +47,11 @@ namespace RSG
         IPromise<PromisedT> Catch(Action<Exception> onRejected);
 
         /// <summary>
+        /// Handle errors for the promise. 
+        /// </summary>
+        IPromise<PromisedT> Catch(Func<Exception, PromisedT> onRejected);
+
+        /// <summary>
         /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
         /// </summary>
         IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved);
@@ -457,6 +462,36 @@ namespace RSG
                     resultPromise.Resolve(default(PromisedT));
                 }
                 catch(Exception cbEx)
+                {
+                    resultPromise.Reject(cbEx);
+                }
+            };
+
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Handle errors for the promise.
+        /// </summary>
+        public IPromise<PromisedT> Catch(Func<Exception, PromisedT> onRejected)
+        {
+            var resultPromise = new Promise<PromisedT>();
+            resultPromise.WithName(Name);
+
+            Action<PromisedT> resolveHandler = v =>
+            {
+                resultPromise.Resolve(v);
+            };
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                try
+                {
+                    resultPromise.Resolve(onRejected(ex));
+                }
+                catch (Exception cbEx)
                 {
                     resultPromise.Reject(cbEx);
                 }
