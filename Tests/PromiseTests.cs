@@ -1040,7 +1040,7 @@ namespace RSG.Tests
 
                 promise.Resolve(5);
 
-                Assert.Equal(1, eventRaised);
+                Assert.Equal(0, eventRaised);
             }
             finally
             {

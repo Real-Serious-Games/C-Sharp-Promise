@@ -727,15 +727,16 @@ namespace RSG.Tests
             var ex = new Exception();
 
             Promise
-                .Sequence(() => 
+                .Sequence(() =>
                 {
                     throw ex;
                 })
-                .Catch(e => {
+                .Then(() => ++completed)
+                .Catch(e =>
+                {
                     Assert.Equal(ex, e);
                     ++errored;
-                })
-                .Then(() => ++completed);
+                });
 
             Assert.Equal(1, errored);
             Assert.Equal(0, completed);
@@ -917,7 +918,7 @@ namespace RSG.Tests
 
                 promise.Resolve();
 
-                Assert.Equal(1, eventRaised);
+                Assert.Equal(0, eventRaised);
             }
             finally
             {
