@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -511,9 +511,7 @@ namespace RSG
         /// </summary>
         public void Done()
         {
-            Catch(ex =>
-                Promise.PropagateUnhandledException(this, ex)
-            );
+            Catch(ex => PropagateUnhandledException(this, ex));
         }
 
         /// <summary>
@@ -542,9 +540,15 @@ namespace RSG
 
             Action<Exception> rejectHandler = ex =>
             {
-                onRejected(ex);
-
-                resultPromise.Reject(ex);
+                try
+                {
+                    onRejected(ex);
+                    resultPromise.Resolve();
+                }
+                catch (Exception callbackException)
+                {
+                    resultPromise.Reject(callbackException);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
@@ -806,7 +810,7 @@ namespace RSG
         public static IPromise Sequence(IEnumerable<Func<IPromise>> fns)
         {
             return fns.Aggregate(
-                Promise.Resolved(),
+                Resolved(),
                 (prevPromise, fn) =>
                 {
                     return prevPromise.Then(() => fn());
@@ -820,7 +824,7 @@ namespace RSG
         /// </summary>
         public IPromise ThenRace(Func<IEnumerable<IPromise>> chain)
         {
-            return Then(() => Promise.Race(chain()));
+            return Then(() => Race(chain()));
         }
 
         /// <summary>

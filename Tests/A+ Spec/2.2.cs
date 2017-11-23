@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -389,6 +389,18 @@ namespace RSG.Tests.A__Spec
                         .Then(val => actualValue = val);
 
                     Assert.Equal(expectedValue, actualValue);
+                }
+
+                [Fact]
+                public void _when_non_generic_promise1_is_rejected()
+                {
+                    var callbackInvoked = false;
+
+                    new Promise((res, rej) => rej(new Exception()))
+                        .Catch(_ => {})
+                        .Then(() => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
                 }
             }
 
