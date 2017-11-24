@@ -1288,5 +1288,37 @@ namespace RSG.Tests
 
             Assert.Equal(2, callback);
         }
+
+        [Fact]
+        public void exception_in_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => throw expectedException
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
+        }
+
+        [Fact]
+        public void rejected_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => Promise<object>.Rejected(expectedException)
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
+        }
     }
 }
