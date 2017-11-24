@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -449,10 +449,7 @@ namespace RSG
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action<PromisedT> resolveHandler = _ =>
-            {
-                resultPromise.Resolve();
-            };
+            Action<PromisedT> resolveHandler = _ => resultPromise.Resolve();
 
             Action<Exception> rejectHandler = ex =>
             {
@@ -480,10 +477,7 @@ namespace RSG
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
 
-            Action<PromisedT> resolveHandler = v =>
-            {
-                resultPromise.Resolve(v);
-            };
+            Action<PromisedT> resolveHandler = v => resultPromise.Resolve(v);
 
             Action<Exception> rejectHandler = ex =>
             {

@@ -533,10 +533,7 @@ namespace RSG
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action resolveHandler = () =>
-            {
-                resultPromise.Resolve();
-            };
+            Action resolveHandler = () => resultPromise.Resolve();
 
             Action<Exception> rejectHandler = ex =>
             {
