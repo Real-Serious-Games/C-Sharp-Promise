@@ -70,7 +70,10 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
+        IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<Exception, IPromise<ConvertedT>> onRejected
+        );
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
@@ -524,7 +527,10 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+        public IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<Exception, IPromise<ConvertedT>> onRejected
+        )
         {
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
@@ -545,12 +551,24 @@ namespace RSG
 
             Action<Exception> rejectHandler = ex =>
             {
-                if (onRejected != null)
+                if (onRejected == null)
                 {
-                    onRejected(ex);
+                    resultPromise.Reject(ex);
+                    return;
                 }
 
-                resultPromise.Reject(ex);
+                try
+                {
+                    onRejected(ex)
+                        .Then(
+                            (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
+                            callbackEx => resultPromise.Reject(callbackEx)
+                        );
+                }
+                catch (Exception callbackEx)
+                {
+                    resultPromise.Reject(callbackEx);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);

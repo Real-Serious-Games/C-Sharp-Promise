@@ -367,7 +367,7 @@ namespace RSG.Tests.A__Spec
                 }
 
                 [Fact]
-                public void _when_promise1_is_rejected_with_no_value()
+                public void _when_promise1_is_rejected_with_no_value_in_catch()
                 {
                     var callbackInvoked = false;
 
@@ -378,14 +378,48 @@ namespace RSG.Tests.A__Spec
                     Assert.True(callbackInvoked);
                 }
 
+                public void _when_promise1_is_rejected_with_no_value_in_then()
+                {
+                    var callbackInvoked = false;
+                    var resolveHandlerInvoked = false;
+                    var rejectHandlerInvoked = false;
+
+                    new Promise((res, rej) => rej(new Exception()))
+                        .Then(
+                            () => { resolveHandlerInvoked = true; }, 
+                            ex => { rejectHandlerInvoked = true; }
+                        )
+                        .Then(() => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
+                    Assert.False(resolveHandlerInvoked);
+                    Assert.True(rejectHandlerInvoked);
+                }
+
                 [Fact]
-                public void _when_promise1_is_rejected_with_value()
+                public void _when_promise1_is_rejected_with_value_in_catch()
                 {
                     var expectedValue = "Value returned from Catch";
                     var actualValue = string.Empty;
 
                     new Promise<string>((res, rej) => rej(new Exception()))
                         .Catch(_ => expectedValue)
+                        .Then(val => actualValue = val);
+
+                    Assert.Equal(expectedValue, actualValue);
+                }
+
+                [Fact]
+                public void _when_promise1_is_rejected_with_value_in_then()
+                {
+                    var expectedValue = "Value returned from reject handler";
+                    var actualValue = string.Empty;
+
+                    new Promise<string>((res, rej) => rej(new Exception()))
+                        .Then(
+                            _ => Promise<string>.Resolved(string.Empty),
+                            _ => Promise<string>.Resolved(expectedValue)
+                        )
                         .Then(val => actualValue = val);
 
                     Assert.Equal(expectedValue, actualValue);
