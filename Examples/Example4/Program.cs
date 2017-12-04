@@ -34,16 +34,16 @@ namespace Example4
                         .First();              // Grab the 6th link.
                 })
                 .Then(firstLink => Download(firstLink)) // Follow the first link and download it.
-                .Catch(exception =>                     // Catch any errors that happen during download or transform.
-                {
-                    Console.WriteLine("Async operation errorred.");
-                    Console.WriteLine(exception);
-                    running = false;
-                })
                 .Then(html =>          // Display html from the link that was followed.
                 {
                     Console.WriteLine("Async operation completed.");
                     Console.WriteLine(html.Substring(0, 250) + "...");
+                    running = false;
+                })
+                .Catch(exception =>                     // Catch any errors that happen during download or transform.
+                {
+                    Console.WriteLine("Async operation errorred.");
+                    Console.WriteLine(exception);
                     running = false;
                 })
                 .Done();

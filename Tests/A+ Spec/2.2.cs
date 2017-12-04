@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -331,7 +331,6 @@ namespace RSG.Tests.A__Spec
         {
 
             // 2.2.7.1
-            // todo: Catch handler needs to be able to return a value.
             public class _If_either_onFulfilled_or_onRejected_returns_a_value_x_fulfill_promise_with_x
             {
                 [Fact]
@@ -365,6 +364,77 @@ namespace RSG.Tests.A__Spec
 
                     Assert.Equal(1, promise1ThenHandler);
                     Assert.Equal(1, promise2ThenHandler);
+                }
+
+                [Fact]
+                public void _when_promise1_is_rejected_with_no_value_in_catch()
+                {
+                    var callbackInvoked = false;
+
+                    new Promise<object>((res, rej) => rej(new Exception()))
+                        .Catch(_ => {})
+                        .Then(() => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
+                }
+
+                public void _when_promise1_is_rejected_with_no_value_in_then()
+                {
+                    var callbackInvoked = false;
+                    var resolveHandlerInvoked = false;
+                    var rejectHandlerInvoked = false;
+
+                    new Promise((res, rej) => rej(new Exception()))
+                        .Then(
+                            () => { resolveHandlerInvoked = true; }, 
+                            ex => { rejectHandlerInvoked = true; }
+                        )
+                        .Then(() => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
+                    Assert.False(resolveHandlerInvoked);
+                    Assert.True(rejectHandlerInvoked);
+                }
+
+                [Fact]
+                public void _when_promise1_is_rejected_with_value_in_catch()
+                {
+                    var expectedValue = "Value returned from Catch";
+                    var actualValue = string.Empty;
+
+                    new Promise<string>((res, rej) => rej(new Exception()))
+                        .Catch(_ => expectedValue)
+                        .Then(val => actualValue = val);
+
+                    Assert.Equal(expectedValue, actualValue);
+                }
+
+                [Fact]
+                public void _when_promise1_is_rejected_with_value_in_then()
+                {
+                    var expectedValue = "Value returned from reject handler";
+                    var actualValue = string.Empty;
+
+                    new Promise<string>((res, rej) => rej(new Exception()))
+                        .Then(
+                            _ => Promise<string>.Resolved(string.Empty),
+                            _ => Promise<string>.Resolved(expectedValue)
+                        )
+                        .Then(val => actualValue = val);
+
+                    Assert.Equal(expectedValue, actualValue);
+                }
+
+                [Fact]
+                public void _when_non_generic_promise1_is_rejected()
+                {
+                    var callbackInvoked = false;
+
+                    new Promise((res, rej) => rej(new Exception()))
+                        .Catch(_ => {})
+                        .Then(() => callbackInvoked = true);
+
+                    Assert.True(callbackInvoked);
                 }
             }
 

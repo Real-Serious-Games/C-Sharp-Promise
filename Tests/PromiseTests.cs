@@ -598,7 +598,7 @@ namespace RSG.Tests
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            var all = Promise<int>.All(EnumerableExt.Empty<IPromise<int>>());
+            var all = Promise<int>.All(Enumerable.Empty<IPromise<int>>());
 
             var completed = 0;
 
@@ -1040,7 +1040,7 @@ namespace RSG.Tests
 
                 promise.Resolve(5);
 
-                Assert.Equal(1, eventRaised);
+                Assert.Equal(0, eventRaised);
             }
             finally
             {
@@ -1287,6 +1287,38 @@ namespace RSG.Tests
             promise.Resolve(0);
 
             Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => throw expectedException
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
+        }
+
+        [Fact]
+        public void rejected_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => Promise<object>.Rejected(expectedException)
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
         }
     }
 }

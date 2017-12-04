@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +44,12 @@ namespace RSG
         /// <summary>
         /// Handle errors for the promise. 
         /// </summary>
-        IPromise<PromisedT> Catch(Action<Exception> onRejected);
+        IPromise Catch(Action<Exception> onRejected);
+
+        /// <summary>
+        /// Handle errors for the promise. 
+        /// </summary>
+        IPromise<PromisedT> Catch(Func<Exception, PromisedT> onRejected);
 
         /// <summary>
         /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
@@ -65,7 +70,10 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
+        IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<Exception, IPromise<ConvertedT>> onRejected
+        );
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
@@ -83,13 +91,6 @@ namespace RSG
         /// May also change the type of the value.
         /// </summary>
         IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, ConvertedT> transform);
-
-        /// <summary>
-        /// Return a new promise with a different value.
-        /// May also change the type of the value.
-        /// </summary>
-        [Obsolete("Use Then instead")]
-        IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform);
 
         /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
@@ -439,23 +440,51 @@ namespace RSG
         /// <summary>
         /// Handle errors for the promise. 
         /// </summary>
-        public IPromise<PromisedT> Catch(Action<Exception> onRejected)
+        public IPromise Catch(Action<Exception> onRejected)
         {
-//            Argument.NotNull(() => onRejected);
-
-            var resultPromise = new Promise<PromisedT>();
+            var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action<PromisedT> resolveHandler = v =>
-            {
-                resultPromise.Resolve(v);
-            };
+            Action<PromisedT> resolveHandler = _ => resultPromise.Resolve();
 
             Action<Exception> rejectHandler = ex =>
             {
-                onRejected(ex);
+                try
+                {
+                    onRejected(ex);
+                    resultPromise.Resolve();
+                }
+                catch(Exception cbEx)
+                {
+                    resultPromise.Reject(cbEx);
+                }
+            };
 
-                resultPromise.Reject(ex);
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+
+            return resultPromise;
+        }
+
+        /// <summary>
+        /// Handle errors for the promise.
+        /// </summary>
+        public IPromise<PromisedT> Catch(Func<Exception, PromisedT> onRejected)
+        {
+            var resultPromise = new Promise<PromisedT>();
+            resultPromise.WithName(Name);
+
+            Action<PromisedT> resolveHandler = v => resultPromise.Resolve(v);
+
+            Action<Exception> rejectHandler = ex =>
+            {
+                try
+                {
+                    resultPromise.Resolve(onRejected(ex));
+                }
+                catch (Exception cbEx)
+                {
+                    resultPromise.Reject(cbEx);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
@@ -491,7 +520,10 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+        public IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<Exception, IPromise<ConvertedT>> onRejected
+        )
         {
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
@@ -512,12 +544,24 @@ namespace RSG
 
             Action<Exception> rejectHandler = ex =>
             {
-                if (onRejected != null)
+                if (onRejected == null)
                 {
-                    onRejected(ex);
+                    resultPromise.Reject(ex);
+                    return;
                 }
 
-                resultPromise.Reject(ex);
+                try
+                {
+                    onRejected(ex)
+                        .Then(
+                            (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
+                            callbackEx => resultPromise.Reject(callbackEx)
+                        );
+                }
+                catch (Exception callbackEx)
+                {
+                    resultPromise.Reject(callbackEx);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
@@ -609,17 +653,6 @@ namespace RSG
         }
 
         /// <summary>
-        /// Return a new promise with a different value.
-        /// May also change the type of the value.
-        /// </summary>
-        [Obsolete("Use Then instead")]
-        public IPromise<ConvertedT> Transform<ConvertedT>(Func<PromisedT, ConvertedT> transform)
-        {
-//            Argument.NotNull(() => transform);
-            return Then(value => Promise<ConvertedT>.Resolved(transform(value)));
-        }
-
-        /// <summary>
         /// Helper function to invoke or register resolve/reject handlers.
         /// </summary>
         private void ActionHandlers(IRejectable resultPromise, Action<PromisedT> resolveHandler, Action<Exception> rejectHandler)
@@ -679,7 +712,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                return Promise<IEnumerable<PromisedT>>.Resolved(EnumerableExt.Empty<PromisedT>());
+                return Promise<IEnumerable<PromisedT>>.Resolved(Enumerable.Empty<PromisedT>());
             }
 
             var remainingCount = promisesArray.Length;
@@ -690,14 +723,6 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
-                    .Catch(ex =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            // If a promise errorred and the result promise is still pending, reject it.
-                            resultPromise.Reject(ex);
-                        }
-                    })
                     .Then(result =>
                     {
                         results[index] = result;
@@ -708,6 +733,15 @@ namespace RSG
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve(results);
                         }
+                    })
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
+                        }
+                        return default(PromisedT);
                     })
                     .Done();
             });
@@ -763,19 +797,19 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Then(result =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.Resolve(result);
+                        }
+                    })
                     .Catch(ex =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
                         {
                             // If a promise errorred and the result promise is still pending, reject it.
                             resultPromise.Reject(ex);
-                        }
-                    })
-                    .Then(result =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            resultPromise.Resolve(result);
                         }
                     })
                     .Done();
