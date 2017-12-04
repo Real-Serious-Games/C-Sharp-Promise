@@ -15,7 +15,17 @@ If you are interested in using promises for game development and Unity please se
 
 ## Recent Updates
 
-- 8 March 2015
+- v2.0 (4 December 2017)
+    - *Then* functions chained after a *Catch* are now run after the exception is handled rather than being terminated
+    - *Catch* can return a value which will be passed into the next *Then*
+    - The *onResolved* callback of *Then* can now also return a value which is passed to the next promise in the same way
+    - Added *elapsedUpdates* property to the TimeData struct used by PromiseTimer
+- v1.3 (28 October 2017)
+    - Added Cancel method to PromiseTimer
+    - Implemented an overload of Promise.All that works on Tuples of multiple types
+    - Implemented Finally method
+    - Removed dependency on RSG.Toolkit
+- v1.2 (8 March 2015)
     - *Transform* function has been renamed to *Then* (another overload of *Then*).
     
 ## Projects using this library
