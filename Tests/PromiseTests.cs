@@ -598,7 +598,7 @@ namespace RSG.Tests
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            var all = Promise<int>.All(EnumerableExt.Empty<IPromise<int>>());
+            var all = Promise<int>.All(Enumerable.Empty<IPromise<int>>());
 
             var completed = 0;
 

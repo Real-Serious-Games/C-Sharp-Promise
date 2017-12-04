@@ -730,7 +730,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                return Promise<IEnumerable<PromisedT>>.Resolved(EnumerableExt.Empty<PromisedT>());
+                return Promise<IEnumerable<PromisedT>>.Resolved(Enumerable.Empty<PromisedT>());
             }
 
             var remainingCount = promisesArray.Length;
