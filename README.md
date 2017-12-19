@@ -521,7 +521,7 @@ WaitUntil takes a predicate to check each update and resolves once the predicate
 
 ### PromiseTimer.WaitWhile
 
-WaitFor is exactly the same as WaitUntil except that it resolves when its predicate function returns false. Think of WaitUntil as running *until* its predicate returns true, and WaitWhile as running *while* its predicate returns true, stopping when it is false.
+WaitWhile is exactly the same as WaitUntil except that it resolves when its predicate function returns false. Think of WaitUntil as running *until* its predicate returns true, and WaitWhile as running *while* its predicate returns true, stopping when it is false.
 
 ### TimeData struct
 
