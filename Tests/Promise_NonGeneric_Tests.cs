@@ -1221,7 +1221,7 @@ namespace RSG.Tests
                 ++callback;
                 return Promise<string>.Resolved("foo");
             })
-            .Then((s) => {
+            .Then((x) => {
                 Assert.Equal(expectedValue, x);
                 ++callback;
             });
