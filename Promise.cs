@@ -843,7 +843,8 @@ namespace RSG
             return promise;
         }
 
-        public IPromise<PromisedT> Finally(Action onComplete) {
+        public IPromise<PromisedT> Finally(Action onComplete)
+        {
             Promise<PromisedT> promise = new Promise<PromisedT>();
             promise.WithName(Name);
 
