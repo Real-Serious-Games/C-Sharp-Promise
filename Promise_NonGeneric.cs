@@ -126,6 +126,7 @@ namespace RSG
         /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
         /// The state of the returning promise will be based on the new non-value promise, not the preceding (rejected or resolved) promise.
         /// </summary>
+        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         IPromise Finally(Func<IPromise> onResolved);
 
         /// <summary> 
@@ -133,6 +134,7 @@ namespace RSG
         /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
         /// The state of the returning promise will be based on the new value promise, not the preceding (rejected or resolved) promise.
         /// </summary> 
+        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
     }
 
@@ -926,6 +928,7 @@ namespace RSG
             return promise.Then(() => onComplete());
         }
 
+        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         public IPromise Finally(Func<IPromise> onComplete)
         {
             Promise promise = new Promise();
@@ -937,6 +940,7 @@ namespace RSG
             return promise.Then(onComplete);
         }
 
+        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         public IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
         {
             Promise promise = new Promise();
