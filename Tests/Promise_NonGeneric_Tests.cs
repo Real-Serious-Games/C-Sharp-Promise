@@ -1174,7 +1174,7 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void rejected_chain_continues_after_finally()
+        public void rejected_chain_rejects_after_finally()
         {
             var promise = new Promise();
             var callback = 0;
@@ -1183,8 +1183,123 @@ namespace RSG.Tests
             {
                 ++callback;
             })
-            .Then(() =>
+            .Catch(_ =>
             {
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void rejected_chain_continues_after_finally_returning_non_value_promise() {
+            var promise = new Promise();
+            var callback = 0;
+
+            promise.Finally(() => {
+                ++callback;
+                return Promise.Resolved();
+            })
+            .Then(() => {
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void rejected_chain_continues_after_finally_returning_value_promise() {
+            var promise = new Promise();
+            var callback = 0;
+            var expectedValue = "foo";
+
+            promise.Finally(() => {
+                ++callback;
+                return Promise<string>.Resolved("foo");
+            })
+            .Then((x) => {
+                Assert.Equal(expectedValue, x);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        //tc39 note: "a throw (or returning a rejected promise) in the finally callback will reject the new promise with that rejection reason."
+        public void exception_in_finally_callback_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            // NOTE: typecast needed to call Finally(Action), and not Finally(Func<IPromise>)
+            promise.Finally((Action)(() =>
+            {
+                ++callback;
+                throw expectedException;
+            }))
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_finally_callback_returning_non_value_promise_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.Finally(new Func<IPromise>(() =>
+            {
+                ++callback;
+                throw expectedException;
+            }))
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_finally_callback_returning_value_promise_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.Finally(new Func<IPromise<int>>(() =>
+            {
+                ++callback;
+                throw expectedException;
+            }))
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
                 ++callback;
             });
 
@@ -1207,8 +1322,8 @@ namespace RSG.Tests
             })
             .Then((x) =>
             {
-                ++callback;
                 Assert.Equal(expectedValue, x);
+                ++callback;
             });
 
             promise.Resolve();

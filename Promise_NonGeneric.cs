@@ -116,18 +116,22 @@ namespace RSG
 
         /// <summary> 
         /// Add a finally callback. 
-        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+        /// The returned promise will be resolved or rejected, as per the preceding promise.
         /// </summary> 
         IPromise Finally(Action onComplete);
 
         /// <summary>
         /// Add a finally callback that chains a non-value promise.
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+        /// The state of the returning promise will be based on the new non-value promise, not the preceding (rejected or resolved) promise.
         /// </summary>
         IPromise Finally(Func<IPromise> onResolved);
 
         /// <summary> 
-        /// Add a finally callback. 
-        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error. 
+        /// Add a finally callback that chains a value promise (optionally converting to a different value type).
+        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+        /// The state of the returning promise will be based on the new value promise, not the preceding (rejected or resolved) promise.
         /// </summary> 
         IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
     }
@@ -910,9 +914,16 @@ namespace RSG
             promise.WithName(Name);
 
             this.Then(() => { promise.Resolve(); });
-            this.Catch((e) => { promise.Resolve(); });
+            this.Catch((e) => {
+                try {
+                    onComplete();
+                    promise.Reject(e);
+                } catch (Exception ne) {
+                    promise.Reject(ne);
+                }
+            });
 
-            return promise.Then(onComplete);
+            return promise.Then(() => onComplete());
         }
 
         public IPromise Finally(Func<IPromise> onComplete)
