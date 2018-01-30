@@ -1,4 +1,4 @@
-using RSG.Promises;
+﻿using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,6 +136,20 @@ namespace RSG
         /// </summary> 
         [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
+
+        /// <summary>
+        /// Add a progress callback.
+        /// Progress callbacks will be called whenever the promise owner reports progress towards the resolution
+        /// of the promise.
+        /// </summary>
+        IPromise Progress(Action<float> onProgress);
+
+        /// <summary>
+        /// Add a progress function that can convert the progress value.
+        /// Progress callbacks will be called whenever the promise owner reports progress towards the resolution
+        /// of the promise.
+        /// </summary>
+        IPromise Progress(Func<float, float> onProgress);
     }
 
     /// <summary>
@@ -198,6 +212,19 @@ namespace RSG
         /// Callback fn.
         /// </summary>
         public Action<Exception> callback;
+
+        /// <summary>
+        /// The promise that is rejected when there is an error while invoking the handler.
+        /// </summary>
+        public IRejectable rejectable;
+    }
+
+    public struct ProgressHandler
+    {
+        /// <summary>
+        /// Callback fn.
+        /// </summary>
+        public Action<float> callback;
 
         /// <summary>
         /// The promise that is rejected when there is an error while invoking the handler.
@@ -276,6 +303,11 @@ namespace RSG
         /// Completed handlers that accept no value.
         /// </summary>
         private List<ResolveHandler> resolveHandlers;
+
+        /// <summary>
+        /// Progress handlers.
+        /// </summary>
+        private List<ProgressHandler> progressHandlers;
 
         /// <summary>
         /// ID of the promise, useful for debugging.
@@ -370,6 +402,19 @@ namespace RSG
         }
 
         /// <summary>
+        /// Add a progress handler for this promise.
+        /// </summary>
+        private void AddProgressHandler(Action<float> onProgress, IRejectable rejectable)
+        {
+            if (progressHandlers == null)
+            {
+                progressHandlers = new List<ProgressHandler>();
+            }
+
+            progressHandlers.Add(new ProgressHandler() { callback = onProgress, rejectable = rejectable });
+        }
+
+        /// <summary>
         /// Invoke a single error handler.
         /// </summary>
         private void InvokeRejectHandler(Action<Exception> callback, IRejectable rejectable, Exception value)
@@ -406,12 +451,31 @@ namespace RSG
         }
 
         /// <summary>
+        /// Invoke a single progress handler.
+        /// </summary>
+        private void InvokeProgressHandler(Action<float> callback, IRejectable rejectable, float progress)
+        {
+//            Argument.NotNull(() => callback);
+//            Argument.NotNull(() => rejectable);
+
+            try
+            {
+                callback(progress);
+            }
+            catch (Exception ex)
+            {
+                rejectable.Reject(ex);
+            }
+        }
+
+        /// <summary>
         /// Helper function clear out all handlers after resolution or rejection.
         /// </summary>
         private void ClearHandlers()
         {
             rejectHandlers = null;
             resolveHandlers = null;
+            progressHandlers = null;
         }
 
         /// <summary>
@@ -440,6 +504,17 @@ namespace RSG
             }
 
             ClearHandlers();
+        }
+
+        /// <summary>
+        /// Invoke all progress handlers.
+        /// </summary>
+        private void InvokeProgressHandlers(float progress)
+        {
+            if (progressHandlers != null)
+            {
+                progressHandlers.Each(handler => InvokeProgressHandler(handler.callback, handler.rejectable, progress));
+            }
         }
 
         /// <summary>
@@ -485,6 +560,21 @@ namespace RSG
 
             InvokeResolveHandlers();
         }
+
+
+        /// <summary>
+        /// Report progress on the promise.
+        /// </summary>
+        public void ReportProgress(float progress)
+        {
+            if (CurState != PromiseState.Pending)
+            {
+                throw new ApplicationException("Attempt to report progress on a promise that is already in state: " + CurState + ", a promise can only report progress when it is still in state: " + PromiseState.Pending);
+            }
+
+            InvokeProgressHandlers(progress);
+        }
+
 
         /// <summary>
         /// Completes the promise. 
@@ -555,6 +645,7 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
 
             return resultPromise;
         }
@@ -617,6 +708,7 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
 
             return resultPromise;
         }
@@ -657,6 +749,7 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
 
             return resultPromise;
         }
@@ -690,6 +783,7 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
 
             return resultPromise;
         }
@@ -711,6 +805,17 @@ namespace RSG
             {
                 AddResolveHandler(resolveHandler, resultPromise);
                 AddRejectHandler(rejectHandler, resultPromise);
+            }
+        }
+
+        /// <summary>
+        /// Helper function to invoke or register progress handlers.
+        /// </summary>
+        private void ProgressHandlers(IRejectable resultPromise, Action<float> progressHandler)
+        {
+            if (CurState == PromiseState.Pending)
+            {
+                AddProgressHandler(progressHandler, resultPromise);
             }
         }
 
@@ -759,6 +864,7 @@ namespace RSG
             var remainingCount = promisesArray.Length;
             var resultPromise = new Promise();
             resultPromise.WithName("All");
+            var progress = new float[remainingCount];
 
             promisesArray.Each((promise, index) =>
             {
@@ -779,6 +885,11 @@ namespace RSG
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve();
                         }
+                    })
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Average());
                     })
                     .Done();
             });
@@ -864,6 +975,8 @@ namespace RSG
             var resultPromise = new Promise();
             resultPromise.WithName("Race");
 
+            var progress = new float[promisesArray.Length];
+
             promisesArray.Each((promise, index) =>
             {
                 promise
@@ -881,6 +994,11 @@ namespace RSG
                         {
                             resultPromise.Resolve();
                         }
+                    })
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Max());
                     })
                     .Done();
             });
@@ -950,6 +1068,52 @@ namespace RSG
             this.Catch((e) => { promise.Resolve(); });
 
             return promise.Then(() => { return onComplete(); });
+        }
+
+        public IPromise Progress(Action<float> onProgress)
+        {
+            var resultPromise = new Promise();
+            resultPromise.WithName(Name);
+
+            this.Then(() => { resultPromise.Resolve(); });
+            this.Catch((e) => { resultPromise.Reject(e); });
+
+            Action<float> progressHandler = v =>
+            {
+                if (onProgress != null)
+                {
+                    onProgress(v);
+                }
+
+                resultPromise.ReportProgress(v);
+            };
+
+            ProgressHandlers(resultPromise, progressHandler);
+
+            return resultPromise;
+        }
+
+        public IPromise Progress(Func<float, float> onProgress)
+        {
+            var resultPromise = new Promise();
+            resultPromise.WithName(Name);
+
+            this.Then(() => { resultPromise.Resolve(); });
+            this.Catch((e) => { resultPromise.Reject(e); });
+
+            Action<float> progressHandler = v =>
+            {
+                if (onProgress != null)
+                {
+                    v = onProgress(v);
+                }
+
+                resultPromise.ReportProgress(v);
+            };
+
+            ProgressHandlers(resultPromise, progressHandler);
+
+            return resultPromise;
         }
 
         /// <summary>
