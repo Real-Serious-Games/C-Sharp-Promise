@@ -973,27 +973,13 @@ namespace RSG
             return promise.Then(onComplete);
         }
 
-        public IPromise<PromisedT> Progress(Action<float> onProgress)
+        public IPromise Progress(Action<float> onProgress)
         {
-            var resultPromise = new Promise<PromisedT>();
-            resultPromise.WithName(Name);
-
-            this.Then((x) => { resultPromise.Resolve(x); });
-            this.Catch((e) => { resultPromise.Reject(e); });
-
-            Action<float> progressHandler = v =>
+            if (onProgress != null)
             {
-                if (onProgress != null)
-                {
-                    onProgress(v);
-                }
-
-                resultPromise.ReportProgress(v);
-            };
-
-            ProgressHandlers(resultPromise, progressHandler);
-
-            return resultPromise;
+                ProgressHandlers(this, onProgress);
+            }
+            return this;
         }
 
         public IPromise<PromisedT> Progress(Func<float, float> onProgress)

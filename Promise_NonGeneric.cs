@@ -1072,25 +1072,11 @@ namespace RSG
 
         public IPromise Progress(Action<float> onProgress)
         {
-            var resultPromise = new Promise();
-            resultPromise.WithName(Name);
-
-            this.Then(() => { resultPromise.Resolve(); });
-            this.Catch((e) => { resultPromise.Reject(e); });
-
-            Action<float> progressHandler = v =>
+            if (onProgress != null)
             {
-                if (onProgress != null)
-                {
-                    onProgress(v);
-                }
-
-                resultPromise.ReportProgress(v);
-            };
-
-            ProgressHandlers(resultPromise, progressHandler);
-
-            return resultPromise;
+                ProgressHandlers(this, onProgress);
+            }
+            return this;
         }
 
         public IPromise Progress(Func<float, float> onProgress)
