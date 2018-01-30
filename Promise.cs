@@ -973,7 +973,7 @@ namespace RSG
             return promise.Then(onComplete);
         }
 
-        public IPromise Progress(Action<float> onProgress)
+        public IPromise<PromisedT> Progress(Action<float> onProgress)
         {
             if (onProgress != null)
             {
