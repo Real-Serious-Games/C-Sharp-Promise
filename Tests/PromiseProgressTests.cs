@@ -61,7 +61,7 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void can_do_weighted_average()
+        public void can_do_progress_weighted_average()
         {
             var promiseA = new Promise();
             var promiseB = new Promise();
@@ -121,6 +121,24 @@ namespace RSG.Tests
 
             Assert.Equal(1f, progressA);
             Assert.Equal(2f, progressB);
+        }
+
+        [Fact]
+        public void exception_is_thrown_for_progress_after_resolve()
+        {
+            var promise = new Promise();
+            promise.Resolve();
+
+            Assert.Throws<ApplicationException>(() => promise.ReportProgress(1f));
+        }
+
+        [Fact]
+        public void exception_is_thrown_for_progress_after_reject()
+        {
+            var promise = new Promise();
+            promise.Reject(new ApplicationException());
+
+            Assert.Throws<ApplicationException>(() => promise.ReportProgress(1f));
         }
     }
 }
