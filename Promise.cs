@@ -87,6 +87,27 @@ namespace RSG
         IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected);
 
         /// <summary>
+        /// Add a resolved callback, a rejected callback and a progress callback.
+        /// The resolved callback chains a value promise (optionally converting to a different value type).
+        /// </summary>
+        IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved,
+            Func<Exception, IPromise<ConvertedT>> onRejected,
+            Action<float> onProgress
+        );
+
+        /// <summary>
+        /// Add a resolved callback, a rejected callback and a progress callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
+        IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected, Action<float> onProgress);
+
+        /// <summary>
+        /// Add a resolved callback, a rejected callback and a progress callback.
+        /// </summary>
+        IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected, Action<float> onProgress);
+
+        /// <summary>
         /// Return a new promise with a different value.
         /// May also change the type of the value.
         /// </summary>
@@ -152,13 +173,6 @@ namespace RSG
         /// of the promise.
         /// </summary>
         IPromise<PromisedT> Progress(Action<float> onProgress);
-
-        /// <summary>
-        /// Add a progress function that can convert the progress value.
-        /// Progress callbacks will be called whenever the promise owner reports progress towards the resolution
-        /// of the promise.
-        /// </summary>
-        IPromise<PromisedT> Progress(Func<float, float> onProgress);
     }
 
     /// <summary>
@@ -561,7 +575,7 @@ namespace RSG
         /// </summary>
         public IPromise<ConvertedT> Then<ConvertedT>(Func<PromisedT, IPromise<ConvertedT>> onResolved)
         {
-            return Then(onResolved, null);
+            return Then(onResolved, null, null);
         }
 
         /// <summary>
@@ -569,7 +583,7 @@ namespace RSG
         /// </summary>
         public IPromise Then(Func<PromisedT, IPromise> onResolved)
         {
-            return Then(onResolved, null);
+            return Then(onResolved, null, null);
         }
 
         /// <summary>
@@ -577,7 +591,7 @@ namespace RSG
         /// </summary>
         public IPromise<PromisedT> Then(Action<PromisedT> onResolved)
         {
-            return Then(onResolved, null);
+            return Then(onResolved, null, null);
         }
 
         /// <summary>
@@ -585,8 +599,39 @@ namespace RSG
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
         public IPromise<ConvertedT> Then<ConvertedT>(
-            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<PromisedT, IPromise<ConvertedT>> onResolved,
             Func<Exception, IPromise<ConvertedT>> onRejected
+        )
+        {
+            return Then(onResolved, onRejected, null);
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// The resolved callback chains a non-value promise.
+        /// </summary>
+        public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected)
+        {
+            return Then(onResolved, onRejected, null);
+        }
+
+        /// <summary>
+        /// Add a resolved callback and a rejected callback.
+        /// </summary>
+        public IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
+        {
+            return Then(onResolved, onRejected, null);
+        }
+
+
+        /// <summary>
+        /// Add a resolved callback, a rejected callback and a progress callback.
+        /// The resolved callback chains a value promise (optionally converting to a different value type).
+        /// </summary>
+        public IPromise<ConvertedT> Then<ConvertedT>(
+            Func<PromisedT, IPromise<ConvertedT>> onResolved, 
+            Func<Exception, IPromise<ConvertedT>> onRejected,
+            Action<float> onProgress
         )
         {
             // This version of the function must supply an onResolved.
@@ -599,6 +644,7 @@ namespace RSG
             Action<PromisedT> resolveHandler = v =>
             {
                 onResolved(v)
+                    .Progress(progress => resultPromise.ReportProgress(progress))
                     .Then(
                         // Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
                         (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
@@ -629,16 +675,19 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
-            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
+            if (onProgress != null)
+            {
+                ProgressHandlers(this, onProgress);
+            }
 
             return resultPromise;
         }
 
         /// <summary>
-        /// Add a resolved callback and a rejected callback.
+        /// Add a resolved callback, a rejected callback and a progress callback.
         /// The resolved callback chains a non-value promise.
         /// </summary>
-        public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected)
+        public IPromise Then(Func<PromisedT, IPromise> onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -648,6 +697,7 @@ namespace RSG
                 if (onResolved != null)
                 {
                     onResolved(v)
+                        .Progress(progress => resultPromise.ReportProgress(progress))
                         .Then(
                             () => resultPromise.Resolve(),
                             ex => resultPromise.Reject(ex)
@@ -670,15 +720,18 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
-            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
+            if (onProgress != null)
+            {
+                ProgressHandlers(this, onProgress);
+            }
 
             return resultPromise;
         }
 
         /// <summary>
-        /// Add a resolved callback and a rejected callback.
+        /// Add a resolved callback, a rejected callback and a progress callback.
         /// </summary>
-        public IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected)
+        public IPromise<PromisedT> Then(Action<PromisedT> onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
             var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
@@ -704,7 +757,10 @@ namespace RSG
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
-            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
+            if (onProgress != null)
+            {
+                ProgressHandlers(this, onProgress);
+            }
 
             return resultPromise;
         }
@@ -980,29 +1036,6 @@ namespace RSG
                 ProgressHandlers(this, onProgress);
             }
             return this;
-        }
-
-        public IPromise<PromisedT> Progress(Func<float, float> onProgress)
-        {
-            var resultPromise = new Promise<PromisedT>();
-            resultPromise.WithName(Name);
-
-            this.Then((x) => { resultPromise.Resolve(x); });
-            this.Catch((e) => { resultPromise.Reject(e); });
-
-            Action<float> progressHandler = v =>
-            {
-                if (onProgress != null)
-                {
-                    v = onProgress(v);
-                }
-
-                resultPromise.ReportProgress(v);
-            };
-
-            ProgressHandlers(resultPromise, progressHandler);
-
-            return resultPromise;
         }
     }
 }
