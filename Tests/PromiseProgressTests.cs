@@ -75,7 +75,7 @@ namespace RSG.Tests
                 Progress(v =>
                 {
                     Assert.InRange(currentStep, 0, expectedSteps.Length - 1);
-                    Assert.Equal(v, expectedSteps[currentStep]);
+                    Assert.InRange(v - expectedSteps[currentStep], -Math.E, Math.E);
                     currentProgress = v;
                     ++currentStep;
                 })
@@ -139,6 +139,50 @@ namespace RSG.Tests
             promise.Reject(new ApplicationException());
 
             Assert.Throws<ApplicationException>(() => promise.ReportProgress(1f));
+        }
+
+        [Fact]
+        public void all_progress_is_averaged()
+        {
+            var promiseA = new Promise();
+            var promiseB = new Promise();
+            var promiseC = new Promise();
+            var promiseD = new Promise();
+
+            int currentProgress = 0;
+            var expectedProgress = new float[] { 0.25f, 0.50f, 0.75f, 1f };
+
+            Promise.All(new IPromise[] { promiseA, promiseB, promiseC, promiseD })
+                .Progress(progress =>
+                {
+                    Assert.InRange(currentProgress, 0, expectedProgress.Length - 1);
+                    Assert.InRange(progress - expectedProgress[currentProgress], -Math.E, Math.E);
+                });
+
+            promiseA.ReportProgress(1f);
+            promiseC.ReportProgress(1f);
+            promiseB.ReportProgress(1f);
+            promiseD.ReportProgress(1f);
+        }
+
+        [Fact]
+        public void race_progress_is_maxed()
+        {
+            var promiseA = new Promise();
+            var promiseB = new Promise();
+
+            Promise.Race(new IPromise[] { promiseA, promiseB })
+                .Progress(progress =>
+                {
+                    Assert.Equal(progress, 0.5f);
+                });
+
+            promiseA.ReportProgress(0.5f);
+            promiseB.ReportProgress(0.1f);
+            promiseB.ReportProgress(0.2f);
+            promiseB.ReportProgress(0.3f);
+            promiseB.ReportProgress(0.4f);
+            promiseB.ReportProgress(0.5f);
         }
     }
 }
