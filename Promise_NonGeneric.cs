@@ -919,6 +919,11 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Average());
+                    })
                     .Catch(ex =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
@@ -935,11 +940,6 @@ namespace RSG
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve();
                         }
-                    })
-                    .Progress(v =>
-                    {
-                        progress[index] = v;
-                        resultPromise.ReportProgress(progress.Average());
                     })
                     .Done();
             });
@@ -1030,6 +1030,11 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Max());
+                    })
                     .Catch(ex =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
@@ -1044,11 +1049,6 @@ namespace RSG
                         {
                             resultPromise.Resolve();
                         }
-                    })
-                    .Progress(v =>
-                    {
-                        progress[index] = v;
-                        resultPromise.ReportProgress(progress.Max());
                     })
                     .Done();
             });

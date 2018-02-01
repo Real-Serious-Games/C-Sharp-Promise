@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="A+ Spec\2.2.cs" />
     <Compile Include="PromiseProgressTests.cs" />
+    <Compile Include="Promise_NonGeneric_ProgressTests.cs" />
     <Compile Include="PromiseTests.cs" />
     <Compile Include="PromiseTimerTests.cs" />
     <Compile Include="Promise_NonGeneric_Tests.cs" />

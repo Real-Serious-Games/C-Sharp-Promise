@@ -858,6 +858,11 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Average());
+                    })
                     .Then(result =>
                     {
                         results[index] = result;
@@ -877,11 +882,6 @@ namespace RSG
                             resultPromise.Reject(ex);
                         }
                         return default(PromisedT);
-                    })
-                    .Progress(v =>
-                    {
-                        progress[index] = v;
-                        resultPromise.ReportProgress(progress.Average());
                     })
                     .Done();
             });
@@ -939,6 +939,11 @@ namespace RSG
             promisesArray.Each((promise, index) =>
             {
                 promise
+                    .Progress(v =>
+                    {
+                        progress[index] = v;
+                        resultPromise.ReportProgress(progress.Max());
+                    })
                     .Then(result =>
                     {
                         if (resultPromise.CurState == PromiseState.Pending)
@@ -953,11 +958,6 @@ namespace RSG
                             // If a promise errorred and the result promise is still pending, reject it.
                             resultPromise.Reject(ex);
                         }
-                    })
-                    .Progress(v =>
-                    {
-                        progress[index] = v;
-                        resultPromise.ReportProgress(progress.Max());
                     })
                     .Done();
             });
