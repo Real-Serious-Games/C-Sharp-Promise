@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -865,6 +865,7 @@ namespace RSG
                     })
                     .Then(result =>
                     {
+                        progress[index] = 1f;
                         results[index] = result;
 
                         --remainingCount;

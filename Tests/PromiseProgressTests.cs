@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Xunit;
 
 namespace RSG.Tests
@@ -203,6 +203,25 @@ namespace RSG.Tests
             promiseB.ReportProgress(0.5f);
 
             Assert.Equal(6, reportCount);
+        }
+
+        [Fact]
+        public void all_progress_with_resolved()
+        {
+            var promiseA = new Promise<int>();
+            var promiseB = Promise<int>.Resolved(17);
+            int reportedCount = 0;
+
+            Promise<int>.All(new IPromise<int>[] { promiseA, promiseB })
+                .Progress(progress =>
+                {
+                    ++reportedCount;
+                    Assert.Equal(0.75f, progress);
+                });
+
+            promiseA.ReportProgress(0.5f);
+
+            Assert.Equal(1, reportedCount);
         }
     }
 }
