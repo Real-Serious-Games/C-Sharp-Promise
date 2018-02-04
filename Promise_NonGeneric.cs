@@ -176,6 +176,11 @@ namespace RSG
         /// Resolve the promise with a particular value.
         /// </summary>
         void Resolve();
+
+        /// <summary>
+        /// Report progress in a promise.
+        /// </summary>
+        void ReportProgress(float progress);
     }
 
     /// <summary>
