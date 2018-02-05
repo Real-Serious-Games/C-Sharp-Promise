@@ -257,8 +257,32 @@ Then forward the exceptions to your own logging system:
 
     private void Promise_UnhandledException(object sender, ExceptionEventArgs e)
     {
-        Log.Error(e.Exception, "An unhandled proimses exception occured!"); 
+        Log.Error(e.Exception, "An unhandled promises exception occured!"); 
     }
+
+## Progress reporting
+
+Promises can additionally report their progress towards completion, allowing the implementor to give the user feedback on the asynchronous operation. The general convention is to report progress as a value from 0 to 1.
+
+For this, you can either call `Progress` in the promise definition chain or add a third parameter to the `Then` method.
+
+Listening for progress reporting from a promise using `Progress`:
+
+    var promise = new Promise();
+    promise.Progress((progress) => Log.Info("Current progress is " + (100f * progress) + "%"));
+
+Listening for progress on a `Then` call:
+
+    var promiseA = new Promise();
+    var promiseB = new Promise();
+    promise
+        .Then(() => promiseB, null, (progress) => Log.Info("promiseA made progress: " + progress))
+        .Progress(progress => Log.Info("promiseB made progress: " + progress));
+        
+In order to report progress for a promise, you need to call the `ReportProgress` method:
+
+    var promise = new Promise();
+    promise.ReportProgress(0.5f); // Report a 50% completion
 
 ## Promises that are already Resolved/Rejected 
 
@@ -302,6 +326,8 @@ Here is an example that extracts links from multiple pages and merges the result
             }
         });
 
+When listening for progress events in an All operation, the progress that you will receive will be the average of all the progress values reported by all the given promises.
+
 ## Chaining Multiple Async Operations
 
 The *ThenAll* function is a convenient way of chaining multiple promise onto an existing promise:
@@ -336,6 +362,8 @@ The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* funct
         )
         .Done(result => ...);                       // The result has come from whichever of
                                                     // the async operations completed first. 
+
+When listening for progress events in a race operation, the progress that you will receive will be the maximum of those reported by all the given promises.
 
 ## Chaining Synchronous Actions that have no Result
 
@@ -462,6 +490,20 @@ We can easily combine sequential and parallel operations to build very expressiv
 
 I'm starting to feel like we are defining behavior trees.
 
+## Weighted averaging of progress on multiple promises
+
+If you have a promise that comprises a sequence of other promises, you might want to report the total progress for these, and even give more weight to the progress of some promise over another. In this example, we are first downloading an asset from some URL and then we are loading the downloaded asset into memory. We consider that the time it takes to download the asset will be an 80% of the total time, while the time to load it into memory is a 20%:
+
+    var promise = new Promise();
+    
+    Download(url)
+        .Progress((downloadProgress) => promise.ReportProgress(0.8f * downloadProgress))
+        .Then((asset) => LoadAssetIntoMemory(asset))
+        .Progress((loadProgress) => promise.ReportProgress(0.8f + 0.2f * loadProgress))
+        .Then(() => promise.Resolve())
+        .Catch((ex) => promise.Reject(ex));
+        
+    return promise;
 
 ## PromiseTimer class
 
