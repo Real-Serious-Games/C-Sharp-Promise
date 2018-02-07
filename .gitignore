@@ -163,3 +163,5 @@ packages/**/*.nuspec
 *.nupkg
 packages/
 /.vs
+testrunner/
+
