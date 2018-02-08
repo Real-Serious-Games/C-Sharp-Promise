@@ -45,7 +45,7 @@ namespace RSG.Tests
 
             promise.Reject(new ApplicationException());
 
-            Assert.Throws<ApplicationException>(() =>
+            Assert.Throws<PromiseStateException>(() =>
                 promise.Reject(new ApplicationException())
             );
         }
@@ -57,7 +57,7 @@ namespace RSG.Tests
 
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() =>
+            Assert.Throws<PromiseStateException>(() =>
                 promise.Reject(new ApplicationException())
             );
         }
@@ -69,7 +69,7 @@ namespace RSG.Tests
 
             promise.Reject(new ApplicationException());
 
-            Assert.Throws<ApplicationException>(() =>
+            Assert.Throws<PromiseStateException>(() =>
                 promise.Resolve()
             );
         }
@@ -95,7 +95,7 @@ namespace RSG.Tests
 
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() =>
+            Assert.Throws<PromiseStateException>(() =>
                 promise.Resolve()
             );
         }

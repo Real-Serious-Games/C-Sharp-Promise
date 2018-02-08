@@ -33,7 +33,7 @@ namespace RSG.Tests.A__Spec
                 var fulfilledPromise = new Promise<object>();
                 fulfilledPromise.Resolve(new object());
 
-                Assert.Throws<ApplicationException>(() => fulfilledPromise.Reject(new Exception()));
+                Assert.Throws<PromiseStateException>(() => fulfilledPromise.Reject(new Exception()));
 
                 Assert.Equal(PromiseState.Resolved, fulfilledPromise.CurState);
             }
@@ -54,7 +54,7 @@ namespace RSG.Tests.A__Spec
 
                 fulfilledPromise.Resolve(promisedValue);
 
-                Assert.Throws<ApplicationException>(() => fulfilledPromise.Resolve(new object()));
+                Assert.Throws<PromiseStateException>(() => fulfilledPromise.Resolve(new object()));
 
                 Assert.Equal(1, handled);
             }
@@ -70,7 +70,7 @@ namespace RSG.Tests.A__Spec
                 var rejectedPromise = new Promise<object>();
                 rejectedPromise.Reject(new Exception());
 
-                Assert.Throws<ApplicationException>(() => rejectedPromise.Resolve(new object()));
+                Assert.Throws<PromiseStateException>(() => rejectedPromise.Resolve(new object()));
 
                 Assert.Equal(PromiseState.Rejected, rejectedPromise.CurState);
             }
@@ -91,7 +91,7 @@ namespace RSG.Tests.A__Spec
 
                 rejectedPromise.Reject(reason);
 
-                Assert.Throws<ApplicationException>(() => rejectedPromise.Reject(new Exception()));
+                Assert.Throws<PromiseStateException>(() => rejectedPromise.Reject(new Exception()));
 
                 Assert.Equal(1, handled);
             }

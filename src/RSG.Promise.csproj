@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.6;net35</TargetFrameworks>
+    <AssemblyName>RSG.Promise</AssemblyName>
+    <PackageId>RSG.Promise</PackageId>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.0</NetStandardImplicitPackageVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Authors>Real Serious Games</Authors>
+    <Company>Real Serious Games</Company>
+    <Product>C-Sharp-Promise</Product>
+    <Description>Simple C# Promises Library</Description>
+    <PackageReleaseNotes>First release of nuget package.</PackageReleaseNotes>
+    <Copyright>Copyright 2014</Copyright>
+    <PackageTags>C# Promise Promises Futures Async Asynchronous</PackageTags>
+    <Version>2.0.0</Version>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>C-Sharp-Promise.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <Reference Include="System" />
+  </ItemGroup>
+
+</Project>
