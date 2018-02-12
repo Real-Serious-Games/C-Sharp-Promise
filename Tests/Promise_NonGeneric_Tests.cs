@@ -1134,17 +1134,16 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void rejected_chain_continues_after_finally_returning_non_value_promise() {
+        public void rejected_chain_continues_after_ContinueWith_returning_non_value_promise() {
             var promise = new Promise();
             var callback = 0;
 
-            promise.Finally(() => {
+            promise.ContinueWith(() => 
+            {
                 ++callback;
                 return Promise.Resolved();
             })
-            .Then(() => {
-                ++callback;
-            });
+            .Then(() => ++callback);
 
             promise.Reject(new Exception());
 
@@ -1152,12 +1151,12 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void rejected_chain_continues_after_finally_returning_value_promise() {
+        public void rejected_chain_continues_after_ContinueWith_returning_value_promise() {
             var promise = new Promise();
             var callback = 0;
-            var expectedValue = "foo";
+            const string expectedValue = "foo";
 
-            promise.Finally(() => {
+            promise.ContinueWith(() => {
                 ++callback;
                 return Promise<string>.Resolved("foo");
             })
@@ -1181,32 +1180,6 @@ namespace RSG.Tests
             var callback = 0;
             var expectedException = new Exception("Expected");
 
-            // NOTE: typecast needed to call Finally(Action), and not Finally(Func<IPromise>)
-            promise.Finally((Action)(() =>
-            {
-                ++callback;
-                throw expectedException;
-            }))
-            .Catch(ex =>
-            {
-                Assert.Equal(expectedException, ex);
-                ++callback;
-            });
-
-            promise.Reject(new Exception());
-
-            Assert.Equal(2, callback);
-        }
-
-        [Fact]
-        public void exception_in_finally_callback_returning_non_value_promise_is_caught_by_chained_catch()
-        {
-            //NOTE: Also tests that the new exception is passed thru promise chain
-
-            var promise = new Promise();
-            var callback = 0;
-            var expectedException = new Exception("Expected");
-
             promise.Finally(() =>
             {
                 ++callback;
@@ -1224,7 +1197,32 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void exception_in_finally_callback_returning_value_promise_is_caught_by_chained_catch()
+        public void exception_in_ContinueWith_callback_returning_non_value_promise_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.ContinueWith(() =>
+            {
+                ++callback;
+                throw expectedException;
+            })
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_ContinueWith_callback_returning_value_promise_is_caught_by_chained_catch()
         {
             //NOTE: Also tests that the new exception is passed through promise chain
 
@@ -1232,7 +1230,7 @@ namespace RSG.Tests
             var callback = 0;
             var expectedException = new Exception("Expected");
 
-            promise.Finally(new Func<IPromise<int>>(() =>
+            promise.ContinueWith(new Func<IPromise<int>>(() =>
             {
                 ++callback;
                 throw expectedException;
@@ -1249,13 +1247,13 @@ namespace RSG.Tests
         }
 
         [Fact]
-        public void can_chain_promise_after_finally()
+        public void can_chain_promise_after_ContinueWith()
         {
             var promise = new Promise();
             const int expectedValue = 5;
             var callback = 0;
 
-            promise.Finally(() =>
+            promise.ContinueWith(() =>
             {
                 ++callback;
                 return Promise<int>.Resolved(expectedValue);

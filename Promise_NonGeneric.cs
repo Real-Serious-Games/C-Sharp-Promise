@@ -138,20 +138,18 @@ namespace RSG
         IPromise Finally(Action onComplete);
 
         /// <summary>
-        /// Add a finally callback that chains a non-value promise.
-        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+        /// Add a callback that chains a non-value promise.
+        /// ContinueWith callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
         /// The state of the returning promise will be based on the new non-value promise, not the preceding (rejected or resolved) promise.
         /// </summary>
-        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
-        IPromise Finally(Func<IPromise> onResolved);
+        IPromise ContinueWith(Func<IPromise> onResolved);
 
         /// <summary> 
-        /// Add a finally callback that chains a value promise (optionally converting to a different value type).
-        /// Finally callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
+        /// Add a callback that chains a value promise (optionally converting to a different value type).
+        /// ContinueWith callbacks will always be called, even if any preceding promise is rejected, or encounters an error.
         /// The state of the returning promise will be based on the new value promise, not the preceding (rejected or resolved) promise.
         /// </summary> 
-        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
-        IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
+        IPromise<ConvertedT> ContinueWith<ConvertedT>(Func<IPromise<ConvertedT>> onComplete);
 
         /// <summary>
         /// Add a progress callback.
@@ -1096,8 +1094,7 @@ namespace RSG
             return promise.Then(onComplete);
         }
 
-        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
-        public IPromise Finally(Func<IPromise> onComplete)
+        public IPromise ContinueWith(Func<IPromise> onComplete)
         {
             var promise = new Promise();
             promise.WithName(Name);
@@ -1108,8 +1105,7 @@ namespace RSG
             return promise.Then(onComplete);
         }
 
-        [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
-        public IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
+        public IPromise<ConvertedT> ContinueWith<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
         {
             var promise = new Promise();
             promise.WithName(Name);
