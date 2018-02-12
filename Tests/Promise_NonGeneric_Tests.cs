@@ -91,9 +91,7 @@ namespace RSG.Tests
 
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Resolve()
-            );
+            Assert.Throws<ApplicationException>(() => promise.Resolve());
         }
 
         [Fact]
@@ -338,10 +336,7 @@ namespace RSG.Tests
             all.Then(() => throw new ApplicationException("Shouldn't happen"));
 
             var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
+            all.Catch(e => ++errors);
 
             promise1.Reject(new ApplicationException("Error!"));
             promise2.Resolve();
@@ -412,10 +407,7 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            all.Then(() =>
-            {
-                ++completed;
-            });
+            all.Then(() => ++completed);
 
             Assert.Equal(1, completed);
         }
@@ -465,7 +457,7 @@ namespace RSG.Tests
         {
             var promise = new Promise();
             var chainedPromise = new Promise<string>();
-            var chainedPromiseValue = "some-value";
+            const string chainedPromiseValue = "some-value";
 
             var completed = 0;
 
@@ -988,10 +980,7 @@ namespace RSG.Tests
             try
             {
                 promise
-                    .Then(() =>
-                    {
-                        return Promise.Resolved().Then(() => throw expectedException);
-                    })
+                    .Then(() => Promise.Resolved().Then(() => throw expectedException))
                     .Catch(ex =>
                     {
                         Assert.Equal(expectedException, ex);
@@ -1067,10 +1056,7 @@ namespace RSG.Tests
             var promise = new Promise();
             var callback = 0;
 
-            promise.Finally(() =>
-            {
-                ++callback;
-            });
+            promise.Finally(() => ++callback);
 
             promise.Resolve();
 
@@ -1083,10 +1069,7 @@ namespace RSG.Tests
             var promise = new Promise();
             var callback = 0;
 
-            promise.Finally(() =>
-            {
-                ++callback;
-            });
+            promise.Finally(() => ++callback);
 
             promise.Reject(new Exception());
 
@@ -1099,14 +1082,8 @@ namespace RSG.Tests
             var promise = new Promise();
             var callback = 0;
 
-            promise.Finally(() =>
-            {
-                ++callback;
-            })
-            .Then(() =>
-            {
-                ++callback;
-            });
+            promise.Finally(() => ++callback)
+            .Then(() => ++callback);
 
             promise.Resolve();
 
@@ -1119,14 +1096,8 @@ namespace RSG.Tests
             var promise = new Promise();
             var callback = 0;
 
-            promise.Finally(() =>
-            {
-                ++callback;
-            })
-            .Catch(_ =>
-            {
-                ++callback;
-            });
+            promise.Finally(() => ++callback)
+            .Catch(_ => ++callback);
 
             promise.Reject(new Exception());
 
