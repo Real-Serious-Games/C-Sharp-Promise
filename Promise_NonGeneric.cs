@@ -327,7 +327,9 @@ namespace RSG
         /// <summary>
         /// ID of the promise, useful for debugging.
         /// </summary>
-        public int Id { get; }
+        public int Id { get { return id; } }
+
+        private readonly int id;
 
         /// <summary>
         /// Name of the promise, when set, useful for debugging.
@@ -342,7 +344,7 @@ namespace RSG
         public Promise()
         {
             this.CurState = PromiseState.Pending;
-            this.Id = NextId();
+            this.id = NextId();
             if (EnablePromiseTracking)
             {
                 pendingPromises.Add(this);
@@ -352,7 +354,7 @@ namespace RSG
         public Promise(Action<Action, Action<Exception>> resolver)
         {
             this.CurState = PromiseState.Pending;
-            this.Id = NextId();
+            this.id = NextId();
             if (EnablePromiseTracking)
             {
                 pendingPromises.Add(this);
