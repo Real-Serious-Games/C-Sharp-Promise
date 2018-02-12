@@ -8,7 +8,7 @@ namespace RSG.Tests
         [Fact]
         public void can_report_simple_progress()
         {
-            var expectedStep = 0.25f;
+            const float expectedStep = 0.25f;
             var currentProgress = 0f;
             var promise = new Promise<int>();
 
@@ -18,7 +18,7 @@ namespace RSG.Tests
                 currentProgress = v;
             });
 
-            for (float progress = 0.25f; progress < 1f; progress += 0.25f)
+            for (var progress = 0.25f; progress < 1f; progress += 0.25f)
                 promise.ReportProgress(progress);
             promise.ReportProgress(1f);
 
@@ -70,7 +70,7 @@ namespace RSG.Tests
             var promiseB = new Promise<int>();
             var promiseC = new Promise<int>();
 
-            var expectedProgress = new float[] { 0.1f, 0.2f, 0.6f, 1f };
+            var expectedProgress = new[] { 0.1f, 0.2f, 0.6f, 1f };
             var currentProgress = 0f;
             int currentStep = 0;
             int result = 0;
@@ -162,9 +162,9 @@ namespace RSG.Tests
             var promiseD = new Promise<int>();
 
             int currentStep = 0;
-            var expectedProgress = new float[] { 0.25f, 0.50f, 0.75f, 1f };
+            var expectedProgress = new[] { 0.25f, 0.50f, 0.75f, 1f };
 
-            Promise<int>.All(new IPromise<int>[] { promiseA, promiseB, promiseC, promiseD })
+            Promise<int>.All(promiseA, promiseB, promiseC, promiseD)
                 .Progress(progress =>
                 {
                     Assert.InRange(currentStep, 0, expectedProgress.Length - 1);
@@ -188,7 +188,7 @@ namespace RSG.Tests
             var promiseB = new Promise<int>();
             int reportCount = 0;
 
-            Promise<int>.Race(new IPromise<int>[] { promiseA, promiseB })
+            Promise<int>.Race(promiseA, promiseB)
                 .Progress(progress =>
                 {
                     Assert.Equal(progress, 0.5f);
@@ -212,7 +212,7 @@ namespace RSG.Tests
             var promiseB = Promise<int>.Resolved(17);
             int reportedCount = 0;
 
-            Promise<int>.All(new IPromise<int>[] { promiseA, promiseB })
+            Promise<int>.All(promiseA, promiseB)
                 .Progress(progress =>
                 {
                     ++reportedCount;

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace RSG.Tests
@@ -13,10 +10,10 @@ namespace RSG.Tests
         {
             var testObject = new PromiseTimer();
 
-            var testFrame = 3;
+            const int testFrame = 3;
             var hasResolved = false;
 
-            testObject.WaitUntil((timeData) => timeData.elapsedUpdates == testFrame)
+            testObject.WaitUntil(timeData => timeData.elapsedUpdates == testFrame)
                 .Then(() => hasResolved = true)
                 .Done();
 
@@ -34,7 +31,7 @@ namespace RSG.Tests
         {
             var testObject = new PromiseTimer();
 
-            var testTime = 2f;
+            const float testTime = 2f;
             var hasResolved = false;
 
             testObject.WaitFor(testTime)
@@ -51,7 +48,7 @@ namespace RSG.Tests
         {
             var testObject = new PromiseTimer();
 
-            var testTime = 1f;
+            const float testTime = 1f;
             var hasResolved = false;
 
             testObject.WaitFor(testTime)
@@ -183,10 +180,7 @@ namespace RSG.Tests
 
 
             testObject
-                .WaitUntil(timeData =>
-                {
-                    throw expectedException;
-                })
+                .WaitUntil(timeData => throw expectedException)
                 .Catch(ex => caughtException = ex)
                 .Done();
 

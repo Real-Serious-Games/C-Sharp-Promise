@@ -119,7 +119,7 @@ namespace RSG
         /// <summary>
         /// Currently pending promises
         /// </summary>
-        private LinkedList<PredicateWait> waiting = new LinkedList<PredicateWait>();
+        private readonly LinkedList<PredicateWait> waiting = new LinkedList<PredicateWait>();
 
         /// <summary>
         /// Resolve the returned promise once the time has elapsed

@@ -2,7 +2,6 @@ using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace RSG
 {
@@ -272,12 +271,13 @@ namespace RSG
         /// <summary>
         /// Id for the next promise that is created.
         /// </summary>
-        private static int nextPromiseId = 0;
+        private static int nextPromiseId;
 
         /// <summary>
         /// Information about pending promises.
         /// </summary>
-        internal static HashSet<IPromiseInfo> pendingPromises = new HashSet<IPromiseInfo>();
+        internal static readonly HashSet<IPromiseInfo> PendingPromises = 
+            new HashSet<IPromiseInfo>();
 
         /// <summary>
         /// Information about pending promises, useful for debugging.
@@ -285,7 +285,7 @@ namespace RSG
         /// </summary>
         public static IEnumerable<IPromiseInfo> GetPendingPromises()
         {
-            return pendingPromises;
+            return PendingPromises;
         }
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace RSG
             this.id = NextId();
             if (EnablePromiseTracking)
             {
-                pendingPromises.Add(this);
+                PendingPromises.Add(this);
             }
         }
 
@@ -357,18 +357,12 @@ namespace RSG
             this.id = NextId();
             if (EnablePromiseTracking)
             {
-                pendingPromises.Add(this);
+                PendingPromises.Add(this);
             }
 
             try
             {
-                resolver(
-                    // Resolve
-                    () => Resolve(),
-
-                    // Reject
-                    ex => Reject(ex)
-                );
+                resolver(Resolve, Reject);
             }
             catch (Exception ex)
             {
@@ -394,7 +388,7 @@ namespace RSG
                 rejectHandlers = new List<RejectHandler>();
             }
 
-            rejectHandlers.Add(new RejectHandler()
+            rejectHandlers.Add(new RejectHandler
             {
                 callback = onRejected,
                 rejectable = rejectable
@@ -411,7 +405,7 @@ namespace RSG
                 resolveHandlers = new List<ResolveHandler>();
             }
 
-            resolveHandlers.Add(new ResolveHandler()
+            resolveHandlers.Add(new ResolveHandler
             {
                 callback = onResolved,
                 rejectable = rejectable
@@ -428,7 +422,7 @@ namespace RSG
                 progressHandlers = new List<ProgressHandler>();
             }
 
-            progressHandlers.Add(new ProgressHandler() { callback = onProgress, rejectable = rejectable });
+            progressHandlers.Add(new ProgressHandler { callback = onProgress, rejectable = rejectable });
         }
 
         /// <summary>
@@ -551,7 +545,7 @@ namespace RSG
 
             if (EnablePromiseTracking)
             {
-                pendingPromises.Remove(this);
+                PendingPromises.Remove(this);
             }
 
             InvokeRejectHandlers(ex);            
@@ -572,7 +566,7 @@ namespace RSG
 
             if (EnablePromiseTracking)
             {
-                pendingPromises.Remove(this);
+                PendingPromises.Remove(this);
             }
 
             InvokeResolveHandlers();
@@ -602,7 +596,7 @@ namespace RSG
         {
             Then(onResolved, onRejected)
                 .Catch(ex =>
-                    Promise.PropagateUnhandledException(this, ex)
+                    PropagateUnhandledException(this, ex)
                 );
         }
 
@@ -615,7 +609,7 @@ namespace RSG
         {
             Then(onResolved)
                 .Catch(ex => 
-                    Promise.PropagateUnhandledException(this, ex)
+                    PropagateUnhandledException(this, ex)
                 );
         }
 
@@ -739,7 +733,7 @@ namespace RSG
                     .Progress(progress => resultPromise.ReportProgress(progress))
                     .Then(
                         // Should not be necessary to specify the arg type on the next line, but Unity (mono) has an internal compiler error otherwise.
-                        (ConvertedT chainedValue) => resultPromise.Resolve(chainedValue),
+                        chainedValue => resultPromise.Resolve(chainedValue),
                         ex => resultPromise.Reject(ex)
                     );
             };
@@ -883,7 +877,7 @@ namespace RSG
         /// </summary>
         public IPromise ThenAll(Func<IEnumerable<IPromise>> chain)
         {
-            return Then(() => Promise.All(chain()));
+            return Then(() => All(chain()));
         }
 
         /// <summary>
@@ -915,7 +909,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                return Promise.Resolved();
+                return Resolved();
             }
 
             var remainingCount = promisesArray.Length;
@@ -984,10 +978,7 @@ namespace RSG
         {
             return fns.Aggregate(
                 Resolved(),
-                (prevPromise, fn) =>
-                {
-                    return prevPromise.Then(() => fn());
-                }
+                (prevPromise, fn) => prevPromise.Then(fn)
             );
         }
 
@@ -1089,11 +1080,11 @@ namespace RSG
 
         public IPromise Finally(Action onComplete)
         {
-            Promise promise = new Promise();
+            var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => { promise.Resolve(); });
-            this.Catch((e) => {
+            this.Then(() => promise.Resolve());
+            this.Catch(e => {
                 try {
                     onComplete();
                     promise.Reject(e);
@@ -1102,17 +1093,17 @@ namespace RSG
                 }
             });
 
-            return promise.Then(() => onComplete());
+            return promise.Then(onComplete);
         }
 
         [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         public IPromise Finally(Func<IPromise> onComplete)
         {
-            Promise promise = new Promise();
+            var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => { promise.Resolve(); });
-            this.Catch((e) => { promise.Resolve(); });
+            this.Then(() => promise.Resolve());
+            this.Catch(e => promise.Resolve());
 
             return promise.Then(onComplete);
         }
@@ -1120,13 +1111,13 @@ namespace RSG
         [Obsolete("Use new version of Finally that is TC39 compliant, or Catch and Then.")]
         public IPromise<ConvertedT> Finally<ConvertedT>(Func<IPromise<ConvertedT>> onComplete)
         {
-            Promise promise = new Promise();
+            var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => { promise.Resolve(); });
-            this.Catch((e) => { promise.Resolve(); });
+            this.Then(() => promise.Resolve());
+            this.Catch(e => promise.Resolve());
 
-            return promise.Then(() => { return onComplete(); });
+            return promise.Then(onComplete);
         }
 
         public IPromise Progress(Action<float> onProgress)
