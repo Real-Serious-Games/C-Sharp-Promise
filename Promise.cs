@@ -887,7 +887,6 @@ namespace RSG
                             // If a promise errorred and the result promise is still pending, reject it.
                             resultPromise.Reject(ex);
                         }
-                        return default(PromisedT);
                     })
                     .Done();
             });
