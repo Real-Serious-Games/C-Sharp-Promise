@@ -19,8 +19,8 @@ namespace RSG.Tests.A__Spec
 
                 var resultPromise = promise
                     .Then(
-                        (Action<object>)null,
-                        ex => {}
+                        null,
+                        ex => Promise<object>.Resolved(null)
                     );
 
                 var resolves = 0;
