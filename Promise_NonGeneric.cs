@@ -2,6 +2,7 @@ using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RSG.Exceptions;
 
 namespace RSG
 {
@@ -535,7 +536,11 @@ namespace RSG
 
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to reject a promise that is already in state: " + CurState 
+                    + ", a promise can only be rejected when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             rejectionException = ex;
@@ -557,7 +562,11 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to resolve a promise that is already in state: " + CurState + ", a promise can only be resolved when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to resolve a promise that is already in state: " + CurState 
+                    + ", a promise can only be resolved when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             CurState = PromiseState.Resolved;
@@ -578,7 +587,11 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to report progress on a promise that is already in state: " + CurState + ", a promise can only report progress when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to report progress on a promise that is already in state: " 
+                    + CurState + ", a promise can only report progress when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             InvokeProgressHandlers(progress);
@@ -1029,7 +1042,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                throw new ApplicationException("At least 1 input promise must be provided for Race");
+                throw new InvalidOperationException("At least 1 input promise must be provided for Race");
             }
 
             var resultPromise = new Promise();

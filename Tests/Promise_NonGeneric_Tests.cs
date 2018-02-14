@@ -1,6 +1,7 @@
 using RSG.Promises;
 using System;
 using System.Linq;
+using RSG.Exceptions;
 using Xunit;
 
 namespace RSG.Tests
@@ -39,10 +40,10 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            promise.Reject(new ApplicationException());
+            promise.Reject(new Exception());
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Reject(new ApplicationException())
+            Assert.Throws<PromiseStateException>(() =>
+                promise.Reject(new Exception())
             );
         }
 
@@ -53,8 +54,8 @@ namespace RSG.Tests
 
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Reject(new ApplicationException())
+            Assert.Throws<PromiseStateException>(() =>
+                promise.Reject(new Exception())
             );
         }
 
@@ -63,11 +64,9 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            promise.Reject(new ApplicationException());
+            promise.Reject(new Exception());
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Resolve()
-            );
+            Assert.Throws<PromiseStateException>(() => promise.Resolve());
         }
 
         [Fact]
@@ -91,7 +90,7 @@ namespace RSG.Tests
 
             promise.Resolve();
 
-            Assert.Throws<ApplicationException>(() => promise.Resolve());
+            Assert.Throws<PromiseStateException>(() => promise.Resolve());
         }
 
         [Fact]
@@ -128,7 +127,7 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             var completed = 0;
             promise.Catch(e =>
             {
@@ -146,7 +145,7 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             var completed = 0;
 
             promise.Catch(e =>
@@ -170,7 +169,7 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             promise.Reject(ex);
 
             var completed = 0;
@@ -188,7 +187,7 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            promise.Catch(e => throw new ApplicationException("This shouldn't happen"));
+            promise.Catch(e => throw new Exception("This shouldn't happen"));
 
             promise.Resolve();
         }
@@ -198,9 +197,9 @@ namespace RSG.Tests
         {
             var promise = new Promise();
 
-            promise.Then(() => throw new ApplicationException("This shouldn't happen"));
+            promise.Then(() => throw new Exception("This shouldn't happen"));
 
-            promise.Reject(new ApplicationException("Rejection!"));
+            promise.Reject(new Exception("Rejection!"));
         }
 
         [Fact]
@@ -333,12 +332,12 @@ namespace RSG.Tests
 
             var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
-            all.Then(() => throw new ApplicationException("Shouldn't happen"));
+            all.Then(() => throw new Exception("Shouldn't happen"));
 
             var errors = 0;
             all.Catch(e => ++errors);
 
-            promise1.Reject(new ApplicationException("Error!"));
+            promise1.Reject(new Exception("Error!"));
             promise2.Resolve();
 
             Assert.Equal(1, errors);
@@ -352,7 +351,7 @@ namespace RSG.Tests
 
             var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
-            all.Then(() => throw new ApplicationException("Shouldn't happen"));
+            all.Then(() => throw new Exception("Shouldn't happen"));
 
             var errors = 0;
             all.Catch(e =>
@@ -361,7 +360,7 @@ namespace RSG.Tests
             });
 
             promise1.Resolve();
-            promise2.Reject(new ApplicationException("Error!"));
+            promise2.Reject(new Exception("Error!"));
 
             Assert.Equal(1, errors);
         }
@@ -374,13 +373,13 @@ namespace RSG.Tests
 
             var all = Promise.All(EnumerableExt.FromItems<IPromise>(promise1, promise2));
 
-            all.Then(() => throw new ApplicationException("Shouldn't happen"));
+            all.Then(() => throw new Exception("Shouldn't happen"));
 
             var errors = 0;
             all.Catch(e => ++errors);
 
-            promise1.Reject(new ApplicationException("Error!"));
-            promise2.Reject(new ApplicationException("Error!"));
+            promise1.Reject(new Exception("Error!"));
+            promise2.Reject(new Exception("Error!"));
 
             Assert.Equal(1, errors);
         }

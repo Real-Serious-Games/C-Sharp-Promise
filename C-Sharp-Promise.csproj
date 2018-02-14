@@ -51,6 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EnumerableExt.cs" />
+    <Compile Include="Exceptions\PromiseException.cs" />
+    <Compile Include="Exceptions\PromiseStateException.cs" />
     <Compile Include="PromiseHelpers.cs" />
     <Compile Include="PromiseTimer.cs" />
     <Compile Include="Promise_NonGeneric.cs" />
