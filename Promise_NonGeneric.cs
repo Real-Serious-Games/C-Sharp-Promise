@@ -948,14 +948,6 @@ namespace RSG
                         progress[index] = v;
                         resultPromise.ReportProgress(progress.Average());
                     })
-                    .Catch(ex =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            // If a promise errorred and the result promise is still pending, reject it.
-                            resultPromise.Reject(ex);
-                        }
-                    })
                     .Then(() =>
                     {
                         progress[index] = 1f;
@@ -965,6 +957,14 @@ namespace RSG
                         {
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve();
+                        }
+                    })
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
                         }
                     })
                     .Done();
