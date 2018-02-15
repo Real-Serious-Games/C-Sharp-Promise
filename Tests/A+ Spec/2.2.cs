@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace RSG.Tests.A__Spec
@@ -13,29 +10,7 @@ namespace RSG.Tests.A__Spec
         {
             // 2.2.1.1
             [Fact]
-            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_1()
-            {
-                var promise = new Promise<object>();
-
-                var resultPromise = promise
-                    .Then(
-                        (Action<object>)null,
-                        ex => {}
-                    );
-
-                var resolves = 0;
-                var errors = 0;
-                resultPromise.Then(_ => ++resolves);
-                resultPromise.Catch(ex => ++errors);
-
-                promise.Resolve(new object());
-
-                Assert.Equal(1, resolves);
-                Assert.Equal(0, errors);
-            }
-
-            [Fact]
-            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_2()
+            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored()
             {
                 var promise = new Promise<object>();
 
@@ -378,6 +353,7 @@ namespace RSG.Tests.A__Spec
                     Assert.True(callbackInvoked);
                 }
 
+                [Fact]
                 public void _when_promise1_is_rejected_with_no_value_in_then()
                 {
                     var callbackInvoked = false;
@@ -447,18 +423,12 @@ namespace RSG.Tests.A__Spec
                     var promise1 = new Promise<object>();
 
                     var e = new Exception();
-                    Func<object, IPromise<object>> thenHandler = _ =>
-                    {
-                        throw e;
-                    };
+                    Func<object, IPromise<object>> thenHandler = _ => throw e;
 
                     var promise2 = 
                         promise1.Then(thenHandler);
 
-                    promise1.Catch(_ =>
-                    {
-                        throw new Exception("This shouldn't happen!");
-                    });
+                    promise1.Catch(_ => throw new Exception("This shouldn't happen!"));
 
                     var errorHandledForPromise2 = 0;
                     promise2.Catch(ex =>
@@ -479,18 +449,12 @@ namespace RSG.Tests.A__Spec
                     var promise1 = new Promise<object>();
 
                     var e = new Exception();
-                    Action<object> thenHandler = _ =>
-                    {
-                        throw e;
-                    };
+                    Action<object> thenHandler = _ => throw e;
 
                     var promise2 = 
                         promise1.Then(thenHandler);
 
-                    promise1.Catch(_ =>
-                    {
-                        throw new Exception("This shouldn't happen!");
-                    });
+                    promise1.Catch(_ => throw new Exception("This shouldn't happen!"));
 
                     var errorHandledForPromise2 = 0;
                     promise2.Catch(ex =>
@@ -512,15 +476,9 @@ namespace RSG.Tests.A__Spec
 
                     var e = new Exception();
                     var promise2 = 
-                        promise1.Catch(_ =>
-                        {
-                            throw e;
-                        });
+                        promise1.Catch(_ => throw e);
 
-                    promise1.Catch(_ =>
-                    {
-                        throw new Exception("This shouldn't happen!");
-                    });
+                    promise1.Catch(_ => throw new Exception("This shouldn't happen!"));
 
                     var errorHandledForPromise2 = 0;
                     promise2.Catch(ex =>
@@ -543,9 +501,8 @@ namespace RSG.Tests.A__Spec
                 var promise1 = new Promise<object>();
 
                 var promise2 = promise1.Catch(_ => 
-                {
-                    throw new Exception("There shouldn't be an error");
-                });
+                    throw new Exception("There shouldn't be an error")
+                );
 
                 var promisedValue = new object();
                 var promise2ThenHandler = 0;
@@ -566,10 +523,9 @@ namespace RSG.Tests.A__Spec
             {
                 var promise1 = new Promise<object>();
 
-                var promise2 = promise1.Then(_ =>
-                {
-                    throw new Exception("There shouldn't be a then callback");
-                });
+                var promise2 = promise1.Then(_ => 
+                    throw new Exception("There shouldn't be a then callback")
+                );
 
                 var e = new Exception();
                 var promise2CatchHandler = 0;

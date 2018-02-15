@@ -2,6 +2,7 @@ using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RSG.Exceptions;
 
 namespace RSG
 {
@@ -64,7 +65,7 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected);
+        IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Func<Exception, IPromise<ConvertedT>> onRejected);
 
         /// <summary>
         /// Add a resolved callback and a rejected callback.
@@ -81,7 +82,7 @@ namespace RSG
         /// Add a resolved callback, a rejected callback and a progress callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected, Action<float> onProgress);
+        IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Func<Exception, IPromise<ConvertedT>> onRejected, Action<float> onProgress);
 
         /// <summary>
         /// Add a resolved callback, a rejected callback and a progress callback.
@@ -535,7 +536,11 @@ namespace RSG
 
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to reject a promise that is already in state: " + CurState 
+                    + ", a promise can only be rejected when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             rejectionException = ex;
@@ -557,7 +562,11 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to resolve a promise that is already in state: " + CurState + ", a promise can only be resolved when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to resolve a promise that is already in state: " + CurState 
+                    + ", a promise can only be resolved when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             CurState = PromiseState.Resolved;
@@ -578,7 +587,11 @@ namespace RSG
         {
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to report progress on a promise that is already in state: " + CurState + ", a promise can only report progress when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException(
+                    "Attempt to report progress on a promise that is already in state: " 
+                    + CurState + ", a promise can only report progress when it is still in state: " 
+                    + PromiseState.Pending
+                );
             }
 
             InvokeProgressHandlers(progress);
@@ -687,7 +700,7 @@ namespace RSG
         /// Add a resolved callback and a rejected callback.
         /// The resolved callback chains a value promise (optionally converting to a different value type).
         /// </summary>
-        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Action<Exception> onRejected)
+        public IPromise<ConvertedT> Then<ConvertedT>(Func<IPromise<ConvertedT>> onResolved, Func<Exception, IPromise<ConvertedT>> onRejected)
         {
             return Then(onResolved, onRejected, null);
         }
@@ -715,7 +728,7 @@ namespace RSG
         /// </summary>
         public IPromise<ConvertedT> Then<ConvertedT>(
             Func<IPromise<ConvertedT>> onResolved,
-            Action<Exception> onRejected,
+            Func<Exception, IPromise<ConvertedT>> onRejected,
             Action<float> onProgress)
         {
             // This version of the function must supply an onResolved.
@@ -738,12 +751,24 @@ namespace RSG
 
             Action<Exception> rejectHandler = ex =>
             {
-                if (onRejected != null)
+                if (onRejected == null)
                 {
-                    onRejected(ex);
+                    resultPromise.Reject(ex);
+                    return;
                 }
 
-                resultPromise.Reject(ex);
+                try
+                {
+                    onRejected(ex)
+                        .Then(
+                            chainedValue => resultPromise.Resolve(chainedValue),
+                            callbackEx => resultPromise.Reject(callbackEx)
+                        );
+                }
+                catch (Exception callbackEx)
+                {
+                    resultPromise.Reject(callbackEx);
+                }
             };
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
@@ -823,6 +848,8 @@ namespace RSG
                 if (onRejected != null)
                 {
                     onRejected(ex);
+                    resultPromise.Resolve();
+                    return;
                 }
 
                 resultPromise.Reject(ex);
@@ -923,14 +950,6 @@ namespace RSG
                         progress[index] = v;
                         resultPromise.ReportProgress(progress.Average());
                     })
-                    .Catch(ex =>
-                    {
-                        if (resultPromise.CurState == PromiseState.Pending)
-                        {
-                            // If a promise errorred and the result promise is still pending, reject it.
-                            resultPromise.Reject(ex);
-                        }
-                    })
                     .Then(() =>
                     {
                         progress[index] = 1f;
@@ -940,6 +959,14 @@ namespace RSG
                         {
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve();
+                        }
+                    })
+                    .Catch(ex =>
+                    {
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            // If a promise errorred and the result promise is still pending, reject it.
+                            resultPromise.Reject(ex);
                         }
                     })
                     .Done();
@@ -1017,7 +1044,7 @@ namespace RSG
             var promisesArray = promises.ToArray();
             if (promisesArray.Length == 0)
             {
-                throw new ApplicationException("At least 1 input promise must be provided for Race");
+                throw new InvalidOperationException("At least 1 input promise must be provided for Race");
             }
 
             var resultPromise = new Promise();
