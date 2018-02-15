@@ -11,6 +11,7 @@ namespace RSG
             var val1 = default(T1);
             var val2 = default(T2);
             var numUnresolved = 2;
+            var numRejected = 0;
             var promise = new Promise<Tuple<T1, T2>>();
 
             p1
@@ -23,7 +24,15 @@ namespace RSG
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
                 })
-                .Catch(e => promise.Reject(e))
+                .Catch(e =>
+                {
+                    if (numRejected <= 0)
+                    {
+                        promise.Reject(e);
+                    }
+
+                    numRejected++;
+                })
                 .Done();
 
             p2
@@ -36,7 +45,15 @@ namespace RSG
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
                 })
-                .Catch(e => promise.Reject(e))
+                .Catch(e =>
+                {
+                    if (numRejected <= 0)
+                    {
+                        promise.Reject(e);
+                    }
+
+                    numRejected++;
+                })
                 .Done();
 
             return promise;
