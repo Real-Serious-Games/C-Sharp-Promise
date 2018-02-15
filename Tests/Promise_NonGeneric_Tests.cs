@@ -211,23 +211,27 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            promise
-                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
-                .Then(() => ++completed);
+            VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise>())
+                    .Then(() => ++completed);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve();
+                promise.Resolve();
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve();
+                chainedPromise1.Resolve();
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve();
+                chainedPromise2.Resolve();
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
         [Fact]
@@ -241,31 +245,35 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            promise
-                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Then(result =>
-                {
-                    var items = result.ToArray();
-                    Assert.Equal(2, items.Length);
-                    Assert.Equal(chainedResult1, items[0]);
-                    Assert.Equal(chainedResult2, items[1]);
+            VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise<int>>())
+                    .Then(result =>
+                    {
+                        var items = result.ToArray();
+                        Assert.Equal(2, items.Length);
+                        Assert.Equal(chainedResult1, items[0]);
+                        Assert.Equal(chainedResult2, items[1]);
 
-                    ++completed;
-                });
+                        ++completed;
+                    });
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve();
+                promise.Resolve();
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve(chainedResult1);
+                chainedPromise1.Resolve(chainedResult1);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve(chainedResult2);
+                chainedPromise2.Resolve(chainedResult2);
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
         [Fact]
@@ -279,31 +287,35 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            promise
-                .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Then(result =>
-                {
-                    var items = result.ToArray();
-                    Assert.Equal(2, items.Length);
-                    Assert.Equal(chainedResult1, items[0]);
-                    Assert.Equal(chainedResult2, items[1]);
+            VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(() => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise<int>>())
+                    .Then(result =>
+                    {
+                        var items = result.ToArray();
+                        Assert.Equal(2, items.Length);
+                        Assert.Equal(chainedResult1, items[0]);
+                        Assert.Equal(chainedResult2, items[1]);
 
-                    ++completed;
-                });
+                        ++completed;
+                    });
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve();
+                promise.Resolve();
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve(chainedResult2);
+                chainedPromise2.Resolve(chainedResult2);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve(chainedResult1);
+                chainedPromise1.Resolve(chainedResult1);
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
         [Fact]
