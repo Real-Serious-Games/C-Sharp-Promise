@@ -228,7 +228,7 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 promise
                     .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
@@ -271,7 +271,7 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 promise
                     .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
@@ -311,7 +311,7 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 promise
                     .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
@@ -340,7 +340,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
 
@@ -369,7 +369,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2);
 
@@ -397,7 +397,7 @@ namespace RSG.Tests
             var promise2 = new Promise<bool>();
             var promise3 = new Promise<float>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2, promise3);
 
@@ -428,7 +428,7 @@ namespace RSG.Tests
             var promise3 = new Promise<float>();
             var promise4 = new Promise<double>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2, promise3, promise4);
 
@@ -459,7 +459,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
 
@@ -481,7 +481,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2);
 
@@ -503,7 +503,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
 
@@ -525,7 +525,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2);
 
@@ -547,7 +547,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
 
@@ -569,7 +569,7 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2);
 
@@ -588,7 +588,7 @@ namespace RSG.Tests
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(Enumerable.Empty<IPromise<int>>());
 
@@ -611,7 +611,7 @@ namespace RSG.Tests
             var promise1 = Promise<int>.Resolved(1);
             var promise2 = Promise<int>.Resolved(1);
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = Promise<int>.All(EnumerableExt.FromItems(promise1, promise2));
 
@@ -634,7 +634,7 @@ namespace RSG.Tests
             var promise1 = Promise<int>.Resolved(1);
             var promise2 = Promise<bool>.Resolved(true);
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 var all = PromiseHelpers.All(promise1, promise2);
 
@@ -816,7 +816,7 @@ namespace RSG.Tests
 
             var resolved = 0;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 Promise<int>
                     .Race(promise1, promise2)
@@ -836,7 +836,7 @@ namespace RSG.Tests
 
             var resolved = 0;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 Promise<int>
                     .Race(promise1, promise2)
@@ -856,7 +856,7 @@ namespace RSG.Tests
 
             Exception ex = null;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 Promise<int>
                     .Race(promise1, promise2)
@@ -877,7 +877,7 @@ namespace RSG.Tests
 
             Exception ex = null;
 
-            VerifyDoesntThrowUnhandledException(() =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
                 Promise<int>
                     .Race(promise1, promise2)
@@ -1398,29 +1398,6 @@ namespace RSG.Tests
                 .Catch(ex => actualException = ex);
 
             Assert.Equal(expectedException, actualException);
-        }
-
-        /// <summary>
-        /// Helper function that checks that the given action doesn't trigger the 
-        /// unhandled exception handler.
-        /// </summary>
-        private static void VerifyDoesntThrowUnhandledException(Action testAction)
-        {
-            Exception unhandledException = null;
-            EventHandler<ExceptionEventArgs> handler = 
-                (sender, args) => unhandledException = args.Exception;
-            Promise.UnhandledException += handler;
-
-            try
-            {
-                testAction();
-
-                Assert.Null(unhandledException);
-            }
-            finally
-            {
-                Promise.UnhandledException -= handler;
-            }
         }
     }
 }
