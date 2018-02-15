@@ -13,29 +13,7 @@ namespace RSG.Tests.A__Spec
         {
             // 2.2.1.1
             [Fact]
-            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_1()
-            {
-                var promise = new Promise<object>();
-
-                var resultPromise = promise
-                    .Then(
-                        null,
-                        ex => Promise<object>.Resolved(null)
-                    );
-
-                var resolves = 0;
-                var errors = 0;
-                resultPromise.Then(_ => ++resolves);
-                resultPromise.Catch(ex => ++errors);
-
-                promise.Resolve(new object());
-
-                Assert.Equal(1, resolves);
-                Assert.Equal(0, errors);
-            }
-
-            [Fact]
-            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored_2()
+            public void _if_onFulfilled_is_not_a_function_it_must_be_ignored()
             {
                 var promise = new Promise<object>();
 
