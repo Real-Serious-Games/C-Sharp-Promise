@@ -848,6 +848,8 @@ namespace RSG
                 if (onRejected != null)
                 {
                     onRejected(ex);
+                    resultPromise.Resolve();
+                    return;
                 }
 
                 resultPromise.Reject(ex);
