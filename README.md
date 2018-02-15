@@ -5,16 +5,22 @@
          title="Promises/A+ 1.0 compliant" align="right" />
 </a>
 
-Promises library for C# for management of asynchronous operations. 
+Promises library for C# for management of asynchronous operations.
 
 Inspired by Javascript promises, but slightly different.
 
 Used by [Real Serious Games](https://github.com/Real-Serious-Games/C-Sharp-Promise) for building serious games and simulations on Unity3d.
 
-If you are interested in using promises for game development and Unity please see [this article](http://www.what-could-possibly-go-wrong.com/promises-for-game-development/).  
+If you are interested in using promises for game development and Unity please see [this article](http://www.what-could-possibly-go-wrong.com/promises-for-game-development/).
 
 ## Recent Updates
 
+- v3.0 (15 Feburary 2018)
+    - *Finally* has been modified to work in a way consistent to [Promise.prototype.finally()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally) in JavaScript.
+    - Added support for reporting progress in a promise.
+    - Signed assembly with a strong name.
+    - Errors throw custom exception types rather than generic ones.
+    - Modified some overloads of *Then* that didn't make sense.
 - v2.0 (4 December 2017)
     - *Then* functions chained after a *Catch* are now run after the exception is handled rather than being terminated
     - *Catch* can return a value which will be passed into the next *Then*
@@ -27,7 +33,7 @@ If you are interested in using promises for game development and Unity please se
     - Removed dependency on RSG.Toolkit
 - v1.2 (8 March 2015)
     - *Transform* function has been renamed to *Then* (another overload of *Then*).
-    
+
 ## Projects using this library
 - **[RestClient for Unity 🤘](https://github.com/proyecto26/RestClient)**
 
@@ -98,10 +104,10 @@ Alternately, to contribute please fork the project in github.
 
 Reference the DLL and import the namespace:
 
-    using RSG; 
+    using RSG;
 
 Create a promise before you start the async operation:
-    
+
     var promise = new Promise<string>();
 
 The type of the promise should reflect the result of the async op.
@@ -141,13 +147,13 @@ To see it in context, here is an example function that downloads text from a URL
 
         return promise; // Return the promise so the caller can await resolution (or error).
     }
- 
+
 ## Creating a Promise, Alternate Method
 
 There is another way to create a promise that replicates the JavaScript convention of passing a *resolver* function into the constructor. The resolver function is passed functions that resolve or reject the promise. This allows you to express the previous example like this:
 
-    var promise = new Promise<string>((resolve, reject) => 
-    {        
+    var promise = new Promise<string>((resolve, reject) =>
+    {
         using (var client = new WebClient())
         {
             client.DownloadStringCompleted +=   // Monitor event for download completed.
@@ -197,7 +203,7 @@ Multiple async operations can be chained one after the other using *Then*:
 
     Download("http://www.google.com")
         .Then(html =>
-            return Download(ExtractFirstLink(html)) // Extract the first link and download it. 
+            return Download(ExtractFirstLink(html)) // Extract the first link and download it.
         )
         .Then(firstLinkHtml =>
             Console.WriteLine(firstLinkHtml)
@@ -205,7 +211,7 @@ Multiple async operations can be chained one after the other using *Then*:
         .Catch(exception =>
             Console.WriteLine("An exception occured while downloading!")
         );
- 
+
 Here we are chaining another download onto the end of the first download. The first link in the html is extracted and we then download that. *Then* expects the return value to be another promise. The chained promise can have a different *result type*.
 
 ## Transforming the Results ##
@@ -214,7 +220,7 @@ Sometimes you will want to simply transform or modify the resulting value withou
 
     Download("http://www.google.com")
         .Then(html =>
-            return ExtractAllLinks(html))   // Extract all links and return an array of strings.  
+            return ExtractAllLinks(html))   // Extract all links and return an array of strings.
         )
         .Then(links =>                      // The input here is an array of strings.
             foreach (var link in links)
@@ -223,16 +229,16 @@ Sometimes you will want to simply transform or modify the resulting value withou
             }
         );
 
-As is demonstrated the type of the value can also be changed during transformation. In the previous snippet a `Promise<string>` is transformed to a `Promise<string[]>`.   
+As is demonstrated the type of the value can also be changed during transformation. In the previous snippet a `Promise<string>` is transformed to a `Promise<string[]>`.
 
 ## Error Handling
 
 An error raised in a callback aborts the function and all subsequent callbacks in the chain:
 
-    promise.Then(v => Something())   // <--- An error here aborts all subsequent callbacks... 
+    promise.Then(v => Something())   // <--- An error here aborts all subsequent callbacks...
         .Then(v => SomethingElse())
         .Then(v => AnotherThing())
-        .Catch(e => HandleError(e))  // <--- Until the error handler is invoked here. 
+        .Catch(e => HandleError(e))  // <--- Until the error handler is invoked here.
 
 ## Unhandled Errors
 
@@ -242,10 +248,10 @@ We handle this in a similar way to the JavaScript [Q](http://documentup.com/kris
 
 Terminating a Promise chain using `Done`:
 
-    promise.Then(v => Something()) 
+    promise.Then(v => Something())
         .Then(v => SomethingElse())
         .Then(v => AnotherThing())
-        .Done();    // <--- Terminate the pipeline and propagate unhandled exceptions. 
+        .Done();    // <--- Terminate the pipeline and propagate unhandled exceptions.
 
 To use the `Done` you must apply the following rule: When you get to the end of a chain of promises, you should either return the last promise or end the chain by calling `Done`.
 
@@ -257,7 +263,7 @@ Then forward the exceptions to your own logging system:
 
     private void Promise_UnhandledException(object sender, ExceptionEventArgs e)
     {
-        Log.Error(e.Exception, "An unhandled promises exception occured!"); 
+        Log.Error(e.Exception, "An unhandled promises exception occured!");
     }
 
 ## Progress reporting
@@ -278,13 +284,13 @@ Listening for progress on a `Then` call:
     promise
         .Then(() => promiseB, null, (progress) => Log.Info("promiseA made progress: " + progress))
         .Progress(progress => Log.Info("promiseB made progress: " + progress));
-        
+
 In order to report progress for a promise, you need to call the `ReportProgress` method:
 
     var promise = new Promise();
     promise.ReportProgress(0.5f); // Report a 50% completion
 
-## Promises that are already Resolved/Rejected 
+## Promises that are already Resolved/Rejected
 
 For convenience or testing you will at some point need to create a promise that *starts out* in the resolved or rejected state. This is easy to achieve using *Resolved* and *Rejected* functions:
 
@@ -294,16 +300,16 @@ For convenience or testing you will at some point need to create a promise that 
 
 ## Interfaces ##
 
-The class *Promise<T>* implements the following interfaces: 
+The class *Promise<T>* implements the following interfaces:
 
 - `IPromise<T>` Interface to await promise resolution.
-- `IPendingPromise<T>` Interface that can resolve or reject the promise.  
+- `IPendingPromise<T>` Interface that can resolve or reject the promise.
 
 ## Combining Multiple Async Operations ##
 
-The *All* function combines multiple async operations to run in parallel. It converts a collection of promises or a variable length parameter list of promises into a single promise that yields a collection. 
+The *All* function combines multiple async operations to run in parallel. It converts a collection of promises or a variable length parameter list of promises into a single promise that yields a collection.
 
-Say that each promise yields a value of type *T*, the resulting promise then yields a collection with values of type *T*.  
+Say that each promise yields a value of type *T*, the resulting promise then yields a collection with values of type *T*.
 
 Here is an example that extracts links from multiple pages and merges the results:
 
@@ -335,16 +341,16 @@ The *ThenAll* function is a convenient way of chaining multiple promise onto an 
     promise
         .Then(result => SomeAsyncOperation(result)) // Chain a single async operation
         .ThenAll(result =>                          // Chain multiple async operations.
-            new IPromise<string>[]                  // Return an enumerable of promises. 
-            {					
-                SomeAsyncOperation1(result),		
+            new IPromise<string>[]                  // Return an enumerable of promises.
+            {
+                SomeAsyncOperation1(result),
                 SomeAsyncOperation2(result),
                 SomeAsyncOperation3(result)
             }
         )
-        .Done(collection => ...);                   // Final promise resolves 
-                                                    // with a collection of values 
-                                                    // when all operations have completed.  
+        .Done(collection => ...);                   // Final promise resolves
+                                                    // with a collection of values
+                                                    // when all operations have completed.
 
 ## Racing Asynchronous Operations
 
@@ -353,15 +359,15 @@ The *Race* and *ThenRace* functions are similar to the *All* and *ThenAll* funct
     promise
         .Then(result => SomeAsyncOperation(result)) // Chain an async operation.
         .ThenRace(result =>                         // Race multiple async operations.
-            new IPromise<string>[]                  // Return an enumerable of promises. 
-            {					
-                SomeAsyncOperation1(result),		
+            new IPromise<string>[]                  // Return an enumerable of promises.
+            {
+                SomeAsyncOperation1(result),
                 SomeAsyncOperation2(result),
                 SomeAsyncOperation3(result)
             }
         )
         .Done(result => ...);                       // The result has come from whichever of
-                                                    // the async operations completed first. 
+                                                    // the async operations completed first.
 
 When listening for progress events in a race operation, the progress that you will receive will be the maximum of those reported by all the given promises.
 
@@ -380,13 +386,13 @@ The *Then* function can be used to chain synchronous operations that yield no re
 
 What about a promise that has no result? This represents an asynchronous operation that promises only to complete, it doesn't promise to yield any value as a result. I call this a non-value promise, as opposed to a value promise, which is a promise that does yield a value. This might seem like a curiousity but it is actually very useful for sequencing visual effects.
 
-`Promise` is very similar to `Promise<T>` and implements the similar interfaces: `IPromise` and `IPendingPromise`. 
+`Promise` is very similar to `Promise<T>` and implements the similar interfaces: `IPromise` and `IPendingPromise`.
 
 `Promise<T>` functions that affect the resulting value have no relevance for the non-value promise and have been removed.
 
 As an example consider the chaining of animation and sound effects as we often need to do in *game development*:
 
-    RunAnimation("Foo")                         // RunAnimation returns a promise that 
+    RunAnimation("Foo")                         // RunAnimation returns a promise that
         .Then(() => RunAnimation("Bar"))        // is resolved when the animation is complete.
         .Then(() => PlaySound("AnimComplete"));
 
@@ -396,14 +402,14 @@ From time to time you might want to convert a value promise to a non-value promi
 
 As an example consider a recursive link extractor and file downloader function:
 
-    public IPromise DownloadAll(string url) 
+    public IPromise DownloadAll(string url)
     {
         return DownloadURL(url)                 // Yields a value, the HTML text downloaded.
             .Then(html => ExtractLinks(html))   // Convert HTML into an enumerable of links.
-            .ThenAll(links =>                   // Process each link. 
+            .ThenAll(links =>                   // Process each link.
             {
                 // Determine links that should be followed, then follow them.
-                var linksToFollow = links.Where(link => IsLinkToFollow(link)); 
+                var linksToFollow = links.Where(link => IsLinkToFollow(link));
                 var linksFollowing = linksToFollow.Select(link => DownloadAll(link));
 
                 // Determine links that are files to be downloaded, then download them.
@@ -411,18 +417,18 @@ As an example consider a recursive link extractor and file downloader function:
                 var linksDownloading = linksToDownload.Select(link => DownloadFile(link));
 
                 // Return an enumerable of promises.
-                // This combines the recursive link following and any files we want to download.				
+                // This combines the recursive link following and any files we want to download.
                 // Because we are returning an enumerable of non-value promises, the resulting
-                // chained promises is also non-value. 
+                // chained promises is also non-value.
                 return linksToFollow.Concat(linksDownloading);
-            });			
+            });
     }
 
 Usage:
 
     DownloadAll("www.somewhere.com")
         .Done(() =>
-            Console.WriteLine("Recursive download completed."); 
+            Console.WriteLine("Recursive download completed.");
         );
 
 
@@ -430,7 +436,7 @@ Usage:
 
 The `Sequence` and `ThenSequence` functions build a single promise that wraps multiple sequential operations that will be invoked one after the other.
 
-Multiple promise-yielding functions are provided as input, these are chained one after the other and wrapped in a single promise that is resolved once the sequence has completed. 
+Multiple promise-yielding functions are provided as input, these are chained one after the other and wrapped in a single promise that is resolved once the sequence has completed.
 
     var sequence = Promise.Sequence(
         () => RunAnimation("Foo"),
@@ -456,9 +462,9 @@ This might be used, for example, to play a variable length collection of animati
 
 Unfortunately we find that we have reached the limits of what is possible with C# type inference, hence the use of the ugly cast `(Func<IPromise>)`.
 
-The cast can easily be removed by converting the inner anonymous function to an actual function which I'll call `PrepAnimation`: 
+The cast can easily be removed by converting the inner anonymous function to an actual function which I'll call `PrepAnimation`:
 
-    private Func<IPromise> PrepAnimation(string animName) 
+    private Func<IPromise> PrepAnimation(string animName)
     {
         return () => RunAnimation(animName);
     }
@@ -475,7 +481,7 @@ Holy cow... we've just careened into [functional programming](http://en.wikipedi
 
 ## Combining Parallel and Sequential Operations
 
-We can easily combine sequential and parallel operations to build very expressive logic. 
+We can easily combine sequential and parallel operations to build very expressive logic.
 
     Promise.Sequence(               // Play operations 1 and 2 sequently.
         () => Promise.All(          // Operation 1: Play animation and sound at same time.
@@ -484,7 +490,7 @@ We can easily combine sequential and parallel operations to build very expressiv
         ),
         () => Promise.All(
             RunAnimation("One"),    // Operation 2: Play animation and sound at same time.
-            PlaySound("Two")      
+            PlaySound("Two")
         )
     );
 
@@ -495,14 +501,14 @@ I'm starting to feel like we are defining behavior trees.
 If you have a promise that comprises a sequence of other promises, you might want to report the total progress for these, and even give more weight to the progress of some promise over another. In this example, we are first downloading an asset from some URL and then we are loading the downloaded asset into memory. We consider that the time it takes to download the asset will be an 80% of the total time, while the time to load it into memory is a 20%:
 
     var promise = new Promise();
-    
+
     Download(url)
         .Progress((downloadProgress) => promise.ReportProgress(0.8f * downloadProgress))
         .Then((asset) => LoadAssetIntoMemory(asset))
         .Progress((loadProgress) => promise.ReportProgress(0.8f + 0.2f * loadProgress))
         .Then(() => promise.Resolve())
         .Catch((ex) => promise.Reject(ex));
-        
+
     return promise;
 
 ## PromiseTimer class
@@ -521,7 +527,7 @@ To use it, create an instance of the promise timer and call its `Update` method 
         }
 
         // Run once for every frame - equivilant to Update() in Unity
-        void MainLoop() 
+        void MainLoop()
         {
             // deltaTime is equal to the time since the last MainLoop
             promiseTimer.Update(Time.deltaTime);
@@ -536,7 +542,7 @@ Note that usually it is best to call `PromiseTimer.Update` *before* your other l
 
 This method creates a promise that resolves after the specified amount of time in seconds has passed. Time is calculated as the sum of the delta values passed into `PromiseTimer.Update`
 
-    IPromise LogAfterFourSeconds() 
+    IPromise LogAfterFourSeconds()
     {
         return promiseTimer.WaitFor(4f)
             .Then(() => Console.Log("4 seconds have passed!"));
@@ -546,9 +552,9 @@ This method creates a promise that resolves after the specified amount of time i
 
 WaitUntil takes a predicate to check each update and resolves once the predicate returns true. This predicate function is passed a `TimeData` object, which just contains the most recent frame's `deltaTime` and `elapsedTime` which is the total amount of time since the promise was created.
 
-    IPromise FadeOut(float duration) 
+    IPromise FadeOut(float duration)
     {
-        return promiseTimer.WaitUntil(timeData => 
+        return promiseTimer.WaitUntil(timeData =>
         {
             // Here we are using the amount of elapsed time to calculate what the current
             // fade value should be (between 0 and 1).
@@ -582,7 +588,7 @@ TimeData is passed to you as a paramter when using either PromiseTimer.WaitUntil
 - Example1
     - Example of downloading text from a URL using a promise.
 - Example2
-    - Example of a promise that is rejected because of an error during 
+    - Example of a promise that is rejected because of an error during
     - the async operation.
 - Example3
     - This example downloads search results from google then transforms the result to extract links.
