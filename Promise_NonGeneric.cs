@@ -1,4 +1,4 @@
-using RSG.Promises;
+﻿using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1028,8 +1028,7 @@ namespace RSG
                 }
             )
             .Then(() => promise.Resolve())
-            .Catch(promise.Reject)
-            .Done();
+            .Catch(promise.Reject);
 
             return promise;
         }
