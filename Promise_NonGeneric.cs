@@ -1,4 +1,4 @@
-using RSG.Promises;
+﻿using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1001,10 +1001,36 @@ namespace RSG
         /// </summary>
         public static IPromise Sequence(IEnumerable<Func<IPromise>> fns)
         {
-            return fns.Aggregate(
+            var promise = new Promise();
+
+            int count = 0;
+
+            fns.Aggregate(
                 Resolved(),
-                (prevPromise, fn) => prevPromise.Then(fn)
-            );
+                (prevPromise, fn) =>
+                {
+                    int itemSequence = count;
+                    ++count;
+
+                    return prevPromise
+                            .Then(() =>
+                            {
+                                var sliceLength = 1f / count;
+                                promise.ReportProgress(sliceLength * itemSequence);
+                                return fn();
+                            })
+                            .Progress(v =>
+                            {
+                                var sliceLength = 1f / count;
+                                promise.ReportProgress(sliceLength * (v + itemSequence));
+                            })
+                    ;
+                }
+            )
+            .Then(() => promise.Resolve())
+            .Catch(promise.Reject);
+
+            return promise;
         }
 
         /// <summary>

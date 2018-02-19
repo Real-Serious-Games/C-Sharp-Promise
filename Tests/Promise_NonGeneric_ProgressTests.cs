@@ -213,5 +213,41 @@ namespace RSG.Tests
 
             Assert.Equal(1, reportedCount);
         }
+
+        [Fact]
+        public void sequence_reports_progress()
+        {
+            var promiseA = new Promise();
+            var promiseB = new Promise();
+            var promiseC = Promise.Resolved();
+            var promiseD = new Promise();
+            int currentReport = 0;
+            var expectedProgress = new[] { 0.125f, 0.25f, 0.25f, 0.3125f, 0.375f, 0.4375f, 0.5f, 0.75f, 0.875f, 1f };
+
+            Promise
+                .Sequence(() => promiseA, () => promiseB, () => promiseC, () => promiseD)
+                .Progress(v =>
+                {
+                    Assert.Equal(expectedProgress[currentReport], v);
+                    ++currentReport;
+                })
+                .Done()
+            ;
+
+            promiseA.ReportProgress(0.5f);
+            promiseA.ReportProgress(1f);
+            promiseA.Resolve();
+
+            promiseB.ReportProgress(0.25f);
+            promiseB.ReportProgress(0.5f);
+            promiseB.ReportProgress(0.75f);
+            promiseB.Resolve();
+
+            promiseD.ReportProgress(0.5f);
+            promiseD.ReportProgress(1f);
+            promiseD.Resolve();
+
+            Assert.Equal(expectedProgress.Length, currentReport);
+        }
     }
 }
