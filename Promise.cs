@@ -954,8 +954,11 @@ namespace RSG
                 promise
                     .Progress(v =>
                     {
-                        progress[index] = v;
-                        resultPromise.ReportProgress(progress.Max());
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            progress[index] = v;
+                            resultPromise.ReportProgress(progress.Max());
+                        }
                     })
                     .Then(result =>
                     {
