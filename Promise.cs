@@ -51,7 +51,10 @@ namespace RSG
         /// </summary>
         IPromise<PromisedT> Catch(Func<Exception, PromisedT> onRejected);
 
-        IPromise<ConvertedT> Catch<ConvertedT>(Func<Exception, IPromise<ConvertedT>> onRejected);
+        /// <summary>
+        /// Handle errors for the promise.
+        /// </summary>
+        IPromise<PromisedT> Catch(Func<Exception, IPromise<PromisedT>> onRejected);
 
         /// <summary>
         /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
@@ -583,27 +586,31 @@ namespace RSG
             return resultPromise;
         }
         
-        public IPromise<ConvertedT> Catch<ConvertedT>(Func<Exception, IPromise<ConvertedT>> onRejected) {
-            var resultPromise = new Promise<ConvertedT>();
+        /// <summary>
+        /// Handle errors for the promise.
+        /// </summary>
+        public IPromise<PromisedT> Catch(Func<Exception, IPromise<PromisedT>> onRejected) {
+            var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
+
+            Action<PromisedT> resolveHandler = v => resultPromise.Resolve(v);
 
             Action<Exception> rejectHandler = ex =>
             {
-                try
-                {
+                try {
                     onRejected(ex)
-                        .Then(
-                              chainedValue => resultPromise.Resolve(chainedValue),
-                              callbackEx => resultPromise.Reject(callbackEx)
-                             );
+                        .Progress(progress => resultPromise.ReportProgress(progress))
+                        .Then(resolve => resultPromise.Resolve(resolve))
+                        .Catch(reject => resultPromise.Reject(ex));
                 }
-                catch (Exception callbackEx)
+                catch (Exception cbEx)
                 {
-                    resultPromise.Reject(callbackEx);
+                    resultPromise.Reject(cbEx);
                 }
             };
 
-            InvokeHandler(rejectHandler, this, rejectionException);
+            ActionHandlers(resultPromise, resolveHandler, rejectHandler);
+            ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
 
             return resultPromise;
         }

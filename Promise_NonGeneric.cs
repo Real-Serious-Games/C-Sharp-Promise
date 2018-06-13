@@ -46,8 +46,6 @@ namespace RSG
         /// </summary>
         IPromise Catch(Action<Exception> onRejected);
 
-        IPromise<ConvertedT> Catch<ConvertedT>(Func<Exception, IPromise<ConvertedT>> onRejected);
-
         /// <summary>
         /// Add a resolved callback that chains a value promise (optionally converting to a different value type).
         /// </summary>
@@ -648,8 +646,6 @@ namespace RSG
         /// </summary>
         public IPromise Catch(Action<Exception> onRejected)
         {
-//            Argument.NotNull(() => onRejected);
-
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
@@ -670,24 +666,6 @@ namespace RSG
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
             ProgressHandlers(resultPromise, v => resultPromise.ReportProgress(v));
-
-            return resultPromise;
-        }
-        
-        public IPromise<ConvertedT> Catch<ConvertedT>(Func<Exception, IPromise<ConvertedT>> onRejected) {
-            var resultPromise = new Promise<ConvertedT>();
-            resultPromise.WithName(Name);
-
-            Action<Exception> rejectHandler = ex =>
-            {
-                onRejected(ex)
-                    .Then(
-                          chainedValue => resultPromise.Resolve(chainedValue),
-                          callbackEx => resultPromise.Reject(callbackEx)
-                         );
-            };
-
-            InvokeRejectHandler(rejectHandler, this, rejectionException);
 
             return resultPromise;
         }
