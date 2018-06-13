@@ -1399,5 +1399,35 @@ namespace RSG.Tests
 
             Assert.Equal(expectedException, actualException);
         }
+        
+        [Fact]
+        public void resolved_callback_is_caught_by_catch_returning_promise() {
+            var promise = new Promise<int>();
+            int excepectedValue = 1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise<int>.Resolved(-1))
+                   .Then(result => { actualValue = result; })
+                   .Catch(err => throw new Exception("Should not happend."));
+            
+            promise.Resolve(1);
+
+            Assert.Equal(excepectedValue, actualValue);
+        }
+        
+        [Fact]
+        public void rejected_callback_is_caught_by_catch_returning_promise() {
+            var promise         = new Promise<int>();
+            int excepectedValue = -1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise<int>.Rejected(new Exception()))
+                   .Then(result => throw new Exception("Should not happend."))
+                   .Catch(err => actualValue = -1);
+            
+            promise.Resolve(1);
+
+            Assert.Equal(excepectedValue, actualValue);
+        }
     }
 }
