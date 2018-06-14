@@ -202,7 +202,10 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Catch(e => throw new Exception("This shouldn't happen"));
+            promise.Catch(e => {
+                throw new Exception("This shouldn't happen");
+                return -1;
+            });
 
             promise.Resolve(5);
         }
@@ -734,7 +737,6 @@ namespace RSG.Tests
                 .Then(v =>
                 {
                     Assert.Equal(chainedPromiseValue, v);
-
                     ++completed;
                 });
 
