@@ -336,7 +336,7 @@ urls.Add("www.google.com");
 urls.Add("www.yahoo.com");
 
 Promise<string[]>
-    .All(url => Download(url))  // Download each URL.
+    .All(urls.Select(url => Download(url)))  // Download each URL.
     .Then(pages =>              // Receives collection of downloaded pages.
         pages.SelectMany(
             page => ExtractAllLinks(page) // Extract links from all pages then flatten to single collection of links.
