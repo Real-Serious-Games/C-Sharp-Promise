@@ -9,5 +9,7 @@
     <PackageProjectUrl>https://github.com/Real-Serious-Games/C-Sharp-Promise</PackageProjectUrl>
     <RepositoryUrl></RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>C-Sharp-Promise.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>
