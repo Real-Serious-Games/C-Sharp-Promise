@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -948,14 +948,17 @@ namespace RSG
                     .Progress(v =>
                     {
                         progress[index] = v;
-                        resultPromise.ReportProgress(progress.Average());
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.ReportProgress(progress.Average());
+                        }
                     })
                     .Then(() =>
                     {
                         progress[index] = 1f;
 
                         --remainingCount;
-                        if (remainingCount <= 0)
+                        if (remainingCount <= 0 && resultPromise.CurState == PromiseState.Pending)
                         {
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve();

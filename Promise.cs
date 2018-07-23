@@ -872,7 +872,10 @@ namespace RSG
                     .Progress(v =>
                     {
                         progress[index] = v;
-                        resultPromise.ReportProgress(progress.Average());
+                        if (resultPromise.CurState == PromiseState.Pending)
+                        {
+                            resultPromise.ReportProgress(progress.Average());
+                        }
                     })
                     .Then(result =>
                     {
@@ -880,7 +883,7 @@ namespace RSG
                         results[index] = result;
 
                         --remainingCount;
-                        if (remainingCount <= 0)
+                        if (remainingCount <= 0 && resultPromise.CurState == PromiseState.Pending)
                         {
                             // This will never happen if any of the promises errorred.
                             resultPromise.Resolve(results);
