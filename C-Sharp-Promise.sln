@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "C-Sharp-Promise", "src\C-Sharp-Promise.csproj", "{7E1C6A8A-84E7-43C3-AE73-C6E8A9F11AF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSG.Promise", "src\RSG.Promise.csproj", "{7E1C6A8A-84E7-43C3-AE73-C6E8A9F11AF3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Promise.Tests", "Tests\Promise.Tests.csproj", "{4B4EE1A6-25A3-43D0-BAE9-5E45E31F2816}"
 EndProject
@@ -63,5 +63,8 @@ Global
 		{6E70ADB8-B34B-4C71-BE15-3001F5C791B8} = {79A9B3AC-1942-4441-872C-41CF7BB240A4}
 		{BDB0135C-B075-47BE-A971-1927BEA6F622} = {79A9B3AC-1942-4441-872C-41CF7BB240A4}
 		{1060401E-1C17-4741-BF1E-9F05B5427775} = {79A9B3AC-1942-4441-872C-41CF7BB240A4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D2FBA48-64F2-4236-BA93-0AF605D743D8}
 	EndGlobalSection
 EndGlobal

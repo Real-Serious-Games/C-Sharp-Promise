@@ -61,9 +61,9 @@
     <Compile Include="TestHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\C-Sharp-Promise.csproj">
+    <ProjectReference Include="..\src\RSG.Promise.csproj">
       <Project>{7e1c6a8a-84e7-43c3-ae73-c6e8a9f11af3}</Project>
-      <Name>C-Sharp-Promise</Name>
+      <Name>RSG.Promise</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
