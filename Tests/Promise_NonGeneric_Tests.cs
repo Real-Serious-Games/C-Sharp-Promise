@@ -432,6 +432,31 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void all_with_rejected_promise()
+        {
+            bool resolved = false;
+            bool rejected = false;
+            Exception caughtException = null;
+            Exception exception = new Exception();
+
+            var promiseA = new Promise();
+            var promise = Promise
+                .All(promiseA, Promise.Rejected(exception))
+                .Then(() => resolved = true)
+                .Catch(ex =>
+                {
+                    caughtException = ex;
+                    rejected = true;
+                });
+            promiseA.ReportProgress(0.5f);
+            promiseA.Resolve();
+            
+            Assert.Equal(false, resolved);
+            Assert.Equal(true, rejected);
+            Assert.Equal(exception, caughtException);
+        }
+
+        [Fact]
         public void exception_thrown_during_transform_rejects_promise()
         {
             var promise = new Promise();
