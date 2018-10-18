@@ -1,4 +1,4 @@
-﻿using RSG.Promises;
+using RSG.Promises;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -427,19 +427,19 @@ namespace RSG
         /// <summary>
         /// Handle errors for the promise.
         /// </summary>
-        public IPromise Catch(Action<Exception> onRejected)
+        public IPromise<PromisedT> Catch(Action<Exception> onRejected)
         {
-            var resultPromise = new Promise();
+            var resultPromise = new Promise<PromisedT>();
             resultPromise.WithName(Name);
 
-            Action<PromisedT> resolveHandler = _ => resultPromise.Resolve();
+            Action<PromisedT> resolveHandler = _ => resultPromise.Resolve(default(PromisedT));
 
             Action<Exception> rejectHandler = ex =>
             {
                 try
                 {
                     onRejected(ex);
-                    resultPromise.Resolve();
+                    resultPromise.Resolve(default(PromisedT));
                 }
                 catch(Exception cbEx)
                 {

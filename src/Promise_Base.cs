@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using RSG.Exceptions;
 using RSG.Promises;
 
 namespace RSG
@@ -158,6 +159,20 @@ namespace RSG
         string Name { get; }
     }
 
+    public struct ProgressHandler
+    {
+        /// <summary>
+        /// Callback fn.
+        /// </summary>
+        public Action<float> callback;
+
+        /// <summary>
+        /// The promise that is rejected when there is an error while invoking the handler.
+        /// </summary>
+        public IRejectable rejectable;
+    }
+
+
     public abstract class Promise_Base : IPromiseInfo
     {
         /// <summary>
@@ -197,7 +212,7 @@ namespace RSG
 
             if (Promise.EnablePromiseTracking)
             {
-                Promise.pendingPromises.Add(this);
+                Promise.PendingPromises.Add(this);
             }
         }
 
@@ -273,7 +288,7 @@ namespace RSG
 
             if (CurState != PromiseState.Pending)
             {
-                throw new ApplicationException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
+                throw new PromiseStateException("Attempt to reject a promise that is already in state: " + CurState + ", a promise can only be rejected when it is still in state: " + PromiseState.Pending);
             }
 
             rejectionException = ex;
@@ -281,7 +296,7 @@ namespace RSG
 
             if (Promise.EnablePromiseTracking)
             {
-                Promise.pendingPromises.Remove(this);
+                Promise.PendingPromises.Remove(this);
             }
 
             InvokeRejectHandlers(ex);
