@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RSG.Promises
@@ -8,21 +8,6 @@ namespace RSG.Promises
     /// </summary>
     public static class EnumerableExt
     {
-        public static IEnumerable<T> Empty<T>()
-        {
-            return new T[0];
-        }
-
-        public static IEnumerable<T> LazyEach<T>(this IEnumerable<T> source, Action<T> fn)
-        {
-            foreach (var item in source)
-            {
-                fn.Invoke(item);
-
-                yield return item;
-            }
-        }
-
         public static void Each<T>(this IEnumerable<T> source, Action<T> fn)
         {
             foreach (var item in source)
@@ -39,6 +24,17 @@ namespace RSG.Promises
             {
                 fn.Invoke(item, index);
                 index++;
+            }
+        }
+
+        /// <summary>
+        /// Convert a variable length argument list of items to an enumerable.
+        /// </summary>
+        public static IEnumerable<T> FromItems<T>(params T[] items)
+        {
+            foreach (var item in items)
+            {
+                yield return item;
             }
         }
     }

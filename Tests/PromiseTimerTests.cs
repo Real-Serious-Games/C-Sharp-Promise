@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System;
 using Xunit;
 
 namespace RSG.Tests
@@ -9,11 +6,32 @@ namespace RSG.Tests
     public class PromiseTimerTests
     {
         [Fact]
+        public void wait_until_elapsedUpdates_resolves_when_predicate_is_true()
+        {
+            var testObject = new PromiseTimer();
+
+            const int testFrame = 3;
+            var hasResolved = false;
+
+            testObject.WaitUntil(timeData => timeData.elapsedUpdates == testFrame)
+                .Then(() => hasResolved = true)
+                .Done();
+
+            Assert.False(hasResolved);
+
+            testObject.Update(1);
+            testObject.Update(2);
+            testObject.Update(3);
+
+            Assert.True(hasResolved);
+        }
+
+        [Fact]
         public void wait_for_doesnt_resolve_before_specified_time()
         {
             var testObject = new PromiseTimer();
 
-            var testTime = 2f;
+            const float testTime = 2f;
             var hasResolved = false;
 
             testObject.WaitFor(testTime)
@@ -30,7 +48,7 @@ namespace RSG.Tests
         {
             var testObject = new PromiseTimer();
 
-            var testTime = 1f;
+            const float testTime = 1f;
             var hasResolved = false;
 
             testObject.WaitFor(testTime)
@@ -162,16 +180,97 @@ namespace RSG.Tests
 
 
             testObject
-                .WaitUntil(timeData =>
-                {
-                    throw expectedException;
-                })
+                .WaitUntil(timeData => throw expectedException)
                 .Catch(ex => caughtException = ex)
                 .Done();
 
             testObject.Update(1.0f);
 
             Assert.Equal(expectedException, caughtException);
+        }
+
+        [Fact]
+        public void all_promises_are_updated_when_a_pending_promise_is_resolved_during_update()
+        {
+            var testObject = new PromiseTimer();
+
+            var p1Updates = 0;
+            var p2Updates = 0;
+            var p3Updates = 0;
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p1Updates++;
+
+                    return false;
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p2Updates++;
+
+                    return true;
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p3Updates++;
+
+                    return false;
+                });
+
+            testObject.Update(0.01f);
+
+            Assert.Equal(1, p1Updates);
+            Assert.Equal(1, p2Updates);
+            Assert.Equal(1, p3Updates);
+        }
+
+        [Fact]
+        public void all_promises_are_updated_when_a_pending_promise_is_canceled_during_update()
+        {
+            var testObject = new PromiseTimer();
+
+            var p1Updates = 0;
+            var p2Updates = 0;
+            var p3Updates = 0;
+
+            var p1 = testObject
+                .WaitUntil(timeData =>
+                {
+                    p1Updates++;
+
+                    return false;
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p2Updates++;
+
+                    return true;
+                })
+                .Then(() => 
+                {
+                    testObject.Cancel(p1);
+                });
+
+            testObject
+                .WaitUntil(timeData =>
+                {
+                    p3Updates++;
+
+                    return false;
+                });
+
+            testObject.Update(0.01f);
+
+            Assert.Equal(1, p1Updates);
+            Assert.Equal(1, p2Updates);
+            Assert.Equal(1, p3Updates);
         }
     }
 }

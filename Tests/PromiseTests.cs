@@ -1,11 +1,7 @@
-﻿using Moq;
-using RSG;
 using RSG.Promises;
-using RSG.Utils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using RSG.Exceptions;
 using Xunit;
 
 namespace RSG.Tests
@@ -15,7 +11,7 @@ namespace RSG.Tests
         [Fact]
         public void can_resolve_simple_promise()
         {
-            var promisedValue = 5;
+            const int promisedValue = 5;
             var promise = Promise<int>.Resolved(promisedValue);
 
             var completed = 0;
@@ -49,10 +45,10 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Reject(new ApplicationException());
+            promise.Reject(new Exception());
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Reject(new ApplicationException())
+            Assert.Throws<PromiseStateException>(() =>
+                promise.Reject(new Exception())
             );
         }
 
@@ -63,8 +59,8 @@ namespace RSG.Tests
 
             promise.Resolve(5);
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Reject(new ApplicationException())
+            Assert.Throws<PromiseStateException>(() =>
+                promise.Reject(new Exception())
             );
         }
 
@@ -73,11 +69,9 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Reject(new ApplicationException());
+            promise.Reject(new Exception());
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Resolve(5)
-            );
+            Assert.Throws<PromiseStateException>(() => promise.Resolve(5));
         }
 
         [Fact]
@@ -86,7 +80,7 @@ namespace RSG.Tests
             var promise = new Promise<int>();
 
             var completed = 0;
-            var promisedValue = 15;
+            const int promisedValue = 15;
 
             promise.Then(v =>
             {
@@ -106,9 +100,7 @@ namespace RSG.Tests
 
             promise.Resolve(5);
 
-            Assert.Throws<ApplicationException>(() =>
-                promise.Resolve(5)
-            );
+            Assert.Throws<PromiseStateException>(() => promise.Resolve(5));
         }
 
         [Fact]
@@ -132,7 +124,7 @@ namespace RSG.Tests
             var promise = new Promise<int>();
 
             var completed = 0;
-            var promisedValue = -10;
+            const int promisedValue = -10;
             
             promise.Resolve(promisedValue);
 
@@ -150,7 +142,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             var completed = 0;
             promise.Catch(e =>
             {
@@ -168,7 +160,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             var completed = 0;
 
             promise.Catch(e =>
@@ -192,7 +184,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            var ex = new ApplicationException();
+            var ex = new Exception();
             promise.Reject(ex);
 
             var completed = 0;
@@ -210,10 +202,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Catch(e =>
-            {
-                throw new ApplicationException("This shouldn't happen");
-            });
+            promise.Catch(e => throw new Exception("This shouldn't happen"));
 
             promise.Resolve(5);
         }
@@ -223,12 +212,9 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Then(v =>
-            {
-                throw new ApplicationException("This shouldn't happen");
-            });
+            promise.Then(v => throw new Exception("This shouldn't happen"));
 
-            promise.Reject(new ApplicationException("Rejection!"));
+            promise.Reject(new Exception("Rejection!"));
         }
 
         [Fact]
@@ -237,36 +223,40 @@ namespace RSG.Tests
             var promise = new Promise<string>();
             var chainedPromise1 = new Promise<int>();
             var chainedPromise2 = new Promise<int>();
-            var chainedResult1 = 10;
-            var chainedResult2 = 15;
+            const int chainedResult1 = 10;
+            const int chainedResult2 = 15;
 
             var completed = 0;
 
-            promise
-                .ThenAll(i => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Then(result =>
-                {
-                    var items = result.ToArray();
-                    Assert.Equal(2, items.Length);
-                    Assert.Equal(chainedResult1, items[0]);
-                    Assert.Equal(chainedResult2, items[1]);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise<int>>())
+                    .Then(result =>
+                    {
+                        var items = result.ToArray();
+                        Assert.Equal(2, items.Length);
+                        Assert.Equal(chainedResult1, items[0]);
+                        Assert.Equal(chainedResult2, items[1]);
 
-                    ++completed;
-                });
+                        ++completed;
+                    });
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve("hello");
+                promise.Resolve("hello");
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve(chainedResult1);
+                chainedPromise1.Resolve(chainedResult1);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve(chainedResult2);
+                chainedPromise2.Resolve(chainedResult2);
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
 
@@ -276,36 +266,40 @@ namespace RSG.Tests
             var promise = new Promise<string>();
             var chainedPromise1 = new Promise<int>();
             var chainedPromise2 = new Promise<int>();
-            var chainedResult1 = 10;
-            var chainedResult2 = 15;
+            const int chainedResult1 = 10;
+            const int chainedResult2 = 15;
 
             var completed = 0;
 
-            promise
-                .ThenAll(i => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise<int>>())
-                .Then(result =>
-                {
-                    var items = result.ToArray();
-                    Assert.Equal(2, items.Length);
-                    Assert.Equal(chainedResult1, items[0]);
-                    Assert.Equal(chainedResult2, items[1]);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise<int>>())
+                    .Then(result =>
+                    {
+                        var items = result.ToArray();
+                        Assert.Equal(2, items.Length);
+                        Assert.Equal(chainedResult1, items[0]);
+                        Assert.Equal(chainedResult2, items[1]);
 
-                    ++completed;
-                });
+                        ++completed;
+                    });
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve("hello");
+                promise.Resolve("hello");
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve(chainedResult2);
+                chainedPromise2.Resolve(chainedResult2);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve(chainedResult1);
+                chainedPromise1.Resolve(chainedResult1);
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
         [Fact]
@@ -317,26 +311,27 @@ namespace RSG.Tests
 
             var completed = 0;
 
-            promise
-                .ThenAll(i => LinqExts.FromItems(chainedPromise1, chainedPromise2).Cast<IPromise>())
-                .Then(() =>
-                {
-                    ++completed;
-                });
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                promise
+                    .ThenAll(i => EnumerableExt.FromItems(chainedPromise1, chainedPromise2)
+                        .Cast<IPromise>())
+                    .Then(() => ++completed);
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            promise.Resolve("hello");
+                promise.Resolve("hello");
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise1.Resolve();
+                chainedPromise1.Resolve();
 
-            Assert.Equal(0, completed);
+                Assert.Equal(0, completed);
 
-            chainedPromise2.Resolve();
+                chainedPromise2.Resolve();
 
-            Assert.Equal(1, completed);
+                Assert.Equal(1, completed);
+            });
         }
 
         [Fact]
@@ -345,24 +340,27 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            var all = Promise<int>.All(LinqExts.FromItems<IPromise<int>>(promise1, promise2));
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
 
-                var values = v.ToArray();
-                Assert.Equal(2, values.Length);
-                Assert.Equal(1, values[0]);
-                Assert.Equal(2, values[1]);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    var values = v.ToArray();
+                    Assert.Equal(2, values.Length);
+                    Assert.Equal(1, values[0]);
+                    Assert.Equal(2, values[1]);
+                });
+
+                promise1.Resolve(1);
+                promise2.Resolve(2);
+
+                Assert.Equal(1, completed);
             });
-
-            promise1.Resolve(1);
-            promise2.Resolve(2);
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -371,22 +369,25 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            var all = PromiseHelpers.All(promise1, promise2);
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = PromiseHelpers.All(promise1, promise2);
 
-                Assert.Equal(1, v.Item1);
-                Assert.Equal(true, v.Item2);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Equal(1, v.Item1);
+                    Assert.Equal(true, v.Item2);
+                });
+
+                promise1.Resolve(1);
+                promise2.Resolve(true);
+
+                Assert.Equal(1, completed);
             });
-
-            promise1.Resolve(1);
-            promise2.Resolve(true);
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -396,24 +397,27 @@ namespace RSG.Tests
             var promise2 = new Promise<bool>();
             var promise3 = new Promise<float>();
 
-            var all = PromiseHelpers.All(promise1, promise2, promise3);
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = PromiseHelpers.All(promise1, promise2, promise3);
 
-                Assert.Equal(1, v.Item1);
-                Assert.Equal(true, v.Item2);
-                Assert.Equal(3.0f, v.Item3);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Equal(1, v.Item1);
+                    Assert.Equal(true, v.Item2);
+                    Assert.Equal(3.0f, v.Item3);
+                });
+
+                promise1.Resolve(1);
+                promise2.Resolve(true);
+                promise3.Resolve(3.0f);
+
+                Assert.Equal(1, completed);
             });
-
-            promise1.Resolve(1);
-            promise2.Resolve(true);
-            promise3.Resolve(3.0f);
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -424,26 +428,29 @@ namespace RSG.Tests
             var promise3 = new Promise<float>();
             var promise4 = new Promise<double>();
 
-            var all = PromiseHelpers.All(promise1, promise2, promise3, promise4);
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = PromiseHelpers.All(promise1, promise2, promise3, promise4);
 
-                Assert.Equal(1, v.Item1);
-                Assert.Equal(true, v.Item2);
-                Assert.Equal(3.0f, v.Item3);
-                Assert.Equal(4.0, v.Item4);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Equal(1, v.Item1);
+                    Assert.Equal(true, v.Item2);
+                    Assert.Equal(3.0f, v.Item3);
+                    Assert.Equal(4.0, v.Item4);
+                });
+
+                promise1.Resolve(1);
+                promise2.Resolve(true);
+                promise3.Resolve(3.0f);
+                promise4.Resolve(4.0);
+
+                Assert.Equal(1, completed);
             });
-
-            promise1.Resolve(1);
-            promise2.Resolve(true);
-            promise3.Resolve(3.0f);
-            promise4.Resolve(4.0);
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -452,23 +459,20 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            var all = Promise<int>.All(LinqExts.FromItems<IPromise<int>>(promise1, promise2));
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => ++errors);
+
+                promise1.Reject(new Exception("Error!"));
+                promise2.Resolve(2);
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Reject(new ApplicationException("Error!"));
-            promise2.Resolve(2);
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -477,23 +481,20 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            var all = PromiseHelpers.All(promise1, promise2);
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = PromiseHelpers.All(promise1, promise2);
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => ++errors);
+
+                promise1.Reject(new Exception("Error!"));
+                promise2.Resolve(true);
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Reject(new ApplicationException("Error!"));
-            promise2.Resolve(true);
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -502,23 +503,20 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            var all = Promise<int>.All(LinqExts.FromItems<IPromise<int>>(promise1, promise2));
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => ++errors);
+
+                promise1.Resolve(2);
+                promise2.Reject(new Exception("Error!"));
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Resolve(2);
-            promise2.Reject(new ApplicationException("Error!"));
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -527,23 +525,20 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            var all = PromiseHelpers.All(promise1, promise2);
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = PromiseHelpers.All(promise1, promise2);
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => ++errors);
+
+                promise1.Resolve(2);
+                promise2.Reject(new Exception("Error!"));
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Resolve(2);
-            promise2.Reject(new ApplicationException("Error!"));
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -552,23 +547,20 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<int>();
 
-            var all = Promise<int>.All(LinqExts.FromItems<IPromise<int>>(promise1, promise2));
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = Promise<int>.All(EnumerableExt.FromItems<IPromise<int>>(promise1, promise2));
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => { ++errors; });
+
+                promise1.Reject(new Exception("Error!"));
+                promise2.Reject(new Exception("Error!"));
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Reject(new ApplicationException("Error!"));
-            promise2.Reject(new ApplicationException("Error!"));
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
@@ -577,40 +569,40 @@ namespace RSG.Tests
             var promise1 = new Promise<int>();
             var promise2 = new Promise<bool>();
 
-            var all = PromiseHelpers.All(promise1, promise2);
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                throw new ApplicationException("Shouldn't happen");
+                var all = PromiseHelpers.All(promise1, promise2);
+
+                all.Then(v => throw new Exception("Shouldn't happen"));
+
+                var errors = 0;
+                all.Catch(e => ++errors);
+
+                promise1.Reject(new Exception("Error!"));
+                promise2.Reject(new Exception("Error!"));
+
+                Assert.Equal(1, errors);
             });
-
-            var errors = 0;
-            all.Catch(e =>
-            {
-                ++errors;
-            });
-
-            promise1.Reject(new ApplicationException("Error!"));
-            promise2.Reject(new ApplicationException("Error!"));
-
-            Assert.Equal(1, errors);
         }
 
         [Fact]
         public void combined_promise_is_resolved_if_there_are_no_promises()
         {
-            var all = Promise<int>.All(LinqExts.Empty<IPromise<int>>());
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = Promise<int>.All(Enumerable.Empty<IPromise<int>>());
 
-                Assert.Empty(v);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Empty(v);
+                });
+
+                Assert.Equal(1, completed);
             });
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -619,18 +611,21 @@ namespace RSG.Tests
             var promise1 = Promise<int>.Resolved(1);
             var promise2 = Promise<int>.Resolved(1);
 
-            var all = Promise<int>.All(LinqExts.FromItems(promise1, promise2));
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = Promise<int>.All(EnumerableExt.FromItems(promise1, promise2));
 
-                Assert.Empty(v);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Empty(v);
+                });
+
+                Assert.Equal(1, completed);
             });
-
-            Assert.Equal(1, completed);
         }
 
         [Fact]
@@ -639,19 +634,47 @@ namespace RSG.Tests
             var promise1 = Promise<int>.Resolved(1);
             var promise2 = Promise<bool>.Resolved(true);
 
-            var all = PromiseHelpers.All(promise1, promise2);
-
-            var completed = 0;
-
-            all.Then(v =>
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
             {
-                ++completed;
+                var all = PromiseHelpers.All(promise1, promise2);
 
-                Assert.Equal(1, v.Item1);
-                Assert.Equal(true, v.Item2);
+                var completed = 0;
+
+                all.Then(v =>
+                {
+                    ++completed;
+
+                    Assert.Equal(1, v.Item1);
+                    Assert.Equal(true, v.Item2);
+                });
+
+                Assert.Equal(1, completed);
             });
+        }
 
-            Assert.Equal(1, completed);
+        [Fact]
+        public void all_with_rejected_promise()
+        {
+            bool resolved = false;
+            bool rejected = false;
+            Exception caughtException = null;
+            Exception exception = new Exception();
+
+            var promiseA = new Promise<int>();
+            var promise = Promise<int>
+                .All(promiseA, Promise<int>.Rejected(exception))
+                .Then(values => resolved = true)
+                .Catch(ex =>
+                {
+                    caughtException = ex;
+                    rejected = true;
+                });
+            promiseA.ReportProgress(0.5f);
+            promiseA.Resolve(0);
+
+            Assert.Equal(false, resolved);
+            Assert.Equal(true, rejected);
+            Assert.Equal(exception, caughtException);
         }
 
         [Fact]
@@ -703,15 +726,12 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            var promisedValue = 15;
+            const int promisedValue = 15;
             var errors = 0;
             var ex = new Exception();
 
             promise
-                .Then(v => 
-                {
-                    throw ex;
-                })
+                .Then(v => throw ex)
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -730,8 +750,8 @@ namespace RSG.Tests
             var promise = new Promise<int>();
             var chainedPromise = new Promise<string>();
 
-            var promisedValue = 15;
-            var chainedPromiseValue = "blah";
+            const int promisedValue = 15;
+            const string chainedPromiseValue = "blah";
             var completed = 0;
 
             promise
@@ -755,15 +775,12 @@ namespace RSG.Tests
             var promise = new Promise<int>();
             var chainedPromise = new Promise();
 
-            var promisedValue = 15;
+            const int promisedValue = 15;
             var completed = 0;
 
             promise
                 .Then(v => (IPromise)chainedPromise)
-                .Then(() =>
-                {
-                    ++completed;
-                });
+                .Then(() => ++completed);
 
             promise.Resolve(promisedValue);
             chainedPromise.Resolve();
@@ -775,16 +792,12 @@ namespace RSG.Tests
         public void exception_thrown_in_chain_rejects_resulting_promise()
         {
             var promise = new Promise<int>();
-            var chainedPromise = new Promise<string>();
 
             var ex = new Exception();
             var errors = 0;
 
             promise
-                .Then(v =>
-                {
-                    throw ex;
-                })
+                .Then(v => throw ex)
                 .Catch(e =>
                 {
                     Assert.Equal(ex, e);
@@ -828,13 +841,16 @@ namespace RSG.Tests
 
             var resolved = 0;
 
-            Promise<int>
-                .Race(promise1, promise2)
-                .Then(i => resolved = i);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                Promise<int>
+                    .Race(promise1, promise2)
+                    .Then(i => resolved = i);
 
-            promise1.Resolve(5);
+                promise1.Resolve(5);
 
-            Assert.Equal(5, resolved);
+                Assert.Equal(5, resolved);
+            });
         }
 
         [Fact]
@@ -845,13 +861,16 @@ namespace RSG.Tests
 
             var resolved = 0;
 
-            Promise<int>
-                .Race(promise1, promise2)
-                .Then(i => resolved = i);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                Promise<int>
+                    .Race(promise1, promise2)
+                    .Then(i => resolved = i);
 
-            promise2.Resolve(12);
+                promise2.Resolve(12);
 
-            Assert.Equal(12, resolved);
+                Assert.Equal(12, resolved);
+            });
         }
 
         [Fact]
@@ -862,14 +881,17 @@ namespace RSG.Tests
 
             Exception ex = null;
 
-            Promise<int>
-                .Race(promise1, promise2)
-                .Catch(e => ex = e);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                Promise<int>
+                    .Race(promise1, promise2)
+                    .Catch(e => ex = e);
 
-            var expected = new Exception();
-            promise1.Reject(expected);
+                var expected = new Exception();
+                promise1.Reject(expected);
 
-            Assert.Equal(expected, ex);
+                Assert.Equal(expected, ex);
+            });
         }
 
         [Fact]
@@ -880,23 +902,23 @@ namespace RSG.Tests
 
             Exception ex = null;
 
-            Promise<int>
-                .Race(promise1, promise2)
-                .Catch(e => ex = e);
+            TestHelpers.VerifyDoesntThrowUnhandledException(() =>
+            {
+                Promise<int>
+                    .Race(promise1, promise2)
+                    .Catch(e => ex = e);
 
-            var expected = new Exception();
-            promise2.Reject(expected);
+                var expected = new Exception();
+                promise2.Reject(expected);
 
-            Assert.Equal(expected, ex);
+                Assert.Equal(expected, ex);
+            });
         }
 
         [Fact]
         public void can_resolve_promise_via_resolver_function()
         {
-            var promise = new Promise<int>((resolve, reject) =>
-            {
-                resolve(5);
-            });
+            var promise = new Promise<int>((resolve, reject) => resolve(5));
 
             var completed = 0;
             promise.Then(v => 
@@ -931,10 +953,7 @@ namespace RSG.Tests
         public void exception_thrown_during_resolver_rejects_promise()
         {
             var ex = new Exception();
-            var promise = new Promise<int>((resolve, reject) =>
-            {
-                throw ex;
-            });
+            var promise = new Promise<int>((resolve, reject) => throw ex);
 
             var completed = 0;
             promise.Catch(e =>
@@ -965,10 +984,7 @@ namespace RSG.Tests
             try 
             {
                 promise
-                    .Then(a =>
-                    {
-                        throw ex;
-                    })
+                    .Then(a => throw ex)
                     .Done();
 
                 promise.Resolve(5);
@@ -1000,10 +1016,7 @@ namespace RSG.Tests
             try
             {
                 promise
-                    .Done(x =>
-                    {
-                        throw ex;
-                    });
+                    .Done(x => throw ex);
 
                 promise.Resolve(5);
 
@@ -1029,10 +1042,7 @@ namespace RSG.Tests
             try
             {
                 promise
-                    .Then(a =>
-                    {
-                        throw ex;
-                    })
+                    .Then(a => throw ex)
                     .Catch(_ => 
                     {
                         // Catch the error.
@@ -1041,7 +1051,7 @@ namespace RSG.Tests
 
                 promise.Resolve(5);
 
-                Assert.Equal(1, eventRaised);
+                Assert.Equal(0, eventRaised);
             }
             finally
             {
@@ -1055,7 +1065,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
             var callback = 0;
-            var expectedValue = 5;
+            const int expectedValue = 5;
 
             promise.Done(value =>
             {
@@ -1075,7 +1085,7 @@ namespace RSG.Tests
             var promise = new Promise<int>();
             var callback = 0;
             var errorCallback = 0;
-            var expectedValue = 5;
+            const int expectedValue = 5;
 
             promise.Done(
                 value =>
@@ -1084,10 +1094,7 @@ namespace RSG.Tests
 
                     ++callback;
                 },
-                ex =>
-                {
-                    ++errorCallback;
-                }
+                ex => ++errorCallback
             );
 
             promise.Resolve(expectedValue);
@@ -1141,15 +1148,9 @@ namespace RSG.Tests
             var expectedException = new Exception();
 
             promise
-                .Then(value => 
-                {
-                    throw expectedException;
-                })
+                .Then(value => throw expectedException)
                 .Done(
-                    () =>
-                    {
-                        ++callback;
-                    },
+                    () => ++callback,
                     ex =>
                     {
                         Assert.Equal(expectedException, ex);
@@ -1171,6 +1172,257 @@ namespace RSG.Tests
             var promise2 = new Promise<int>();
 
             Assert.Equal(promise1.Id + 1, promise2.Id);
+        }
+
+
+        [Fact]
+        public void finally_is_called_after_resolve()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise.Finally(() => ++callback);
+
+            promise.Resolve(0);
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void finally_is_called_after_reject()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise.Finally(() => ++callback);
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        //tc39
+        public void resolved_chain_continues_after_finally()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            const int expectedValue = 42;
+
+            promise
+                .Finally(() => ++callback)
+                .Then((x) =>
+                {
+                    Assert.Equal(expectedValue, x);
+                    ++callback;
+                });
+
+            promise.Resolve(expectedValue);
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        //tc39
+        public void rejected_chain_rejects_after_finally()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise
+                .Finally(() => ++callback)
+                .Catch(_ => ++callback);
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void rejected_chain_continues_after_ContinueWith_returning_non_value_promise()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise.ContinueWith(() => 
+            {
+                ++callback;
+                return Promise.Resolved();
+            })
+            .Then(() => ++callback);
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void rejected_chain_continues_after_ContinueWith_returning_value_promise()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+            const int expectedValue = 42;
+            promise.ContinueWith(() => 
+            {
+                ++callback;
+                return Promise<int>.Resolved(expectedValue);
+            })
+            .Then(x => 
+            {
+                Assert.Equal(expectedValue, x);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void can_chain_promise_generic_after_finally()
+        {
+            var promise = new Promise<int>();
+            const int expectedValue = 5;
+            var callback = 0;
+
+            promise.ContinueWith(() =>
+            {
+                ++callback;
+                return Promise<int>.Resolved(expectedValue);
+            })
+            .Then(x =>
+            {
+                Assert.Equal(expectedValue, x);
+                ++callback;
+            });
+
+            promise.Resolve(0);
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        //tc39
+        public void can_chain_promise_after_finally()
+        {
+            var promise = new Promise<int>();
+            var callback = 0;
+
+            promise
+                .Finally(() => ++callback)
+                .Then(_ => ++callback);
+
+            promise.Resolve(0);
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        //tc39 note: "a throw (or returning a rejected promise) in the finally callback will reject the new promise with that rejection reason."
+        public void exception_in_finally_callback_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise<int>();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.Finally(() =>
+            {
+                ++callback;
+                throw expectedException;
+            })
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_ContinueWith_callback_returning_non_value_promise_is_caught_by_chained_catch()
+        {
+            //NOTE: Also tests that the new exception is passed thru promise chain
+
+            var promise = new Promise<int>();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.ContinueWith(() =>
+            {
+                ++callback;
+                throw expectedException;
+            })
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_ContinueWith_callback_returning_value_promise_is_caught_by_chained_catch()
+        {
+            // NOTE: Also tests that the new exception is passed through promise chain
+
+            var promise = new Promise<int>();
+            var callback = 0;
+            var expectedException = new Exception("Expected");
+
+            promise.ContinueWith(new Func<IPromise<int>>(() =>
+            {
+                ++callback;
+                throw expectedException;
+            }))
+            .Catch(ex =>
+            {
+                Assert.Equal(expectedException, ex);
+                ++callback;
+            });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(2, callback);
+        }
+
+        [Fact]
+        public void exception_in_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => throw expectedException
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
+        }
+
+        [Fact]
+        public void rejected_reject_callback_is_caught_by_chained_catch()
+        {
+            var expectedException = new Exception("Expected");
+            Exception actualException = null;
+
+            new Promise<object>((res, rej) => rej(new Exception()))
+                .Then(
+                    _ => Promise<object>.Resolved(null),
+                    _ => Promise<object>.Rejected(expectedException)
+                )
+                .Catch(ex => actualException = ex);
+
+            Assert.Equal(expectedException, actualException);
         }
     }
 }

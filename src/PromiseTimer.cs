@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RSG
 {
 
-    public class PromiseCancelledException: Exception {
+    public class PromiseCancelledException : Exception
+    {
         /// <summary>
         /// Just create the exception
         /// </summary>
@@ -47,6 +48,11 @@ namespace RSG
         /// The time data specific to this pending promise. Includes elapsed time and delta time.
         /// </summary>
         public TimeData timeData;
+
+        /// <summary>
+        /// The frame the promise was started
+        /// </summary>
+        public int frameStarted;
     }
 
     /// <summary>
@@ -63,6 +69,11 @@ namespace RSG
         /// The amount of time since the last time the pending promise was updated.
         /// </summary>
         public float deltaTime;
+
+        /// <summary>
+        /// The amount of times that update has been called since the pending promise started running
+        /// </summary>
+        public int elapsedUpdates;
     }
 
     public interface IPromiseTimer
@@ -101,9 +112,14 @@ namespace RSG
         private float curTime;
 
         /// <summary>
+        /// The current running total for the amount of frames the PromiseTimer has run for
+        /// </summary>
+        private int curFrame;
+
+        /// <summary>
         /// Currently pending promises
         /// </summary>
-        private List<PredicateWait> waiting = new List<PredicateWait>();
+        private readonly LinkedList<PredicateWait> waiting = new LinkedList<PredicateWait>();
 
         /// <summary>
         /// Resolve the returned promise once the time has elapsed
@@ -133,27 +149,41 @@ namespace RSG
                 timeStarted = curTime,
                 pendingPromise = promise,
                 timeData = new TimeData(),
-                predicate = predicate
+                predicate = predicate,
+                frameStarted = curFrame
             };
 
-            waiting.Add(wait);
+            waiting.AddLast(wait);
 
             return promise;
         }
 
         public bool Cancel(IPromise promise)
         {
-            var wait = waiting.Find(w => w.pendingPromise.Id.Equals(promise.Id));
+            var node = FindInWaiting(promise);
 
-            if (wait == null)
+            if (node == null)
             {
                 return false;
             }
 
-            wait.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
-            waiting.Remove(wait);
+            node.Value.pendingPromise.Reject(new PromiseCancelledException("Promise was cancelled by user."));
+            waiting.Remove(node);
 
             return true;
+        }
+
+        LinkedListNode<PredicateWait> FindInWaiting(IPromise promise)
+        {
+            for (var node = waiting.First; node != null; node = node.Next)
+            {
+                if (node.Value.pendingPromise.Id.Equals(promise.Id))
+                {
+                    return node;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -162,15 +192,18 @@ namespace RSG
         public void Update(float deltaTime)
         {
             curTime += deltaTime;
+            curFrame += 1;
 
-            int i = 0;
-            while (i < waiting.Count)
+            var node = waiting.First;
+            while (node != null)
             {
-                var wait = waiting[i];
+                var wait = node.Value;
 
                 var newElapsedTime = curTime - wait.timeStarted;
                 wait.timeData.deltaTime = newElapsedTime - wait.timeData.elapsedTime;
                 wait.timeData.elapsedTime = newElapsedTime;
+                var newElapsedUpdates = curFrame - wait.frameStarted;
+                wait.timeData.elapsedUpdates = newElapsedUpdates;
 
                 bool result;
                 try
@@ -180,20 +213,35 @@ namespace RSG
                 catch (Exception ex)
                 {
                     wait.pendingPromise.Reject(ex);
-                    waiting.RemoveAt(i);
+
+                    node = RemoveNode(node);
                     continue;
                 }
 
                 if (result)
                 {
                     wait.pendingPromise.Resolve();
-                    waiting.RemoveAt(i);
+
+                    node = RemoveNode(node);
                 }
                 else
                 {
-                    i++;
+                    node = node.Next;
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes the provided node and returns the next node in the list.
+        /// </summary>
+        private LinkedListNode<PredicateWait> RemoveNode(LinkedListNode<PredicateWait> node)
+        {
+            var currentNode = node;
+            node = node.Next;
+
+            waiting.Remove(currentNode);
+
+            return node;
         }
     }
 }

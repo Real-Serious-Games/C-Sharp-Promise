@@ -6,5 +6,5 @@ install:
   - nuget install xunit.runners -Version 1.9.2 -OutputDirectory testrunner
  
 script:
-  - xbuild /p:Configuration=Debug C-Sharp-Promise.sln
+  - msbuild /p:Configuration=Debug C-Sharp-Promise.sln
   - mono ./testrunner/xunit.runners.1.9.2/tools/xunit.console.exe ./bin/Debug/RSG.Promise.Tests.dll

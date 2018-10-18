@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace RSG
 {
     public static class PromiseHelpers
@@ -16,11 +11,11 @@ namespace RSG
             var val1 = default(T1);
             var val2 = default(T2);
             var numUnresolved = 2;
+            var alreadyRejected = false;
             var promise = new Promise<Tuple<T1, T2>>();
 
             p1
-                .Catch(e => promise.Reject(e))
-                .Done(val => 
+                .Then(val => 
                 {
                     val1 = val;
                     numUnresolved--;
@@ -28,11 +23,20 @@ namespace RSG
                     {
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
-                });
+                })
+                .Catch(e =>
+                {
+                    if (!alreadyRejected)
+                    {
+                        promise.Reject(e);
+                    }
+
+                    alreadyRejected = true;
+                })
+                .Done();
 
             p2
-                .Catch(e => promise.Reject(e))
-                .Done(val => 
+                .Then(val => 
                 {
                     val2 = val;
                     numUnresolved--;
@@ -40,7 +44,17 @@ namespace RSG
                     {
                         promise.Resolve(Tuple.Create(val1, val2));
                     }
-                });
+                })
+                .Catch(e =>
+                {
+                    if (!alreadyRejected)
+                    {
+                        promise.Reject(e);
+                    }
+
+                    alreadyRejected = true;
+                })
+                .Done();
 
             return promise;
         }

@@ -31,12 +31,6 @@ namespace Example
                         .Find(html)
                         .Select(link => link.Href)
                         .ToArray();
-                })            
-                .Catch(exception =>     // Catch any errors that happen during download or transform.
-                {
-                    Console.WriteLine("Async operation errorred.");
-                    Console.WriteLine(exception);
-                    running = false;
                 })
                 .Then(links =>          // Display the links that were extracted.
                 {
@@ -45,6 +39,12 @@ namespace Example
                     {
                         Console.WriteLine(link);
                     }
+                    running = false;
+                })            
+                .Catch(exception =>     // Catch any errors that happen during download or transform.
+                {
+                    Console.WriteLine("Async operation errorred.");
+                    Console.WriteLine(exception);
                     running = false;
                 })
                 .Done();
