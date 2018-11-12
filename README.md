@@ -400,7 +400,7 @@ var promise = ...
 promise
     .Then(result => SomeAsyncOperation(result)) 	// Chain an async operation.
     .Then(result => Console.WriteLine(result))    	// Chain a sync operation that yields no result.
-    .Done(result => ...);  // Result from previous ascync operation skips over the *Do* and is passed through.
+    .Done(() => ...);  // No result is passed because the previous operation returned nothing.
 ```
 
 ## Promises that have no Results (a non-value promise)
