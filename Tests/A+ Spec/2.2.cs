@@ -348,7 +348,7 @@ namespace RSG.Tests.A__Spec
 
                     new Promise<object>((res, rej) => rej(new Exception()))
                         .Catch(_ => {})
-                        .Then(() => callbackInvoked = true);
+                        .Then((x) => callbackInvoked = true);
 
                     Assert.True(callbackInvoked);
                 }
