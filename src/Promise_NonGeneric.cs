@@ -646,8 +646,6 @@ namespace RSG
         /// </summary>
         public IPromise Catch(Action<Exception> onRejected)
         {
-//            Argument.NotNull(() => onRejected);
-
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
