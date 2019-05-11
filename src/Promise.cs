@@ -818,6 +818,67 @@ namespace RSG
         }
 
         /// <summary>
+        /// Chain a number of operations using promises.
+        /// Returns the value of the first promise that resolves, or otherwise the exception thrown by the last operation.
+        /// </summary>
+        public static IPromise<T> First<T>(params Func<IPromise<T>>[] fns)
+        {
+            return First((IEnumerable<Func<IPromise<T>>>)fns);
+        }
+
+        /// <summary>
+        /// Chain a number of operations using promises.
+        /// Returns the value of the first promise that resolves, or otherwise the exception thrown by the last operation.
+        /// </summary>
+        public static IPromise<T> First<T>(IEnumerable<Func<IPromise<T>>> fns)
+        {
+            var promise = new Promise<T>();
+
+            int count = 0;
+
+            fns.Aggregate(
+                Promise<T>.Rejected(null),
+                (prevPromise, fn) =>
+                {
+                    int itemSequence = count;
+                    ++count;
+
+                    var newPromise = new Promise<T>();
+                    prevPromise
+                        .Progress(v =>
+                        {
+                            var sliceLength = 1f / count;
+                            promise.ReportProgress(sliceLength * (v + itemSequence));
+                        })
+                        .Then(value =>
+                        {
+                            newPromise.Resolve(value);
+                        })
+                        .Catch(ex =>
+                        {
+                            var sliceLength = 1f / count;
+                            promise.ReportProgress(sliceLength * itemSequence);
+
+                            fn()
+                                .Then(value => newPromise.Resolve(value))
+                                .Catch(newPromise.Reject)
+                                .Done()
+                            ;
+                        })
+                    ;
+                    return newPromise;
+                })
+            .Then(value => promise.Resolve(value))
+            .Catch(ex =>
+            {
+                promise.ReportProgress(1f);
+                promise.Reject(ex);
+            });
+
+            return promise;
+        }
+
+        /// <summary>
         /// Chain an enumerable of promises, all of which must resolve.
         /// Returns a promise for a collection of the resolved results.
         /// The resulting promise is resolved when all of the promises have resolved.
