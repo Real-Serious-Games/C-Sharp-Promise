@@ -1133,11 +1133,16 @@ namespace RSG
         /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>
+        private static IPromise resolvedPromised;
         public static IPromise Resolved()
         {
-            var promise = new Promise();
-            promise.Resolve();
-            return promise;
+            if (resolvedPromised == null)
+            {
+                var promise = new Promise();
+                promise.Resolve();
+                resolvedPromised = promise;
+            }
+            return resolvedPromised;
         }
 
         /// <summary>
