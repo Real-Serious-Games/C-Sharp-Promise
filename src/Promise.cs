@@ -295,6 +295,12 @@ namespace RSG
             }
         }
 
+        private Promise(PromiseState initialState)
+        {
+            CurState = initialState;
+            id = Promise.NextId();
+        }
+
         /// <summary>
         /// Add a rejection handler for this promise.
         /// </summary>
@@ -1107,8 +1113,8 @@ namespace RSG
         /// </summary>
         public static IPromise<PromisedT> Resolved(PromisedT promisedValue)
         {
-            var promise = new Promise<PromisedT>();
-            promise.Resolve(promisedValue);
+            var promise = new Promise<PromisedT>(PromiseState.Resolved);
+            promise.resolveValue = promisedValue;
             return promise;
         }
 
@@ -1119,8 +1125,8 @@ namespace RSG
         {
 //            Argument.NotNull(() => ex);
 
-            var promise = new Promise<PromisedT>();
-            promise.Reject(ex);
+            var promise = new Promise<PromisedT>(PromiseState.Rejected);
+            promise.rejectionException = ex;
             return promise;
         }
 
@@ -1183,7 +1189,7 @@ namespace RSG
 
         public IPromise<PromisedT> Progress(Action<float> onProgress)
         {
-            if (onProgress != null)
+            if (CurState == PromiseState.Pending && onProgress != null)
             {
                 ProgressHandlers(this, onProgress);
             }

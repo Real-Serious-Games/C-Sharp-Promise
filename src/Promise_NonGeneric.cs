@@ -369,6 +369,12 @@ namespace RSG
             }
         }
 
+        private Promise(PromiseState initialState)
+        {
+            CurState = initialState;
+            id = NextId();
+        }
+
         /// <summary>
         /// Increments the ID counter and gives us the ID for the next promise.
         /// </summary>
@@ -1178,16 +1184,10 @@ namespace RSG
         /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>
-        private static IPromise resolvedPromised;
+        private static IPromise resolvedPromise = new Promise(PromiseState.Resolved);
         public static IPromise Resolved()
         {
-            if (resolvedPromised == null)
-            {
-                var promise = new Promise();
-                promise.Resolve();
-                resolvedPromised = promise;
-            }
-            return resolvedPromised;
+            return resolvedPromise;
         }
 
         /// <summary>
@@ -1197,8 +1197,8 @@ namespace RSG
         {
 //            Argument.NotNull(() => ex);
 
-            var promise = new Promise();
-            promise.Reject(ex);
+            var promise = new Promise(PromiseState.Rejected);
+            promise.rejectionException = ex;
             return promise;
         }
 
@@ -1257,7 +1257,7 @@ namespace RSG
 
         public IPromise Progress(Action<float> onProgress)
         {
-            if (onProgress != null)
+            if (CurState == PromiseState.Pending && onProgress != null)
             {
                 ProgressHandlers(this, onProgress);
             }
