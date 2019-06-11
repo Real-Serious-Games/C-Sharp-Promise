@@ -378,7 +378,8 @@ namespace RSG
 
             if (rejectHandlers != null)
             {
-                rejectHandlers.Each(handler => InvokeHandler(handler.callback, handler.rejectable, ex));
+                for (int i = 0, maxI = rejectHandlers.Count; i < maxI; ++i)
+                    InvokeHandler(rejectHandlers[i].callback, rejectHandlers[i].rejectable, ex);
             }
 
             ClearHandlers();
@@ -406,7 +407,8 @@ namespace RSG
         {
             if (progressHandlers != null)
             {
-                progressHandlers.Each(handler => InvokeHandler(handler.callback, handler.rejectable, progress));
+                for (int i = 0, maxI = progressHandlers.Count; i < maxI; ++i)
+                    InvokeHandler(progressHandlers[i].callback, progressHandlers[i].rejectable, progress);
             }
         }
 
@@ -720,15 +722,19 @@ namespace RSG
                 }
             };
 
-            Action<Exception> rejectHandler = ex =>
+            Action<Exception> rejectHandler;
+            if (onRejected != null)
             {
-                if (onRejected != null)
+                rejectHandler = ex =>
                 {
                     onRejected(ex);
-                }
-
-                resultPromise.Reject(ex);
-            };
+                    resultPromise.Reject(ex);
+                };
+            }
+            else
+            {
+                rejectHandler = resultPromise.Reject;
+            }
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
             if (onProgress != null)
@@ -757,15 +763,19 @@ namespace RSG
                 resultPromise.Resolve();
             };
 
-            Action<Exception> rejectHandler = ex =>
+            Action<Exception> rejectHandler;
+            if (onRejected != null)
             {
-                if (onRejected != null)
+                rejectHandler = ex =>
                 {
                     onRejected(ex);
-                }
-
-                resultPromise.Reject(ex);
-            };
+                    resultPromise.Reject(ex);
+                };
+            }
+            else
+            {
+                rejectHandler = resultPromise.Reject;
+            }
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
             if (onProgress != null)
@@ -850,10 +860,7 @@ namespace RSG
                             var sliceLength = 1f / count;
                             promise.ReportProgress(sliceLength * (v + itemSequence));
                         })
-                        .Then(value =>
-                        {
-                            newPromise.Resolve(value);
-                        })
+                        .Then((Action<T>)newPromise.Resolve)
                         .Catch(ex =>
                         {
                             var sliceLength = 1f / count;
@@ -1072,7 +1079,7 @@ namespace RSG
             var promise = new Promise<PromisedT>();
             promise.WithName(Name);
 
-            this.Then(x => promise.Resolve(x));
+            this.Then((Action<PromisedT>)promise.Resolve);
             this.Catch(e => {
                 try {
                     onComplete();
