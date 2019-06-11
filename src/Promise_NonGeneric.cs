@@ -632,6 +632,9 @@ namespace RSG
         /// </summary>
         public void Done()
         {
+            if (CurState == PromiseState.Resolved)
+                return;
+
             Catch(ex => PropagateUnhandledException(this, ex));
         }
 
@@ -650,6 +653,11 @@ namespace RSG
         public IPromise Catch(Action<Exception> onRejected)
         {
 //            Argument.NotNull(() => onRejected);
+
+            if (CurState == PromiseState.Resolved)
+            {
+                return this;
+            }
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -734,9 +742,21 @@ namespace RSG
             Func<Exception, IPromise<ConvertedT>> onRejected,
             Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    return onResolved();
+                } 
+                catch (Exception ex)
+                {
+                    return Promise<ConvertedT>.Rejected(ex);
+                }
+            }
+
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
-//            Argument.NotNull(() => onResolved);
+            //            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -789,6 +809,18 @@ namespace RSG
         /// </summary>
         public IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    return onResolved();
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
@@ -838,6 +870,19 @@ namespace RSG
         /// </summary>
         public IPromise Then(Action onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    onResolved();
+                    return this;
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
@@ -1159,6 +1204,19 @@ namespace RSG
 
         public IPromise Finally(Action onComplete)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    onComplete();
+                    return this;
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var promise = new Promise();
             promise.WithName(Name);
 
