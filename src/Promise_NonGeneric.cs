@@ -369,6 +369,12 @@ namespace RSG
             }
         }
 
+        private Promise(PromiseState initialState)
+        {
+            CurState = initialState;
+            id = NextId();
+        }
+
         /// <summary>
         /// Increments the ID counter and gives us the ID for the next promise.
         /// </summary>
@@ -497,7 +503,8 @@ namespace RSG
 
             if (rejectHandlers != null)
             {
-                rejectHandlers.Each(handler => InvokeRejectHandler(handler.callback, handler.rejectable, ex));
+                for (int i = 0, maxI = rejectHandlers.Count; i < maxI; ++i)
+                    InvokeRejectHandler(rejectHandlers[i].callback, rejectHandlers[i].rejectable, ex);
             }
 
             ClearHandlers();
@@ -510,7 +517,8 @@ namespace RSG
         {
             if (resolveHandlers != null)
             {
-                resolveHandlers.Each(handler => InvokeResolveHandler(handler.callback, handler.rejectable));
+                for (int i = 0, maxI = resolveHandlers.Count; i < maxI; i++)
+                    InvokeResolveHandler(resolveHandlers[i].callback, resolveHandlers[i].rejectable);
             }
 
             ClearHandlers();
@@ -523,7 +531,8 @@ namespace RSG
         {
             if (progressHandlers != null)
             {
-                progressHandlers.Each(handler => InvokeProgressHandler(handler.callback, handler.rejectable, progress));
+                for (int i = 0, maxI = progressHandlers.Count; i < maxI; i++)
+                    InvokeProgressHandler(progressHandlers[i].callback, progressHandlers[i].rejectable, progress);
             }
         }
 
@@ -629,6 +638,9 @@ namespace RSG
         /// </summary>
         public void Done()
         {
+            if (CurState == PromiseState.Resolved)
+                return;
+
             Catch(ex => PropagateUnhandledException(this, ex));
         }
 
@@ -647,6 +659,11 @@ namespace RSG
         public IPromise Catch(Action<Exception> onRejected)
         {
 //            Argument.NotNull(() => onRejected);
+
+            if (CurState == PromiseState.Resolved)
+            {
+                return this;
+            }
 
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
@@ -731,9 +748,21 @@ namespace RSG
             Func<Exception, IPromise<ConvertedT>> onRejected,
             Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    return onResolved();
+                } 
+                catch (Exception ex)
+                {
+                    return Promise<ConvertedT>.Rejected(ex);
+                }
+            }
+
             // This version of the function must supply an onResolved.
             // Otherwise there is now way to get the converted value to pass to the resulting promise.
-//            Argument.NotNull(() => onResolved);
+            //            Argument.NotNull(() => onResolved);
 
             var resultPromise = new Promise<ConvertedT>();
             resultPromise.WithName(Name);
@@ -786,12 +815,25 @@ namespace RSG
         /// </summary>
         public IPromise Then(Func<IPromise> onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    return onResolved();
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action resolveHandler = () =>
+            Action resolveHandler;
+            if (onResolved != null)
             {
-                if (onResolved != null)
+                resolveHandler = () =>
                 {
                     onResolved()
                         .Progress(progress => resultPromise.ReportProgress(progress))
@@ -799,22 +841,26 @@ namespace RSG
                             () => resultPromise.Resolve(),
                             ex => resultPromise.Reject(ex)
                         );
-                }
-                else
-                {
-                    resultPromise.Resolve();
-                }
-            };
-
-            Action<Exception> rejectHandler = ex =>
+                };
+            }
+            else
             {
-                if (onRejected != null)
+                resolveHandler = resultPromise.Resolve;
+            }
+
+            Action<Exception> rejectHandler;
+            if (onRejected != null)
+            {
+                rejectHandler = ex =>
                 {
                     onRejected(ex);
-                }
-
-                resultPromise.Reject(ex);
-            };
+                    resultPromise.Reject(ex);
+                };
+            }
+            else
+            {
+                rejectHandler = resultPromise.Reject;
+            }
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
             if (onProgress != null)
@@ -830,30 +876,55 @@ namespace RSG
         /// </summary>
         public IPromise Then(Action onResolved, Action<Exception> onRejected, Action<float> onProgress)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    onResolved();
+                    return this;
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var resultPromise = new Promise();
             resultPromise.WithName(Name);
 
-            Action resolveHandler = () =>
+            Action resolveHandler;
+            if (onResolved != null)
             {
-                if (onResolved != null)
+                resolveHandler = () =>
                 {
                     onResolved();
-                }
-
-                resultPromise.Resolve();
-            };
-
-            Action<Exception> rejectHandler = ex =>
-            {
-                if (onRejected != null)
-                {
-                    onRejected(ex);
                     resultPromise.Resolve();
-                    return;
-                }
+                };
+            }
+            else
+            {
+                resolveHandler = resultPromise.Resolve;
+            }
 
-                resultPromise.Reject(ex);
-            };
+            Action<Exception> rejectHandler;
+            if (onRejected != null)
+            {
+                rejectHandler = ex =>
+                {
+                    if (onRejected != null)
+                    {
+                        onRejected(ex);
+                        resultPromise.Resolve();
+                        return;
+                    }
+
+                    resultPromise.Reject(ex);
+                };
+            }
+            else
+            {
+                rejectHandler = resultPromise.Reject;
+            }
 
             ActionHandlers(resultPromise, resolveHandler, rejectHandler);
             if (onProgress != null)
@@ -1030,7 +1101,7 @@ namespace RSG
                     ;
                 }
             )
-            .Then(() => promise.Resolve())
+            .Then((Action)promise.Resolve)
             .Catch(promise.Reject);
 
             return promise;
@@ -1113,11 +1184,10 @@ namespace RSG
         /// <summary>
         /// Convert a simple value directly into a resolved promise.
         /// </summary>
+        private static IPromise resolvedPromise = new Promise(PromiseState.Resolved);
         public static IPromise Resolved()
         {
-            var promise = new Promise();
-            promise.Resolve();
-            return promise;
+            return resolvedPromise;
         }
 
         /// <summary>
@@ -1127,17 +1197,30 @@ namespace RSG
         {
 //            Argument.NotNull(() => ex);
 
-            var promise = new Promise();
-            promise.Reject(ex);
+            var promise = new Promise(PromiseState.Rejected);
+            promise.rejectionException = ex;
             return promise;
         }
 
         public IPromise Finally(Action onComplete)
         {
+            if (CurState == PromiseState.Resolved)
+            {
+                try
+                {
+                    onComplete();
+                    return this;
+                }
+                catch (Exception ex)
+                {
+                    return Rejected(ex);
+                }
+            }
+
             var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => promise.Resolve());
+            this.Then((Action)promise.Resolve);
             this.Catch(e => {
                 try {
                     onComplete();
@@ -1155,7 +1238,7 @@ namespace RSG
             var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => promise.Resolve());
+            this.Then((Action)promise.Resolve);
             this.Catch(e => promise.Resolve());
 
             return promise.Then(onComplete);
@@ -1166,7 +1249,7 @@ namespace RSG
             var promise = new Promise();
             promise.WithName(Name);
 
-            this.Then(() => promise.Resolve());
+            this.Then((Action)promise.Resolve);
             this.Catch(e => promise.Resolve());
 
             return promise.Then(onComplete);
@@ -1174,7 +1257,7 @@ namespace RSG
 
         public IPromise Progress(Action<float> onProgress)
         {
-            if (onProgress != null)
+            if (CurState == PromiseState.Pending && onProgress != null)
             {
                 ProgressHandlers(this, onProgress);
             }

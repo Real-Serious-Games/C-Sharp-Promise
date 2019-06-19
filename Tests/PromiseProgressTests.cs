@@ -155,6 +155,33 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void first_progress_is_averaged()
+        {
+            var promiseA = new Promise<int>();
+            var promiseB = new Promise<int>();
+            var promiseC = new Promise<int>();
+            var promiseD = new Promise<int>();
+
+            int currentStep = 0;
+            var expectedProgress = new[] { 0.25f, 0.50f, 0.75f, 1f };
+
+            Promise<int>.First(() => promiseA, () => promiseB, () => promiseC, () => promiseD)
+                .Progress(progress =>
+                {
+                    Assert.InRange(currentStep, 0, expectedProgress.Length - 1);
+                    Assert.Equal(expectedProgress[currentStep], progress);
+                    ++currentStep;
+                });
+
+            promiseA.Reject(null);
+            promiseC.Reject(null);
+            promiseB.Reject(null);
+            promiseD.Reject(null);
+
+            Assert.Equal(expectedProgress.Length, currentStep);
+        }
+
+        [Fact]
         public void all_progress_is_averaged()
         {
             var promiseA = new Promise<int>();
@@ -178,7 +205,6 @@ namespace RSG.Tests
             promiseB.ReportProgress(1f);
             promiseD.ReportProgress(1f);
 
-            Assert.Equal(expectedProgress.Length, currentStep);
             Assert.Equal(expectedProgress.Length, currentStep);
         }
 

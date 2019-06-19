@@ -218,6 +218,54 @@ namespace RSG.Tests
         }
 
         [Fact]
+        public void chain_multiple_promises_using_first()
+        {
+            var promise = new Promise<int>();
+            var chainedPromise1 = Promise<int>.Rejected(null);
+            var chainedPromise2 = Promise<int>.Rejected(null);
+            var chainedPromise3 = Promise<int>.Resolved(9001);
+
+            bool completed = false;
+
+            Promise<int>
+                .First(() => chainedPromise1, () => chainedPromise2, () => chainedPromise3, () =>
+                {
+                    Assert.True(false, "Didn't stop on the first resolved promise");
+                    return Promise<int>.Rejected(null);
+                })
+                .Then(result =>
+                {
+                    Assert.Equal(9001, result);
+                    completed = true;
+                })
+            ;
+
+            Assert.Equal(true, completed);
+        }
+
+        [Fact]
+        public void chain_multiple_rejected_promises_using_first()
+        {
+            var promise = new Promise<int>();
+            var chainedPromise1 = Promise<int>.Rejected(new Exception("First chained promise"));
+            var chainedPromise2 = Promise<int>.Rejected(new Exception("Second chained promise"));
+            var chainedPromise3 = Promise<int>.Rejected(new Exception("Third chained promise"));
+
+            bool completed = false;
+
+            Promise<int>
+                .First(() => chainedPromise1, () => chainedPromise2, () => chainedPromise3)
+                .Catch(ex =>
+                {
+                    Assert.Equal("Third chained promise", ex.Message);
+                    completed = true;
+                })
+            ;
+
+            Assert.Equal(true, completed);
+        }
+
+        [Fact]
         public void chain_multiple_promises_using_all()
         {
             var promise = new Promise<string>();
