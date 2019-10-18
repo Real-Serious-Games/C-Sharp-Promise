@@ -376,6 +376,22 @@ namespace RSG
         }
 
         /// <summary>
+        /// Create a new promise with no result.
+        /// </summary>
+        /// <param name="resolver">resolve action</param>
+        /// <returns>the constructed promise</returns>
+        public static IPromise Create(Action<Action, Action<Exception>> resolver)
+                => new Promise(resolver ?? throw new ArgumentNullException(nameof(resolver)));
+
+        /// <summary>
+        /// Create a new promise with a result.
+        /// </summary>
+        /// <param name="resolver">resolve action</param>
+        /// <returns>the constructed promise</returns>
+        public static IPromise<T> Create<T>(Action<Action<T>, Action<Exception>> resolver)
+            => new Promise<T>(resolver ?? throw new ArgumentNullException(nameof(resolver)));
+
+        /// <summary>
         /// Increments the ID counter and gives us the ID for the next promise.
         /// </summary>
         internal static int NextId()
