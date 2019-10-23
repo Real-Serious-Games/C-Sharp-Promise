@@ -1295,5 +1295,48 @@ namespace RSG.Tests
 
             Assert.Equal(2, callback);
         }
+
+        [Fact]
+        public void can_create_promise()
+        {
+            int callback = 0;
+
+            IPromise Create() => Promise.Create((resolve, reject) =>
+            {
+                resolve();
+                ++callback;
+            });
+
+            var promise = new Promise();
+            promise.Then(Create);
+            promise.Resolve();
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void can_create_oft_promise()
+        {
+            int callback = 0;
+
+            IPromise<int> Create() => Promise.Create<int>((resolve, reject) =>
+            {
+                resolve(1);
+                ++callback;
+            });
+
+            var promise = new Promise();
+            promise.Then(Create);
+            promise.Resolve();
+
+            Assert.Equal(1, callback);
+        }
+
+        [Fact]
+        public void can_create_null_throws()
+        {
+            Assert.Throws<ArgumentNullException>(() => Promise.Create(null));
+            Assert.Throws<ArgumentNullException>(() => Promise.Create<int>(null));
+        }
     }
 }
