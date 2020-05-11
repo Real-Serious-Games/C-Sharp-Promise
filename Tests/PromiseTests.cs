@@ -202,7 +202,7 @@ namespace RSG.Tests
         {
             var promise = new Promise<int>();
 
-            promise.Catch(e => throw new Exception("This shouldn't happen"));
+            promise.Catch(onRejected: e => throw new Exception("This shouldn't happen"));
 
             promise.Resolve(5);
         }
@@ -1471,6 +1471,66 @@ namespace RSG.Tests
                 .Catch(ex => actualException = ex);
 
             Assert.Equal(expectedException, actualException);
+        }
+
+        [Fact]
+        public void rejected_catch_returning_resolved_promise_state_is_adopted()
+        {
+            var promise = new Promise<int>();
+            int expectedValue = 1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise<int>.Resolved(expectedValue))
+                   .Then(result => { actualValue = result; });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void rejected_catch_returning_rejected_promise_state_is_adopted()
+        {
+            var promise = new Promise<int>();
+            int expectedValue = 1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise<int>.Rejected(new Exception()))
+                   .Catch(err => actualValue = expectedValue);
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void rejected_catch_returning_resolved_promise_state_is_adopted_nongeneric()
+        {
+            var promise = new Promise();
+            int expectedValue = 1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise.Resolved())
+                   .Then(() => { actualValue = expectedValue; });
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void rejected_catch_returning_rejected_promise_state_is_adopted_nongeneric()
+        {
+            var promise = new Promise();
+            int expectedValue = 1;
+            int actualValue = 0;
+
+            promise.Catch(err => Promise.Rejected(new Exception()))
+                   .Catch(err => actualValue = expectedValue);
+
+            promise.Reject(new Exception());
+
+            Assert.Equal(expectedValue, actualValue);
         }
     }
 }
